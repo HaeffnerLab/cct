@@ -6,6 +6,7 @@ from numpy import *
 import labrad
 from qtui.QDACControl import QDACControl
 from qtui.QCustomLevelSpin import QCustomLevelSpin
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 UpdateTime = 100 # ms
 
@@ -17,6 +18,8 @@ class DAC_CONTROL(QDACControl):
 
         QDACControl.__init__(self, parent)
 
+        self.connect()
+        
         self.Nelectrodes = 18
 
         ''' 
@@ -55,6 +58,13 @@ class DAC_CONTROL(QDACControl):
         for k in self.controls.keys():
             self.controls[k].onNewValues.connect(self.inputHasUpdated)
 
+    @inlineCallbacks
+    def connect(self):
+        from labrad.wrappers import connectAsync
+        from labrad.types import Error
+        self.cxn = yield connectAsync()
+        self.dacserver = yield self.cxn.cctdac
+
     def inputHasUpdated(self):
         self.inputUpdated = True
 
@@ -66,13 +76,14 @@ class DAC_CONTROL(QDACControl):
                 label.setText("El. " + str(n) + ": " + str(v))
             print realVolts
             print "Updated!"
+            self.sendRealVoltages(realVolts)
             self.inputUpdated = False
     def getMultipoleVectors(self):
         '''
         Read in the multipole vector matrix
         '''
 
-        data = genfromtxt("Cfile_pos_5E6_8elecs.txt")
+        data = genfromtxt("C_e3e4.txt")
         self.multipoleVectors = {}
         self.multipoleVectors['Ex'] = data[:,0]
         self.multipoleVectors['Ey'] = data[:,1]
@@ -94,15 +105,13 @@ class DAC_CONTROL(QDACControl):
         for k in self.controls.keys():
             realVolts += self.controls[k].spinLevel.value() * multipoleVectors[k]
         return realVolts
-'''
+
     def sendRealVoltages(self, realVolts): # Send a list of voltages to the DAC
 
         self.dacserver.set_analog_voltages( realVolts )
-'''
     
 if __name__=='__main__':
-	#cxn = labrad.connect()
-	#server = cxn.dc_box
+	cxn = labrad.connect('localhost')
 	app = QtGui.QApplication(sys.argv)
 	icon = DAC_CONTROL()
 	icon.show()

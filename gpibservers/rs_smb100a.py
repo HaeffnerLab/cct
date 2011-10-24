@@ -16,8 +16,8 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = Anritsu Server
-version = 2.1
+name = RohdeSchwarz Server
+version = 1.0
 description = 
 
 [startup]
@@ -34,48 +34,53 @@ from labrad.server import setting
 from labrad.gpib import GPIBManagedServer, GPIBDeviceWrapper
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-class AnritsuWrapper(GPIBDeviceWrapper):
+class RSSMB100AWrapper(GPIBDeviceWrapper):
     @inlineCallbacks
     def initialize(self):
         self.frequency = yield self.getFrequency()
         self.amplitude = yield self.getAmplitude()
-        self.outputStateKnown = False # there is not way to query for the output state
-        self.output = True
+        self.output = yield self.getOutput()
 
     @inlineCallbacks
     def getFrequency(self):
-        self.frequency = yield self.query('OF 1').addCallback(float)
+        frequency = yield self.query('SOURce:FREQuency?').addCallback(float)
+        self.frequency = frequency / 10.**6 #now in MHz
         returnValue(self.frequency)
 
     @inlineCallbacks
     def getAmplitude(self):
-        self.amplitude = yield self.query('OL 1').addCallback(float)
+        self.amplitude = yield self.query('POWer?').addCallback(float)
         returnValue(self.amplitude)
-
+    
+    @inlineCallbacks
+    def getOutput(self):
+        state = yield self.query('OUTput:STATe?').addCallback(float)
+        self.state = bool(state)
+        returnValue(self.state)
+    
     @inlineCallbacks
     def setFrequency(self, f):
         if self.frequency != f:
-            yield self.write('F1 %fMH' % f)
+            yield self.write('SOURce:FREQuency {}MHZ'.format(float(f)))
             self.frequency = f
     
     @inlineCallbacks
     def setAmplitude(self, a):
         if self.amplitude != a:
-            yield self.write('L1 %fDM' % a)
+            yield self.write('POWer {}'.format(float(a)))
             self.amplitude = a
 
     @inlineCallbacks
     def setOutput(self, out):
-        if self.output != out or not self.outputStateKnown:
-            yield self.write('RF %d' % int(out))
+        if self.output != out:
+            yield self.write('OUTput:STATe {}'.format(int(out)))
             self.output = out
-            self.outputStateKnown = True
 
-class AnritsuServer(GPIBManagedServer):
-    """Provides basic CW control for Anritsu 68367C Microwave Generators"""
-    name = 'Anritsu Server'
-    deviceName = 'ANRITSU 68367C'
-    deviceWrapper = AnritsuWrapper
+class RohdeSchwarzServer(GPIBManagedServer):
+    """Provides basic CW control for Rohde&Schwarz SMB100A RF Generators"""
+    name = 'RohdeSchwarz Server'
+    deviceName = 'Rohde&Schwarz SMB100A'
+    deviceWrapper = RSSMB100AWrapper
 
     @setting(10, 'Frequency', f=['v[MHz]'], returns=['v[MHz]'])
     def frequency(self, c, f=None):
@@ -101,7 +106,7 @@ class AnritsuServer(GPIBManagedServer):
             yield dev.setOutput(os)
         returnValue(dev.output)
 
-__server__ = AnritsuServer()
+__server__ = RohdeSchwarzServer()
 
 if __name__ == '__main__':
     from labrad import util

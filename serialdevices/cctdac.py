@@ -17,18 +17,18 @@ PREC_BITS = 16.
 DAC_MAX = 2500.
 MAX_QUEUE_SIZE = 1000
 #time to wait for response from dc box
-TIMEOUT = 1.0
+TIMEOUT = 0.01
 #expected response from dc box after write
 RESP_STRING = 'r'
 #time to wait if correct response not received
 ERROR_TIME = 1.0
 SIGNALID = 270579
 
-NUMCHANNELS = 19
+NUMCHANNELS = 18
 
 # Nominal analog voltage range. Just used if there's no calibration available
-NOMINAL_VMIN = 0
-NOMINAL_VMAX = 2.5
+NOMINAL_VMIN = -10.0
+NOMINAL_VMAX = 10.0
 
 class DCBoxError( SerialConnectionError ):
     errorDict = {
@@ -76,8 +76,7 @@ class Port():
         so that digital code = ( (analog voltage) - b ) / m
         """
 
-        self.analogVoltage = av
-        
+        self.analogVoltage = float(av)
         dv = int(round( (av - self.b) / float(self.m) ))
         
         if dv < 0:
@@ -129,7 +128,8 @@ class CCTDACServer( SerialDeviceServer ):
         try:
             print self.serNode
             serStr = yield self.findSerial( self.serNode )
-            self.initSerial( serStr, port, baudrate=56000 )
+            #self.initSerial( serStr, port, baudrate=56000 )
+            self.initSerial( serStr, port)
         except SerialConnectionError, e:
             print "SERIAL CONNECTION ERROR"
             self.ser = None
@@ -168,6 +168,7 @@ class CCTDACServer( SerialDeviceServer ):
             print 'queue free for writing'
             self.free = True
 
+    @inlineCallbacks
     def tryToUpdate( self, ports ):
         """
         Check if serial connection is free.
@@ -182,8 +183,7 @@ class CCTDACServer( SerialDeviceServer ):
         """
         if self.free:
             self.free = False
-            print len(ports)
-            self.writeToSerial( ports )
+            yield self.writeToSerial( ports )
         elif len( self.queue ) > MAX_QUEUE_SIZE:
             raise DCBoxError( 2 )
         else:
@@ -203,18 +203,20 @@ class CCTDACServer( SerialDeviceServer ):
 
         After the list has been written, update the current portList
         """
-        yield None
         self.checkConnection()
         toSend = self.makeComString( ports )
         #print binascii.hexlify(toSend)
-        self.ser.write( toSend )
-        resp = yield self.ser.read( len( ports ) )
-        print resp
+        yield self.ser.write( toSend )
+        #print 'about to read'
+        #resp = yield self.ser.read( len( ports ) )
+        #print 'read',resp, len(resp)
         self.portList = [ copy.copy(p) for p in ports ] # now that the new values have been written, update the portList
+        
         self.checkQueue()
 
     def makeComString(self, ports):
 
+            
         """
         Pass a list of Port objects to update. The updated value must already be written to the Port.
 
@@ -229,6 +231,11 @@ class CCTDACServer( SerialDeviceServer ):
         for p in ports:
             portNum = p.portNumber
             codeInDec = p.digitalVoltage
+            # a hack to make the least significant bit a 0 to deal
+            # with an obscure problem in the FPGA code.
+            if codeInDec % 2:
+                codeInDec = codeInDec - 1
+            #print codeInDec
             port =  binascii.unhexlify(hex(portNum)[2:].zfill(2)) # Which port to change
             setn = binascii.unhexlify(hex(setNum)[2:].zfill(4)) # Which set of updates are we applying ( = 1 for now, always)
             code = binascii.unhexlify(hex(codeInDec)[2:].zfill(4)) # What digital code to write to the port
@@ -258,7 +265,16 @@ class CCTDACServer( SerialDeviceServer ):
             p.setAnalogVoltage(av)
         self.tryToUpdate( newPorts )
 
-    @setting( 2, 'Get Analog Voltages' )
+    @setting( 2, 'Set Individual Analog Voltages', returns = '')
+    def setIndivAnaVoltages(self, c, analogVoltaages ):
+        """
+        Pass a list of tuples of the form:
+        (portNum, newVolts)
+        """
+        
+        pass
+
+    @setting( 3, 'Get Analog Voltages' )
     def getAnalogVoltages(self):
         """
         Return a list of the analog voltages currently in portList
@@ -266,7 +282,7 @@ class CCTDACServer( SerialDeviceServer ):
 
         return [ av for v in [ p.analogVoltage for p in self.portList ] ] # Yay for list comprehensions
 
-    @setting( 3, 'Get Digital Voltages' )
+    @setting( 4, 'Get Digital Voltages' )
     def getDigitalVoltages(self):
         """
         Return a list of digital voltages currently in portList

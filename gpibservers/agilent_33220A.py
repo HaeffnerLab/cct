@@ -16,8 +16,8 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = Anritsu Server
-version = 2.1
+name = Agilent Server
+version = 1.0
 description = 
 
 [startup]
@@ -34,48 +34,88 @@ from labrad.server import setting
 from labrad.gpib import GPIBManagedServer, GPIBDeviceWrapper
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-class AnritsuWrapper(GPIBDeviceWrapper):
+class Agilent33220AWrapper(GPIBDeviceWrapper):
     @inlineCallbacks
     def initialize(self):
         self.frequency = yield self.getFrequency()
         self.amplitude = yield self.getAmplitude()
-        self.outputStateKnown = False # there is not way to query for the output state
-        self.output = True
+        self.output = yield self.getOutput()
 
     @inlineCallbacks
     def getFrequency(self):
-        self.frequency = yield self.query('OF 1').addCallback(float)
+        frequency = yield self.query('FREQuency?').addCallback(float)
+        self.frequency = frequency / 10.**6 #now in MHz
         returnValue(self.frequency)
 
     @inlineCallbacks
     def getAmplitude(self):
-        self.amplitude = yield self.query('OL 1').addCallback(float)
+        self.amplitude = yield self.query('Voltage:UNIT DBM\r\n'+'Voltage?').addCallback(float)
         returnValue(self.amplitude)
-
+    
+    @inlineCallbacks
+    def getOutput(self):
+        state = yield self.query('OUTput?').addCallback(float)
+        self.state = bool(state)
+        returnValue(self.state)
+    
     @inlineCallbacks
     def setFrequency(self, f):
         if self.frequency != f:
-            yield self.write('F1 %fMH' % f)
+            yield self.write('FREQuency {}Mhz'.format(float(f)))
             self.frequency = f
     
     @inlineCallbacks
     def setAmplitude(self, a):
         if self.amplitude != a:
-            yield self.write('L1 %fDM' % a)
+            yield self.write('Voltage:UNIT DBM\r\nVoltage {}'.format(float(a)))
             self.amplitude = a
 
     @inlineCallbacks
     def setOutput(self, out):
-        if self.output != out or not self.outputStateKnown:
-            yield self.write('RF %d' % int(out))
+        if self.output != out:
+            if out == True:
+                comstr = 'OUTPut ON'
+            else:
+                comstr = 'OUTPut OFF'
+            yield self.write(comstr)
             self.output = out
-            self.outputStateKnown = True
 
-class AnritsuServer(GPIBManagedServer):
-    """Provides basic CW control for Anritsu 68367C Microwave Generators"""
-    name = 'Anritsu Server'
-    deviceName = 'ANRITSU 68367C'
-    deviceWrapper = AnritsuWrapper
+#currently not implemented but possible:
+#===============================================================================
+#    def VoltageReqStr(self):
+#        return 'Voltage:UNIT VPP\r\n'+'Voltage?' + '\r\n'
+#    
+#    # string to set voltage
+#    def VoltageSetStr(self,volt):
+#        return 'Voltage:UNIT VPP\r\n'+'Voltage ' +str(volt) + '\r\n'
+#
+#    #string to get current function
+#    def FunctionReqStr(self):
+#        return 'FUNCtion?\r\n'
+#    
+#    # string to set function
+#    def FunctionSetStr(self,func):
+#        if func == 'SINE':
+#            comstr = 'FUNCtion ' + 'SIN' + '\r\n'
+#        elif func == 'SQUARE':
+#            comstr = 'FUNCtion ' + 'SQU' + '\r\n'
+#        elif func == 'RAMP':
+#            comstr = 'FUNCtion ' + 'RAMP' + '\r\n'
+#        elif func == 'PULSE':
+#            comstr = 'FUNCtion ' + 'PULSe' + '\r\n'
+#        elif func == 'NOISE':
+#            comstr = 'FUNCtion ' + 'NOISe' + '\r\n'
+#        elif func == 'DC':
+#            comstr = 'FUNCtion ' + 'DC' + '\r\n'
+#        return comstr       
+#===============================================================================
+ 
+
+class AgilentServer(GPIBManagedServer):
+    """Provides basic CW control for Agilent Signal Generators"""
+    name = 'Agilent Server'
+    deviceName = 'Agilent Technologies 33220A'
+    deviceWrapper = Agilent33220AWrapper
 
     @setting(10, 'Frequency', f=['v[MHz]'], returns=['v[MHz]'])
     def frequency(self, c, f=None):
@@ -101,7 +141,7 @@ class AnritsuServer(GPIBManagedServer):
             yield dev.setOutput(os)
         returnValue(dev.output)
 
-__server__ = AnritsuServer()
+__server__ = AgilentServer()
 
 if __name__ == '__main__':
     from labrad import util

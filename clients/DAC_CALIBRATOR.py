@@ -25,24 +25,27 @@ class DAC_CALIBRATOR(QDACCalibrator):
     # This is where the magic happens
     def calib(self):
         
-        stepsize = 100
+        stepsize = 1
 
         digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
         anaVoltages = [] # corresponding analog voltages in volts
-
+        self.dacserver.set_digital_voltages([0]*18)
+        time.sleep(1)
         for dv in digVoltages: # iterate over digital voltages
 
-            self.dacserver.set_digital_voltages([dv]*19) # just set all the channels at once
+            self.dacserver.set_digital_voltages([dv]*18) # just set all the channels at once
 
             time.sleep(1)
             
             av = self.dmmserver.get_dc_volts()
+            #av = 0
 
             anaVoltages.append(av)
-            print av
+            print dv, "; ", av
         
 
         plt.plot(digVoltages, anaVoltages, 'ro')
+        plt.show()
 
         fit = np.polyfit(digVoltages, anaVoltages, 2) # fit to a second order polynomial
         
@@ -51,28 +54,27 @@ class DAC_CALIBRATOR(QDACCalibrator):
         # Save the raw data to the datavault
         now = time.ctime()
         self.datavault.cd( ( ['DACCalibrations', self.channelToCalib], True ) )
-        self.datavault.new( (now, 'Digital Voltage', 'Analog Voltage') )
+        self.datavault.new( (now, [('Digital voltage', 'num')], [('Volts','Analog Voltage','v')]) )
         self.datavault.add( np.array([digVoltages, anaVoltages]).transpose().tolist() )
 
         # Update the registry with the new calibration
         self.r.cd( ( ['Calibrations', self.channelToCalib], True ) )
-        self.r.set( ( 'y_int', fit[0] ) )
+        self.r.set( ( 'y_int', fit[2] ) )
         self.r.set( ( 'slope', fit[1] ) )
 
         return fit
 
     def buttonClicked(self):
-        
-        self.channelToCalib = self.port.text()
-        print channelToCalib
+        self.channelToCalib = str(self.port.text())
+        print self.channelToCalib
         
         self.clicked = True
         fit = self.calib() # Now calibrate
         
         self.results.setText('RESULTS')
-        self.y_int.setText('Intercept: ' + str(fit[0]))
+        self.y_int.setText('Intercept: ' + str(fit[2]))
         self.slope.setText('Slope: ' + str(fit[1]))
-        self.order2.setText('Nonlinearity: ' + str(fit[2]))
+        self.order2.setText('Nonlinearity: ' + str(fit[0]))
 
 
 if __name__=="__main__":
