@@ -5,16 +5,16 @@ class CCT_GUI(QtGui.QMainWindow):
         super(CCT_GUI, self).__init__(parent)
         self.reactor = reactor
         print "making widgets"
-        #lightControlTab = self.makeLightWidget(reactor)
-        voltageControlTab = self.makeVoltageWidget()
-        #tableOpticsWidget = self.makeTableOpticsWidget(reactor)
+        lightControlTab = self.makeLightWidget(reactor)
+        voltageControlTab = self.makeVoltageWidget(reactor)
+        tableOpticsWidget = self.makeTableOpticsWidget(reactor)
         print "made widgets"
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(voltageControlTab,'&Trap Voltages')
-        #tabWidget.addTab(lightControlTab,'&LaserRoom')
-        #tabWidget.addTab(tableOpticsWidget,'&Optics')
+        tabWidget.addTab(lightControlTab,'&LaserRoom')
+        tabWidget.addTab(tableOpticsWidget,'&Optics')
+        self.setCentralWidget(tabWidget)
 
-    '''
     def makeLightWidget(self, reactor):
         widget = QtGui.QWidget()
         from CAVITY_CONTROL import cavityWidget
@@ -24,15 +24,15 @@ class CCT_GUI(QtGui.QMainWindow):
         gridLayout.addWidget(multiplexerWidget(reactor),0,1)
         widget.setLayout(gridLayout)
         return widget
-    '''
-    def makeVoltageWidget(self):
+
+    def makeVoltageWidget(self, reactor):
         widget = QtGui.QWidget()
         from DAC_CONTROL import DAC_CONTROL
         gridLayout = QtGui.QGridLayout()
-        gridLayout.addWidget(DAC_CONTROL(),0,0,1,2)
+        gridLayout.addWidget(DAC_CONTROL(reactor),0,0,1,2)
         widget.setLayout(gridLayout)
         return widget
-    '''
+
     def makeTableOpticsWidget(self, reactor):
         widget = QtGui.QWidget()
         from PMT_CONTROL import pmtWidget
@@ -40,7 +40,7 @@ class CCT_GUI(QtGui.QMainWindow):
         gridLayout.addWidget(pmtWidget(reactor),0,1)
         widget.setLayout(gridLayout)
         return widget
-    '''
+
 
     def closeEvent(self, x):
         self.reactor.stop()

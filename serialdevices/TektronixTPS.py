@@ -114,8 +114,9 @@ class TPSserver( SerialDeviceServer ):
         tarr = numpy.arange(t0,tf,dt)
         if len(tarr)!=2500:
                 tarr=[]
-                tf=t0+(length)*dt
-                tarr = numpy.arange(t0,tf,dt)    
+                for i in range(int(length)):
+                    tstr=t0+i*dt
+                    tarr.append(tstr)  
         print len(tarr)
         print len(voltarray)
         #for i in range(length):

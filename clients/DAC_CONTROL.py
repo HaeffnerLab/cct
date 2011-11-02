@@ -3,7 +3,6 @@ import os
 from PyQt4 import QtGui
 from PyQt4 import QtCore,uic
 from numpy import *
-import labrad
 from qtui.QDACControl import QDACControl
 from qtui.QCustomLevelSpin import QCustomLevelSpin
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -11,13 +10,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 UpdateTime = 100 # ms
 
 class DAC_CONTROL(QDACControl):
-
-    def __init__(self, parent=None):
-        #self.cxn = cxn
-        #self.dacserver = cxn.cctdac
-
+    def __init__(self, reactor, parent=None):
         QDACControl.__init__(self, parent)
-
+        self.reactor = reactor
         self.connect()
         
         self.Nelectrodes = 18
@@ -109,10 +104,15 @@ class DAC_CONTROL(QDACControl):
     def sendRealVoltages(self, realVolts): # Send a list of voltages to the DAC
 
         self.dacserver.set_analog_voltages( realVolts )
-    
-if __name__=='__main__':
-	cxn = labrad.connect('localhost')
-	app = QtGui.QApplication(sys.argv)
-	icon = DAC_CONTROL()
-	icon.show()
-	app.exec_()
+        
+    def closeEvent(self, x):
+        self.reactor.stop()  
+
+if __name__=="__main__":
+    a = QtGui.QApplication( [] )
+    import qt4reactor
+    qt4reactor.install()
+    from twisted.internet import reactor
+    DAC_CONTROL = DAC_CONTROL(reactor)
+    DAC_CONTROL.show()
+    reactor.run()
