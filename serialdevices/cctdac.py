@@ -10,7 +10,10 @@ from twisted.internet import reactor
 from twisted.internet.defer import returnValue
 import binascii
 from labrad.server import Signal
-import copy # copy objects by value
+import copy as cpy # copy objects by value
+from numpy import *
+import sys
+import os
 
 SERVERNAME = 'CCTDAC'
 PREC_BITS = 16.
@@ -22,7 +25,7 @@ TIMEOUT = 0.01
 RESP_STRING = 'r'
 #time to wait if correct response not received
 ERROR_TIME = 1.0
-SIGNALID = 270579
+SIGNALID = 270837
 
 NUMCHANNELS = 18
 
@@ -113,7 +116,7 @@ class CCTDACServer( SerialDeviceServer ):
     port = None
     serNode = 'cctmain'
     timeout = TIMEOUT
-    onNewUpdate = Signal(SIGNALID, 'signal: channel has been updated', '(sv)')
+    onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')
 
     @inlineCallbacks
     def initServer( self ):
@@ -153,7 +156,7 @@ class CCTDACServer( SerialDeviceServer ):
             self.portList.append(Port(i))
 
     @inlineCallbacks
-    def checkQueue( self ):
+    def checkQueue( self, c ):
         """
         When timer expires, check queue for values to write
         """
@@ -163,13 +166,13 @@ class CCTDACServer( SerialDeviceServer ):
             #print len(wr)
             #yield self.writeToSerial(wr)
             #yield self.writeToSerial( *self.queue.pop( 0 ) )
-            yield self.writeToSerial( self.queue.pop( 0 ) )
+            yield self.writeToSerial(c, self.queue.pop( 0 ) )
         else:
             print 'queue free for writing'
             self.free = True
 
     @inlineCallbacks
-    def tryToUpdate( self, ports ):
+    def tryToUpdate( self, c, ports ):
         """
         Check if serial connection is free.
         If free, write the list of ports to the DAC.
@@ -181,18 +184,20 @@ class CCTDACServer( SerialDeviceServer ):
         
         @raise DCBoxError: Error code 2.  Queue size exceeded
         """
+        print "in trytoupdate"
         if self.free:
             self.free = False
-            yield self.writeToSerial( ports )
+            yield self.writeToSerial(c, ports )
+            self.notifyOtherListeners(c)
         elif len( self.queue ) > MAX_QUEUE_SIZE:
             raise DCBoxError( 2 )
         else:
-            newPorts = [ copy.copy(p) for p in ports] # copy the portList by value into the queue
+            newPorts = [ cpy.copy(p) for p in ports] # copy the portList by value into the queue
             self.queue.append( newPorts )
             
 
     @inlineCallbacks
-    def writeToSerial( self, ports ):
+    def writeToSerial( self, c, ports ):
         """
         Write value to specified channel through serial connection.
         
@@ -203,6 +208,7 @@ class CCTDACServer( SerialDeviceServer ):
 
         After the list has been written, update the current portList
         """
+        print "in writetoserial"
         self.checkConnection()
         toSend = self.makeComString( ports )
         #print binascii.hexlify(toSend)
@@ -210,9 +216,8 @@ class CCTDACServer( SerialDeviceServer ):
         #print 'about to read'
         #resp = yield self.ser.read( len( ports ) )
         #print 'read',resp, len(resp)
-        self.portList = [ copy.copy(p) for p in ports ] # now that the new values have been written, update the portList
-        
-        self.checkQueue()
+        self.portList = [ cpy.copy(p) for p in ports ] # now that the new values have been written, update the portList
+        yield self.checkQueue(c)
 
     def makeComString(self, ports):
 
@@ -233,15 +238,30 @@ class CCTDACServer( SerialDeviceServer ):
             codeInDec = p.digitalVoltage
             # a hack to make the least significant bit a 0 to deal
             # with an obscure problem in the FPGA code.
-            if codeInDec % 2:
-                codeInDec = codeInDec - 1
+            #if codeInDec % 2:
+            #    codeInDec = codeInDec - 1
             #print codeInDec
             port =  binascii.unhexlify(hex(portNum)[2:].zfill(2)) # Which port to change
             setn = binascii.unhexlify(hex(setNum)[2:].zfill(4)) # Which set of updates are we applying ( = 1 for now, always)
             code = binascii.unhexlify(hex(codeInDec)[2:].zfill(4)) # What digital code to write to the port
             comstr += 'P' + port + 'I' + setn + ',' + code
         return comstr
-
+    
+    def initContext(self, c):
+        self.listeners.add(c.ID)
+    
+    def expireContext(self, c):
+        self.listeners.remove(c.ID)
+    
+    def notifyOtherListeners(self, context):
+        """
+        Notifies all listeners except the one in the given context
+        """
+        notified = self.listeners.copy()
+        notified.remove(context.ID)
+        self.onNewUpdate('Channels updated', notified)
+        print "Notifyin' them listeners"
+    
     @setting( 0 , 'Set Digital Voltages', returns = '' )
     def setDigitalVoltages( self, c, digitalVoltages ):
         """
@@ -251,19 +271,21 @@ class CCTDACServer( SerialDeviceServer ):
         newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
         for (p, dv) in zip(newPorts, digitalVoltages):
             p.setDigitalVoltage(dv)
-        self.tryToUpdate( newPorts )
+        self.tryToUpdate(c, newPorts )
         
 
-    @setting( 1 , 'Set Analog Voltages', returns = '' )
+    @setting( 1 , 'Set Analog Voltages', analogVoltages='*v', returns = '' )
     def setAnalogVoltages( self, c, analogVoltages ):
         """
         Pass analogVoltages, a list of analog voltages to update.
         Currently, there must be one for each port.
-        """
+        """ 
         newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
         for (p, av) in zip(newPorts, analogVoltages):
             p.setAnalogVoltage(av)
-        self.tryToUpdate( newPorts )
+        yield self.tryToUpdate(c, newPorts )
+        print "In setAnalogVoltages"
+ 
 
     @setting( 2, 'Set Individual Analog Voltages', returns = '')
     def setIndivAnaVoltages(self, c, analogVoltaages ):
@@ -274,22 +296,63 @@ class CCTDACServer( SerialDeviceServer ):
         
         pass
 
-    @setting( 3, 'Get Analog Voltages' )
-    def getAnalogVoltages(self):
+    @setting( 3, 'Get Analog Voltages', returns = '*v' )
+    def getAnalogVoltages(self, c):
         """
         Return a list of the analog voltages currently in portList
         """
-
-        return [ av for v in [ p.analogVoltage for p in self.portList ] ] # Yay for list comprehensions
+        return [ p.analogVoltage for p in self.portList ]  # Yay for list comprehensions
 
     @setting( 4, 'Get Digital Voltages' )
-    def getDigitalVoltages(self):
+    def getDigitalVoltages(self, c):
         """
         Return a list of digital voltages currently in portList
         """
         
         return [ dv for v in [ p.digitalVoltage for p in self.portList ] ]
+    
+    @setting( 5, 'Set Multipole Control File', file='s: multipole control file')
+    def setMultipoleControlFile(self, c, file):
+        """
+        Read in a matrix of multipole values
+        """
 
+        data = genfromtxt(file)
+        self.multipoleVectors = {}
+        self.multipoleVectors['Ex'] = data[:,0]
+        self.multipoleVectors['Ey'] = data[:,1]
+        self.multipoleVectors['Ez'] = data[:,2]
+        self.multipoleVectors['U1'] = data[:,3]
+        self.multipoleVectors['U2'] = data[:,4]
+        self.multipoleVectors['U3'] = data[:,5]
+        self.multipoleVectors['U4'] = data[:,6]
+        self.multipoleVectors['U5'] = data[:,7]
+        
+    @setting( 6, 'Set Multipole Voltages', ms = '*(sv): dictionary of multipole voltages')
+    def setMultipoleVoltages(self, c, ms):
+        """
+        set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
+        """
+        
+        multipoleSet = {}
+        for (k,v) in ms:
+            multipoleSet[k] = v
+        
+        self.multipoleSet = multipoleSet # may want to keep track of the current set.
+        realVolts = zeros(NUMCHANNELS)
+        for key in self.multipoleVectors.keys():
+            #print self.multipoleVectors[key]
+            realVolts += dot(multipoleSet[key],self.multipoleVectors[key])
+            #realVolts += multipoleSet[key] * self.multipoleVectors[key]
+        print "in setMultipoleVoltages"
+        self.setAnalogVoltages(c, realVolts)
+    
+    @setting( 7, 'Get Multipole Volages')
+    def getMultipoleVolgates(self, c):
+        print "Shhhh... I shouldn't be here!"
+        return self.multipoleSet
+    
+        
 if __name__ == "__main__":
     from labrad import util
     util.runServer( CCTDACServer() )

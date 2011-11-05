@@ -1,7 +1,7 @@
 import serial
 import binascii
 
-ser = serial.Serial('/dev/tty.usbserial-FTFA67XY', baudrate=56000)
+ser = serial.Serial('COM7', baudrate=9600)
 
 ser.close()
 ser.open()

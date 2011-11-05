@@ -25,7 +25,7 @@ class DAC_CALIBRATOR(QDACCalibrator):
     # This is where the magic happens
     def calib(self):
         
-        stepsize = 1
+        stepsize = 100
 
         digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
         anaVoltages = [] # corresponding analog voltages in volts
