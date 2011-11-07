@@ -162,10 +162,6 @@ class CCTDACServer( SerialDeviceServer ):
         """
         if self.queue:
             print 'clearing queue...(%d items)' % len( self.queue )
-            #wr = self.queue.pop(0)
-            #print len(wr)
-            #yield self.writeToSerial(wr)
-            #yield self.writeToSerial( *self.queue.pop( 0 ) )
             yield self.writeToSerial(c, self.queue.pop( 0 ) )
         else:
             print 'queue free for writing'
@@ -184,11 +180,9 @@ class CCTDACServer( SerialDeviceServer ):
         
         @raise DCBoxError: Error code 2.  Queue size exceeded
         """
-        print "in trytoupdate"
         if self.free:
             self.free = False
             yield self.writeToSerial(c, ports )
-            self.notifyOtherListeners(c)
         elif len( self.queue ) > MAX_QUEUE_SIZE:
             raise DCBoxError( 2 )
         else:
@@ -208,7 +202,6 @@ class CCTDACServer( SerialDeviceServer ):
 
         After the list has been written, update the current portList
         """
-        print "in writetoserial"
         self.checkConnection()
         toSend = self.makeComString( ports )
         #print binascii.hexlify(toSend)
@@ -217,6 +210,7 @@ class CCTDACServer( SerialDeviceServer ):
         #resp = yield self.ser.read( len( ports ) )
         #print 'read',resp, len(resp)
         self.portList = [ cpy.copy(p) for p in ports ] # now that the new values have been written, update the portList
+        self.notifyOtherListeners(c)
         yield self.checkQueue(c)
 
     def makeComString(self, ports):
@@ -284,7 +278,6 @@ class CCTDACServer( SerialDeviceServer ):
         for (p, av) in zip(newPorts, analogVoltages):
             p.setAnalogVoltage(av)
         yield self.tryToUpdate(c, newPorts )
-        print "In setAnalogVoltages"
  
 
     @setting( 2, 'Set Individual Analog Voltages', returns = '')
@@ -344,7 +337,6 @@ class CCTDACServer( SerialDeviceServer ):
             #print self.multipoleVectors[key]
             realVolts += dot(multipoleSet[key],self.multipoleVectors[key])
             #realVolts += multipoleSet[key] * self.multipoleVectors[key]
-        print "in setMultipoleVoltages"
         self.setAnalogVoltages(c, realVolts)
     
     @setting( 7, 'Get Multipole Volages')

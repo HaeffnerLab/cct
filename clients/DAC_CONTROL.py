@@ -76,7 +76,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.inputUpdated = True
         print "in inputHasUpdated"
         for k in self.controlLabels:
-            self.multipoleValues[k] = self.controls[k].spinLevel.value()
+            self.multipoleValues[k] = round(self.controls[k].spinLevel.value(), 3)
         
     def sendToServer(self):
         if self.inputUpdated:

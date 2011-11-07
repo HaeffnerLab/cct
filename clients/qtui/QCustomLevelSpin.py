@@ -38,6 +38,7 @@ class QCustomLevelSpin(QtGui.QWidget):
 
     def sliderLevelChanged(self,newlevel):
         #if the change results in outputs not within range then don't perform
+        print "Slider level changed"
         oldlevel = self.level
         withinRange = self.checkRange(newlevel/100.)
         if withinRange:
