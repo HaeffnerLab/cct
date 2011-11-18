@@ -95,6 +95,14 @@ class QCustomLevelSpin(QtGui.QWidget):
         self.sliderLevel.blockSignals(False)
         self.spinLevel.blockSignals(False)
         
+    def setValueNoSignal(self, value):
+        self.spinLevel.blockSignals(True)
+        self.sliderLevel.blockSignals(True)
+        self.spinLevel.setValue(value)
+        self.sliderLevel.setValue(value)
+        self.spinLevel.blockSignals(False)
+        self.sliderLevel.blockSignals(False)
+        
 if __name__=='__main__':
 	app = QtGui.QApplication(sys.argv)
 	icon = QCustomLevelSpin('Control',(0.0,100.0))

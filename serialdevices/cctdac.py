@@ -209,7 +209,9 @@ class CCTDACServer( SerialDeviceServer ):
         #print 'about to read'
         #resp = yield self.ser.read( len( ports ) )
         #print 'read',resp, len(resp)
-        self.portList = [ cpy.copy(p) for p in ports ] # now that the new values have been written, update the portList
+        #self.portList = [ cpy.copy(p) for p in ports ] # now that the new values have been written, update the portList
+        for p in ports:
+            self.portList[p.portNumber-1] = cpy.copy(p)
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
 
@@ -280,14 +282,18 @@ class CCTDACServer( SerialDeviceServer ):
         yield self.tryToUpdate(c, newPorts )
  
 
-    @setting( 2, 'Set Individual Analog Voltages', returns = '')
-    def setIndivAnaVoltages(self, c, analogVoltaages ):
+    @setting( 2, 'Set Individual Analog Voltages', analogVoltages='*(iv)', returns = '')
+    def setIndivAnaVoltages(self, c, analogVoltages ):
         """
         Pass a list of tuples of the form:
         (portNum, newVolts)
         """
-        
-        pass
+        newPorts = []
+        for (num, av) in analogVoltages:
+            p = Port(num)
+            p.setAnalogVoltage(av)
+            newPorts.append(p)
+        yield self.tryToUpdate(c, newPorts)
 
     @setting( 3, 'Get Analog Voltages', returns = '*v' )
     def getAnalogVoltages(self, c):
@@ -339,10 +345,10 @@ class CCTDACServer( SerialDeviceServer ):
             #realVolts += multipoleSet[key] * self.multipoleVectors[key]
         self.setAnalogVoltages(c, realVolts)
     
-    @setting( 7, 'Get Multipole Volages')
+    @setting( 7, 'Get Multipole Voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
         print "Shhhh... I shouldn't be here!"
-        return self.multipoleSet
+        return self.multipoleSet.items()
     
         
 if __name__ == "__main__":

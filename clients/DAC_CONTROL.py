@@ -5,6 +5,7 @@ from PyQt4 import QtCore,uic
 from numpy import *
 from qtui.QDACControl import QDACControl
 from qtui.QCustomLevelSpin import QCustomLevelSpin
+from qtui.QCustomSliderSpin import QCustomSliderSpin
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 UpdateTime = 100 # ms
@@ -92,18 +93,136 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     @inlineCallbacks    
     def setupListeners(self):
         yield self.dacserver.signal__ports_updated(SIGNALID)
-        yield self.dacserver.addListener(listener = self.followSignal, source = None, ID = SIGNALID)
+        yield self.dacserver.addListener(listener = self.followSignal, source = None, ID = SIGNALID) #cxzv 
     
     def followSignal(self, x, (s)):
         """
         Update the sliders
         """
-        for k in self.controls.keys():
-           self.controls[k].setValueNoSignal(self.dacserver.get_multipole_voltages[k])
+        multipoles = yield self.dacserver.get_multipole_voltages()
+        for (k,v) in multipoles:
+           self.controls[k].setValueNoSignal(v)
     
     def closeEvent(self, x):
         self.reactor.stop()  
+
+class CHANNEL_CONTROL (QtGui.QWidget):
+    def __init__(self, reactor, parent=None):
+        super(CHANNEL_CONTROL, self).__init__(parent)
+        self.reactor = reactor
+        self.connect()
         
+        ctrlLayout = QtGui.QGridLayout()
+        
+        self.controlLabels = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','CNT']
+        
+        self.labelToNumber = {}
+        for k in self.controlLabels:
+            if k == 'CNT':
+                self.labelToNumber[k]=18
+            else:
+                self.labelToNumber[k]=int(k)
+
+        self.controls = {}
+        for label in self.controlLabels:
+            self.controls[label] = QCustomLevelSpin(label, (-10,10))
+              
+        self.channelValues = {}
+        for k in self.controlLabels:
+            self.channelValues[k]=0.0
+        
+        self.oldValues = {}
+        for k in self.controlLabels:
+            self.oldValues[k]=0.0
+       
+        ctrlLayout.addWidget(self.controls['1'],0,0)
+        ctrlLayout.addWidget(self.controls['2'],1,0)
+        ctrlLayout.addWidget(self.controls['3'],2,0)
+        ctrlLayout.addWidget(self.controls['4'],3,0)
+        ctrlLayout.addWidget(self.controls['5'],4,0)
+        ctrlLayout.addWidget(self.controls['6'],5,0)
+        ctrlLayout.addWidget(self.controls['7'],0,1)
+        ctrlLayout.addWidget(self.controls['8'],1,1)
+        ctrlLayout.addWidget(self.controls['9'],2,1)
+        ctrlLayout.addWidget(self.controls['10'],3,1)
+        ctrlLayout.addWidget(self.controls['11'],4,1)
+        ctrlLayout.addWidget(self.controls['12'],5,1)
+        ctrlLayout.addWidget(self.controls['13'],0,2)
+        ctrlLayout.addWidget(self.controls['14'],1,2)
+        ctrlLayout.addWidget(self.controls['15'],2,2)
+        ctrlLayout.addWidget(self.controls['16'],3,2)
+        ctrlLayout.addWidget(self.controls['17'],4,2)
+        ctrlLayout.addWidget(self.controls['CNT'],5,2)
+                
+        self.inputUpdated = False                
+        self.timer = QtCore.QTimer(self)        
+        self.timer.timeout.connect(self.sendToServer)
+        self.timer.start(UpdateTime)
+        
+        for k in self.controlLabels:
+            self.controls[k].onNewValues.connect(self.inputHasUpdated2(k))
+                   
+        self.setLayout(ctrlLayout)
+        
+    def inputHasUpdated2(self,name):
+        def iu():
+            self.inputUpdated = True
+            print "in inputHasUpdated"
+            self.oldValues = self.channelValues.copy() 
+            for k in self.controlLabels:
+                self.channelValues[k] = round(self.controls[k].spinLevel.value(), 3)
+            self.changedChannel = name
+            print "Channel changed: " + name
+        return iu
+        
+    def findChange(self, old, new):
+        d = {}
+        for k in old:
+            v1 = old.get(k,0)
+            v2 = new.get(k,0)
+            if v1 != v2:
+                d[k] = new[k]
+        print d
+        return d
+            
+    @inlineCallbacks
+    def connect(self):
+        from labrad.wrappers import connectAsync
+        from labrad.types import Error
+        self.cxn = yield connectAsync()
+        self.dacserver = yield self.cxn.cctdac
+        yield self.setupListeners()
+
+    def inputHasUpdated(self):
+        self.inputUpdated = True
+        print "in inputHasUpdated"
+        self.oldValues = self.channelValues.copy() 
+        for k in self.controlLabels:
+            self.channelValues[k] = round(self.controls[k].spinLevel.value(), 3)
+        self.changedChannel = self.findChange(self.oldValues, self.channelValues)
+
+    def sendToServer(self):
+        if self.inputUpdated:
+            c = self.changedChannel
+            #self.dacserver.set_individual_analog_voltages(self.changedChannel.items()) #indv*
+            self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])])
+            print "set the values"
+            self.inputUpdated = False
+            
+    @inlineCallbacks    
+    def setupListeners(self):
+        yield self.dacserver.signal__ports_updated(SIGNALID2)
+        yield self.dacserver.addListener(listener = self.followSignal, source = None, ID = SIGNALID2)
+    
+    @inlineCallbacks
+    def followSignal(self, x, s):
+        av = yield self.dacserver.get_analog_voltages()
+        for (c, v) in zip(self.controlLabels, av):
+            self.controls[c].setValueNoSignal(v)
+
+    def closeEvent(self, x):
+        self.reactor.stop()        
+
 class CHANNEL_MONITOR(QtGui.QWidget):
     """
     A widget to monitor each of the DAC channel voltages.
@@ -120,16 +239,22 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         elecLayout = QtGui.QGridLayout()
         
         for j in range(self.Nelectrodes/2):
-            elecLayout.addWidget(QtGui.QLabel(str(j)),j,0)
+            elecLayout.addWidget(QtGui.QLabel(str(j+1)),j,0)
             elecLayout.addWidget(self.electrodes[j],j,1)
         for j in range(self.Nelectrodes/2,self.Nelectrodes-1):
-            elecLayout.addWidget(QtGui.QLabel(str(j)), j - self.Nelectrodes/2,2)
+            elecLayout.addWidget(QtGui.QLabel(str(j+1)), j - self.Nelectrodes/2,2)
             elecLayout.addWidget(self.electrodes[j],j - self.Nelectrodes/2,3)   
 
         elecLayout.addWidget(QtGui.QLabel('CNT'),int(round(self.Nelectrodes/2.))-1,2)
         elecLayout.addWidget(self.electrodes[self.Nelectrodes-1], int(round(self.Nelectrodes/2.)) - 1,3)
         
+        self.getValues = QtGui.QPushButton('get values')  #sometimes channel monitor fails to update (after using sliders on multipole control)
+        
+        elecLayout.addWidget(self.getValues ,10,1)
+
         self.setLayout(elecLayout)
+        
+        #self.getValues.clicked.connect()
         
     @inlineCallbacks
     def connect(self):
@@ -149,7 +274,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         print "CHMON followSignal"
         av = yield self.dacserver.get_analog_voltages()
         for (e, v) in zip(self.electrodes, av):
-            print float(v)
+            #print float(v)
             e.display(float(v))
             
     def closeEvent(self, x):
@@ -161,10 +286,12 @@ class DAC_CONTROL(QtGui.QMainWindow):
         
         self.reactor = reactor
         self.Nelectrodes = 18
-                
+
+        nextTab = self.buildnextTab()        
         multipoleControlTab = self.buildMultipoleControlTab()
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(multipoleControlTab,'&Multipoles')
+        tabWidget.addTab(nextTab, '&Channels')
         self.setCentralWidget(tabWidget)
     
     def buildMultipoleControlTab(self):
@@ -174,11 +301,18 @@ class DAC_CONTROL(QtGui.QMainWindow):
         gridLayout.addWidget(MULTIPOLE_CONTROL(self.reactor),0,1)
         widget.setLayout(gridLayout)
         return widget
+
+    def buildnextTab(self):
+        widget = QtGui.QWidget()
+        gridLayout = QtGui.QGridLayout()
+        gridLayout.addWidget(CHANNEL_CONTROL(self.reactor),0,0)
+        widget.setLayout(gridLayout)
+        return widget
     
     def closeEvent(self, x):
         self.reactor.stop()  
 
-if __name__=="__main__":
+if __name__ == "__main__":
     a = QtGui.QApplication( [] )
     import qt4reactor
     qt4reactor.install()
