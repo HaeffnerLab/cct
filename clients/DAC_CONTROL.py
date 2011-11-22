@@ -246,15 +246,9 @@ class CHANNEL_MONITOR(QtGui.QWidget):
             elecLayout.addWidget(self.electrodes[j],j - self.Nelectrodes/2,3)   
 
         elecLayout.addWidget(QtGui.QLabel('CNT'),int(round(self.Nelectrodes/2.))-1,2)
-        elecLayout.addWidget(self.electrodes[self.Nelectrodes-1], int(round(self.Nelectrodes/2.)) - 1,3)
-        
-        self.getValues = QtGui.QPushButton('get values')  #sometimes channel monitor fails to update (after using sliders on multipole control)
-        
-        elecLayout.addWidget(self.getValues ,10,1)
-
-        self.setLayout(elecLayout)
-        
-        #self.getValues.clicked.connect()
+        elecLayout.addWidget(self.electrodes[self.Nelectrodes-1], int(round(self.Nelectrodes/2.)) - 1,3) 
+    
+        self.setLayout(elecLayout)      
         
     @inlineCallbacks
     def connect(self):

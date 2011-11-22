@@ -63,18 +63,12 @@ class RSSMB100AWrapper(GPIBDeviceWrapper):
         if self.frequency != f:
             yield self.write('SOURce:FREQuency {}MHZ'.format(float(f)))
             self.frequency = f
-    
+  
     @inlineCallbacks
     def setAmplitude(self, a):
         if self.amplitude != a:
             yield self.write('POWer {}'.format(float(a)))
             self.amplitude = a
-
-    @inlineCallbacks
-    def setOutput(self, out):
-        if self.output != out:
-            yield self.write('OUTput:STATe {}'.format(int(out)))
-            self.output = out
 
 class RohdeSchwarzServer(GPIBManagedServer):
     """Provides basic CW control for Rohde&Schwarz SMB100A RF Generators"""

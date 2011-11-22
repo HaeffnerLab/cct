@@ -231,7 +231,7 @@ class CCTDACServer( SerialDeviceServer ):
         comstr = nChanged
         for p in ports:
             portNum = p.portNumber
-            codeInDec = p.digitalVoltage
+            codeInDec = int(p.digitalVoltage)
             # a hack to make the least significant bit a 0 to deal
             # with an obscure problem in the FPGA code.
             #if codeInDec % 2:
