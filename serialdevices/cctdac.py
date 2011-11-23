@@ -99,6 +99,12 @@ class Port():
         else:
             self.digitalVoltage = dv
             self.analogVoltage = self.m*dv + self.b
+    
+    def getVmax(self):
+        return self.m * (2**PREC_BITS - 1) + self.b
+    
+    def getVmin(self):
+        return self.m
         
         
 class CCTDACServer( SerialDeviceServer ):
