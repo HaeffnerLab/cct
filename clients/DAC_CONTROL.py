@@ -11,18 +11,15 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 UpdateTime = 100 # ms
 SIGNALID = 270836
 SIGNALID2 = 270835
+
 class MULTIPOLE_CONTROL(QtGui.QWidget):
     def __init__(self, reactor, parent=None):
         super(MULTIPOLE_CONTROL, self).__init__(parent)
         self.reactor = reactor
         self.connect()
         
-        ctrlLayout = QtGui.QGridLayout()
-        
-        ''' 
-        Build Dictionary of controls
-        '''
-        
+        ctrlLayout = QtGui.QGridLayout() 
+               
         self.controlLabels = ['Ex','Ey','Ez','U1','U2','U3','U4','U5']
         
         self.controls = {}
@@ -42,7 +39,6 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         ctrlLayout.addWidget(self.controls['Ex'],0,0)
         ctrlLayout.addWidget(self.controls['Ey'],1,0)
         ctrlLayout.addWidget(self.controls['Ez'],2,0)
-        
         ctrlLayout.addWidget(self.controls['U1'],0,1)
         ctrlLayout.addWidget(self.controls['U2'],1,1)
         ctrlLayout.addWidget(self.controls['U3'],2,1)
@@ -50,7 +46,6 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         ctrlLayout.addWidget(self.controls['U5'],4,1)
         
         self.multipoleFileSelectButton = QtGui.QPushButton('Set C File')
-        
         ctrlLayout.addWidget(self.multipoleFileSelectButton,4,0)
 
         self.inputUpdated = False
@@ -61,9 +56,11 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         for k in self.controlLabels:
             self.controls[k].onNewValues.connect(self.inputHasUpdated)
             
+        self.multipoleFileSelectButton.released.connect(self.selectCFile)
+        
         self.setLayout(ctrlLayout)
         
-        self.multipoleFileSelectButton.released.connect(self.selectCFile)
+        
         
     @inlineCallbacks
     def connect(self):
@@ -164,6 +161,16 @@ class CHANNEL_CONTROL (QtGui.QWidget):
                    
         self.setLayout(ctrlLayout)
         
+
+            
+    @inlineCallbacks
+    def connect(self):
+        from labrad.wrappers import connectAsync
+        from labrad.types import Error
+        self.cxn = yield connectAsync()
+        self.dacserver = yield self.cxn.cctdac
+        yield self.setupListeners()
+
     def inputHasUpdated2(self,name):
         def iu():
             self.inputUpdated = True
@@ -174,37 +181,10 @@ class CHANNEL_CONTROL (QtGui.QWidget):
             self.changedChannel = name
             print "Channel changed: " + name
         return iu
-        
-    def findChange(self, old, new):
-        d = {}
-        for k in old:
-            v1 = old.get(k,0)
-            v2 = new.get(k,0)
-            if v1 != v2:
-                d[k] = new[k]
-        print d
-        return d
-            
-    @inlineCallbacks
-    def connect(self):
-        from labrad.wrappers import connectAsync
-        from labrad.types import Error
-        self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac
-        yield self.setupListeners()
-
-    def inputHasUpdated(self):
-        self.inputUpdated = True
-        print "in inputHasUpdated"
-        self.oldValues = self.channelValues.copy() 
-        for k in self.controlLabels:
-            self.channelValues[k] = round(self.controls[k].spinLevel.value(), 3)
-        self.changedChannel = self.findChange(self.oldValues, self.channelValues)
 
     def sendToServer(self):
         if self.inputUpdated:
             c = self.changedChannel
-            #self.dacserver.set_individual_analog_voltages(self.changedChannel.items()) #indv*
             self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])])
             print "set the values"
             self.inputUpdated = False
@@ -237,10 +217,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.electrodes = [QtGui.QLCDNumber() for i in range(self.Nelectrodes)]
         
         elecLayout = QtGui.QGridLayout()
-        
-#        QtGui.QLCDNumber.setSegmentStyle
-
-        
+                
         for j in range(self.Nelectrodes/2):
             elecLayout.addWidget(QtGui.QLabel(str(j+1)),j,0)
             elecLayout.addWidget(self.electrodes[j],j,1)
@@ -250,9 +227,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
 
         elecLayout.addWidget(QtGui.QLabel('CNT'),int(round(self.Nelectrodes/2.))-1,2)
         elecLayout.addWidget(self.electrodes[self.Nelectrodes-1], int(round(self.Nelectrodes/2.)) - 1,3) 
-        
 
-    
         self.setLayout(elecLayout)      
         
     @inlineCallbacks
@@ -273,7 +248,6 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         print "CHMON followSignal"
         av = yield self.dacserver.get_analog_voltages()
         for (e, v) in zip(self.electrodes, av):
-            #print float(v)
             e.display(float(v))
         for (i, v) in zip(range(self.Nelectrodes), av):
             if math.fabs(v) > 10:
@@ -282,54 +256,10 @@ class CHANNEL_MONITOR(QtGui.QWidget):
             if math.fabs(v) < 10:
                 self.electrodes[i].setStyleSheet("QWidget {background-color:  }")
                 self.electrodes[i].setAutoFillBackground(False)      
-              
-
        
     def closeEvent(self, x):
         self.reactor.stop()
-'''        
-class VOLTAGE_INDICATOR(QtGui.Qwidget):
-        def __init__(self, reactor, Nelectrodes, parent=None):
-            super(CHANNEL_MONITOR, self).__init__(parent)
-            self.reactor = reactor
-            self.connect()
-        
-            self.Nelectrodes = Nelectrodes
-            self.indicator = [QtGui.QFrame for i in range(self.Nelectrodes)]
-    
-            elecLayout = QtGui.QGridLayout()
-            
-            boo = 
-            
-        for j in range(self.Nelectrodes/2):
-            elecLayout.addWidget(self.indicator[j],j,1)
-        for j in range(self.Nelectrodes/2,self.Nelectrodes):
-            elecLayout.addWidget(self.indicator[j],j - self.Nelectrodes/2,3)
 
-   
-    @inlineCallbacks
-    def connect(self):
-        from labrad.wrappers import connectAsync
-        from labrad.types import Error
-        self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac
-        yield self.setupListeners()
-        
-    @inlineCallbacks    
-    def setupListeners(self):
-        yield self.dacserver.signal__ports_updated(SIGNALID2)
-        yield self.dacserver.addListener(listener = self.followSignal, source = None, ID = SIGNALID2)
-    
-    @inlineCallbacks
-    def followSignal(self, x, s):
-        print "CHMON followSignal"
-        av = yield self.dacserver.get_analog_voltages()
-        for (e, v) in zip(self.electrodes, av):
-            #print float(v)
-            e.display(float(v))
-            
-               
-'''
 class DAC_CONTROL(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
         super(DAC_CONTROL, self).__init__(parent)
@@ -337,11 +267,11 @@ class DAC_CONTROL(QtGui.QMainWindow):
         self.reactor = reactor
         self.Nelectrodes = 18
 
-        nextTab = self.buildnextTab()        
+        channelControlTab = self.buildChannelControlTab()        
         multipoleControlTab = self.buildMultipoleControlTab()
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(multipoleControlTab,'&Multipoles')
-        tabWidget.addTab(nextTab, '&Channels')
+        tabWidget.addTab(channelControlTab, '&Channels')
         self.setCentralWidget(tabWidget)
     
     def buildMultipoleControlTab(self):
@@ -352,7 +282,7 @@ class DAC_CONTROL(QtGui.QMainWindow):
         widget.setLayout(gridLayout)
         return widget
 
-    def buildnextTab(self):
+    def buildChannelControlTab(self):
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()
         gridLayout.addWidget(CHANNEL_CONTROL(self.reactor),0,0)

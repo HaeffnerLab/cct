@@ -29,11 +29,11 @@ class DAC_CALIBRATOR(QDACCalibrator):
 
         digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
         anaVoltages = [] # corresponding analog voltages in volts
-        self.dacserver.set_digital_voltages([0]*18)
+        self.dacserver.set_individual_digital_voltages([(self.channelToCalib, 0)])
         time.sleep(1)
         for dv in digVoltages: # iterate over digital voltages
 
-            self.dacserver.set_digital_voltages([dv]*18) # just set all the channels at once
+            self.dacserver.set_individual_digital_voltages([(self.channelToCalib, dv)]) # just set all the channels at once
 
             time.sleep(1)
             

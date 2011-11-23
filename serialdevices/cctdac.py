@@ -59,17 +59,17 @@ class Port():
         analog voltage = m*(digital voltage) + b
         """
 
-        #registry.cd(['Calibrations'])
-        #(subs, keys) = registry.dir()
+        registry.cd(['Calibrations'])
+        (subs, keys) = registry.dir()
         
-        #if str(portNumber) in subs:
-        #    registry.cd(['', 'Calibrations', str(portNumber)])
-        #    self.m = registry.get('slope')
-        #    self.b = registry.get('y_int')
+        if str(portNumber) in subs:
+            registry.cd(['', 'Calibrations', str(portNumber)])
+            self.m = registry.get('slope')
+            self.b = registry.get('y_int')
 
-        #else:
-        self.m = (NOMINAL_VMAX - NOMINAL_VMIN)/float((2**PREC_BITS - 1)) # slope
-        self.b = NOMINAL_VMIN #intercept
+        else:
+            self.m = (NOMINAL_VMAX - NOMINAL_VMIN)/float((2**PREC_BITS - 1)) # slope
+            self.b = NOMINAL_VMIN #intercept
     
     def setAnalogVoltage(self, av):
         """
@@ -221,9 +221,7 @@ class CCTDACServer( SerialDeviceServer ):
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
 
-    def makeComString(self, ports):
-
-            
+    def makeComString(self, ports):   
         """
         Pass a list of Port objects to update. The updated value must already be written to the Port.
 
@@ -288,7 +286,7 @@ class CCTDACServer( SerialDeviceServer ):
         yield self.tryToUpdate(c, newPorts )
  
 
-    @setting( 2, 'Set Individual Analog Voltages', analogVoltages='*(iv)', returns = '')
+    @setting( 2, 'Set Individual Analog Voltages', analogVoltages = '*(iv)', returns = '')
     def setIndivAnaVoltages(self, c, analogVoltages ):
         """
         Pass a list of tuples of the form:
@@ -298,6 +296,15 @@ class CCTDACServer( SerialDeviceServer ):
         for (num, av) in analogVoltages:
             p = Port(num)
             p.setAnalogVoltage(av)
+            newPorts.append(p)
+        yield self.tryToUpdate(c, newPorts)
+        
+    @setting( 8, 'Set Individual Digital Voltages', digitalVoltages = '*(iv)', returns = '')
+    def setIndivDigVoltages(self, c, digitalVoltages):
+        newPorts = []
+        for (num, av) in digitalVoltages:
+            p = Port(num)
+            p.setDigitalVoltage(av)
             newPorts.append(p)
         yield self.tryToUpdate(c, newPorts)
 
