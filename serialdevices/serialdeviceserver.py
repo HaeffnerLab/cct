@@ -86,6 +86,7 @@ class SerialDeviceServer( LabradServer ):
     """
     name = NAME
     port = None
+    baudrate = None
     regKey = None
     serNode = None
     timeout = None
@@ -126,10 +127,14 @@ class SerialDeviceServer( LabradServer ):
         @raise SerialConnectionError: Error code 1.  Raised if we could not create serial connection.
         """
         if kwargs.get('timeout') is None and self.timeout: kwargs['timeout'] = self.timeout
+        if kwargs.get('baudrate') is None and self.baudrate: kwargs['baudrate'] = self.baudrate
+
         print '\nAttempting to connect at:'
         print '\n\tserver:\t%s' % serStr
         print '\n\tport:\t%s' % port
-        print '\n\timeout:\t%s\n\n' % ( str( self.timeout ) if kwargs.get('timeout') is not None else 'No timeout' )
+        print '\n\tbaudrate:\t%s' % (str( self.baudrate) if kwargs.get('baudrate') is not None else 'Default')
+        print '\n\ttimeout:\t%s\n\n' % ( str( self.timeout ) if kwargs.get('timeout') is not None else 'No timeout' )
+        
         cli = self.client
         try:
             # get server wrapper for serial server

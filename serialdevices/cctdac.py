@@ -16,7 +16,7 @@ import sys
 import os
 
 SERVERNAME = 'CCTDAC'
-PREC_BITS = 16.
+PREC_BITS = 18.
 DAC_MAX = 2500.
 MAX_QUEUE_SIZE = 1000
 #time to wait for response from dc box
@@ -27,7 +27,7 @@ RESP_STRING = 'r'
 ERROR_TIME = 1.0
 SIGNALID = 270837
 
-NUMCHANNELS = 18
+NUMCHANNELS = 17
 
 # Nominal analog voltage range. Just used if there's no calibration available
 NOMINAL_VMIN = -10.0
@@ -44,20 +44,19 @@ class DCBoxError( SerialConnectionError ):
         }
 
 class Port():
-    """
-    Store information about ports
-    """
+"""
+Store information about ports
+"""
     def __init__(self, portNumber):
         self.portNumber = portNumber
         self.analogVoltage = None
         self.digitalVoltage = None
     
         """
-        Try to get calibration from registry. If no calibration exists, use the naive value.
-        We will obtain, in either case, a function of the form
-        
-        analog voltage = m*(digital voltage) + b
-        """
+Try to get calibration from registry. If no calibration exists, use the naive value.
+We will obtain, in either case, a function of the form
+analog voltage = m*(digital voltage) + b
+
 
         registry.cd(['Calibrations'])
         (subs, keys) = registry.dir()
@@ -67,17 +66,16 @@ class Port():
             self.m = registry.get('slope')
             self.b = registry.get('y_int')
 
-        else:
-            self.m = (NOMINAL_VMAX - NOMINAL_VMIN)/float((2**PREC_BITS - 1)) # slope
-            self.b = NOMINAL_VMIN #intercept
+        else:"""
+        self.m = (NOMINAL_VMAX - NOMINAL_VMIN)/float((2**PREC_BITS - 1)) # slope
+        self.b = NOMINAL_VMIN #intercept
     
     def setAnalogVoltage(self, av):
         """
-        Assume, for the moment, that the calibration is linear in the form:
-        av = m*(digital code) + b
-        
-        so that digital code = ( (analog voltage) - b ) / m
-        """
+Assume, for the moment, that the calibration is linear in the form:
+av = m*(digital code) + b
+so that digital code = ( (analog voltage) - b ) / m
+"""
 
         self.analogVoltage = float(av)
         dv = int(round( (av - self.b) / float(self.m) ))
@@ -109,13 +107,13 @@ class Port():
         
 class CCTDACServer( SerialDeviceServer ):
     """
-    CCTDAC Server
-    Used for controlling DC trap electrodes
+CCTDAC Server
+Used for controlling DC trap electrodes
 
-    portList always holds the _most recent_ values. If a list cannot be written
-    because the serial port is unavailable, the portList is copied (by value!) to
-    the queue, and the portList can be safely updated.
-    """
+portList always holds the _most recent_ values. If a list cannot be written
+because the serial port is unavailable, the portList is copied (by value!) to
+the queue, and the portList can be safely updated.
+"""
 
     name = SERVERNAME
     regKey = 'CCTDac'
@@ -127,8 +125,8 @@ class CCTDACServer( SerialDeviceServer ):
     @inlineCallbacks
     def initServer( self ):
         """
-        Initialize CCTDACServer
-        """
+Initialize CCTDACServer
+"""
         self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
@@ -154,8 +152,8 @@ class CCTDACServer( SerialDeviceServer ):
 
     def createInfo( self ):
         """
-        Initialize channel list
-        """
+Initialize channel list
+"""
         self.portList = []
         for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller (I think)
             #self.portList.append(Port(i, self.client.registry))
@@ -164,8 +162,8 @@ class CCTDACServer( SerialDeviceServer ):
     @inlineCallbacks
     def checkQueue( self, c ):
         """
-        When timer expires, check queue for values to write
-        """
+When timer expires, check queue for values to write
+"""
         if self.queue:
             print 'clearing queue...(%d items)' % len( self.queue )
             yield self.writeToSerial(c, self.queue.pop( 0 ) )
@@ -176,16 +174,14 @@ class CCTDACServer( SerialDeviceServer ):
     @inlineCallbacks
     def tryToUpdate( self, c, ports ):
         """
-        Check if serial connection is free.
-        If free, write the list of ports to the DAC.
-        If not free, store the port list in the queue.
-        Raise error when queue fills up.
-        
-        @param channel: Channel to write to
-        @param value: Value to write
-        
-        @raise DCBoxError: Error code 2.  Queue size exceeded
-        """
+Check if serial connection is free.
+If free, write the list of ports to the DAC.
+If not free, store the port list in the queue.
+Raise error when queue fills up.
+@param channel: Channel to write to
+@param value: Value to write
+@raise DCBoxError: Error code 2. Queue size exceeded
+"""
         if self.free:
             self.free = False
             yield self.writeToSerial(c, ports )
@@ -199,15 +195,14 @@ class CCTDACServer( SerialDeviceServer ):
     @inlineCallbacks
     def writeToSerial( self, c, ports ):
         """
-        Write value to specified channel through serial connection.
-        
-        Convert message to microcontroller's syntax.
+Write value to specified channel through serial connection.
+Convert message to microcontroller's syntax.
 
-        There's currently no confirmation from the DAC, so we assume everything's worked.
-        We'll prob want to make the DAC confirm a successful update
+There's currently no confirmation from the DAC, so we assume everything's worked.
+We'll prob want to make the DAC confirm a successful update
 
-        After the list has been written, update the current portList
-        """
+After the list has been written, update the current portList
+"""
         self.checkConnection()
         toSend = self.makeComString( ports )
         #print binascii.hexlify(toSend)
@@ -221,12 +216,12 @@ class CCTDACServer( SerialDeviceServer ):
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
 
-    def makeComString(self, ports):   
+    def makeComString(self, ports):
         """
-        Pass a list of Port objects to update. The updated value must already be written to the Port.
+Pass a list of Port objects to update. The updated value must already be written to the Port.
 
-        Construct a com string in the appropriate format.
-        """
+Construct a com string in the appropriate format.
+"""
         numPortsChanged = len(ports)
         setNum = 1
         
@@ -239,9 +234,9 @@ class CCTDACServer( SerialDeviceServer ):
             # a hack to make the least significant bit a 0 to deal
             # with an obscure problem in the FPGA code.
             #if codeInDec % 2:
-            #    codeInDec = codeInDec - 1
+            # codeInDec = codeInDec - 1
             #print codeInDec
-            port =  binascii.unhexlify(hex(portNum)[2:].zfill(2)) # Which port to change
+            port = binascii.unhexlify(hex(portNum)[2:].zfill(2)) # Which port to change
             setn = binascii.unhexlify(hex(setNum)[2:].zfill(4)) # Which set of updates are we applying ( = 1 for now, always)
             code = binascii.unhexlify(hex(codeInDec)[2:].zfill(4)) # What digital code to write to the port
             comstr += 'P' + port + 'I' + setn + ',' + code
@@ -255,8 +250,8 @@ class CCTDACServer( SerialDeviceServer ):
     
     def notifyOtherListeners(self, context):
         """
-        Notifies all listeners except the one in the given context
-        """
+Notifies all listeners except the one in the given context
+"""
         notified = self.listeners.copy()
         notified.remove(context.ID)
         self.onNewUpdate('Channels updated', notified)
@@ -265,9 +260,9 @@ class CCTDACServer( SerialDeviceServer ):
     @setting( 0 , 'Set Digital Voltages', returns = '' )
     def setDigitalVoltages( self, c, digitalVoltages ):
         """
-        Pass digitalVoltages, a list of digital voltages to update.
-        Currently, there must be one for each port.
-        """
+Pass digitalVoltages, a list of digital voltages to update.
+Currently, there must be one for each port.
+"""
         newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
         for (p, dv) in zip(newPorts, digitalVoltages):
             p.setDigitalVoltage(dv)
@@ -277,9 +272,9 @@ class CCTDACServer( SerialDeviceServer ):
     @setting( 1 , 'Set Analog Voltages', analogVoltages='*v', returns = '' )
     def setAnalogVoltages( self, c, analogVoltages ):
         """
-        Pass analogVoltages, a list of analog voltages to update.
-        Currently, there must be one for each port.
-        """ 
+Pass analogVoltages, a list of analog voltages to update.
+Currently, there must be one for each port.
+"""
         newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
         for (p, av) in zip(newPorts, analogVoltages):
             p.setAnalogVoltage(av)
@@ -289,9 +284,9 @@ class CCTDACServer( SerialDeviceServer ):
     @setting( 2, 'Set Individual Analog Voltages', analogVoltages = '*(iv)', returns = '')
     def setIndivAnaVoltages(self, c, analogVoltages ):
         """
-        Pass a list of tuples of the form:
-        (portNum, newVolts)
-        """
+Pass a list of tuples of the form:
+(portNum, newVolts)
+"""
         newPorts = []
         for (num, av) in analogVoltages:
             p = Port(num)
@@ -311,23 +306,23 @@ class CCTDACServer( SerialDeviceServer ):
     @setting( 3, 'Get Analog Voltages', returns = '*v' )
     def getAnalogVoltages(self, c):
         """
-        Return a list of the analog voltages currently in portList
-        """
-        return [ p.analogVoltage for p in self.portList ]  # Yay for list comprehensions
+Return a list of the analog voltages currently in portList
+"""
+        return [ p.analogVoltage for p in self.portList ] # Yay for list comprehensions
 
     @setting( 4, 'Get Digital Voltages' )
     def getDigitalVoltages(self, c):
         """
-        Return a list of digital voltages currently in portList
-        """
+Return a list of digital voltages currently in portList
+"""
         
         return [ dv for v in [ p.digitalVoltage for p in self.portList ] ]
     
     @setting( 5, 'Set Multipole Control File', file='s: multipole control file')
     def setMultipoleControlFile(self, c, file):
         """
-        Read in a matrix of multipole values
-        """
+Read in a matrix of multipole values
+"""
 
         data = genfromtxt(file)
         self.multipoleVectors = {}
@@ -343,8 +338,8 @@ class CCTDACServer( SerialDeviceServer ):
     @setting( 6, 'Set Multipole Voltages', ms = '*(sv): dictionary of multipole voltages')
     def setMultipoleVoltages(self, c, ms):
         """
-        set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
-        """
+set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
+"""
         
         multipoleSet = {}
         for (k,v) in ms:
@@ -367,3 +362,5 @@ class CCTDACServer( SerialDeviceServer ):
 if __name__ == "__main__":
     from labrad import util
     util.runServer( CCTDACServer() )
+
+

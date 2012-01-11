@@ -33,7 +33,7 @@ class CCT_GUI(QtGui.QMainWindow):
         gridLayout = QtGui.QGridLayout()
         gridLayout.addWidget(DAC_CONTROL(reactor),0,0)
         gridLayout.addWidget(pmtWidget(reactor),0,1)
-        gridLayout.addWidget(TRAPDRIVE_MODULATION_CONTROL(reactor),1,0)
+        #gridLayout.addWidget(TRAPDRIVE_MODULATION_CONTROL(reactor),1,0)
         
         widget.setLayout(gridLayout)
         return widget

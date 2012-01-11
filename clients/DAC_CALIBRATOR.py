@@ -33,7 +33,7 @@ class DAC_CALIBRATOR(QDACCalibrator):
         time.sleep(1)
         for dv in digVoltages: # iterate over digital voltages
 
-            self.dacserver.set_individual_digital_voltages([(self.channelToCalib, dv)]) # just set all the channels at once
+            self.dacserver.set_individual_digital_voltages([(self.channelToCalib, dv)]) 
 
             time.sleep(1)
             

@@ -69,6 +69,13 @@ class RSSMB100AWrapper(GPIBDeviceWrapper):
         if self.amplitude != a:
             yield self.write('POWer {}'.format(float(a)))
             self.amplitude = a
+    '''        
+    @inlineCallbacks
+    def setOutput(self, state):
+        if self.output != True:
+            yield self.write('OUTput:STATe {}'.format(bool(state)))
+            self.output = state
+    '''    
 
 class RohdeSchwarzServer(GPIBManagedServer):
     """Provides basic CW control for Rohde&Schwarz SMB100A RF Generators"""
@@ -97,9 +104,10 @@ class RohdeSchwarzServer(GPIBManagedServer):
         """Get or set the output status."""
         dev = self.selectedDevice(c)
         if os is not None:
-            yield dev.setOutput(os)
-        returnValue(dev.output)
-
+            yield dev.setFrequency(os)
+            yield dev.setAmplitude(os)
+        returnValue(output)
+        
 __server__ = RohdeSchwarzServer()
 
 if __name__ == '__main__':
