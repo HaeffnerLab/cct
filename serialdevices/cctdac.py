@@ -16,7 +16,7 @@ import sys
 import os
 
 SERVERNAME = 'CCTDAC'
-PREC_BITS = 18.
+PREC_BITS = 16.
 DAC_MAX = 2500.
 MAX_QUEUE_SIZE = 1000
 #time to wait for response from dc box
@@ -27,7 +27,7 @@ RESP_STRING = 'r'
 ERROR_TIME = 1.0
 SIGNALID = 270837
 
-NUMCHANNELS = 17
+NUMCHANNELS = 18
 
 # Nominal analog voltage range. Just used if there's no calibration available
 NOMINAL_VMIN = -10.0
@@ -43,67 +43,68 @@ class DCBoxError( SerialConnectionError ):
         5:'Correct response from DC box not received, sleeping for short period'
         }
 
+
+class Voltage(object):
+    def __init__(self, n, v):
+        self.voltage = v
+        self.portNum = n
+        
+class AnalogVoltage(Voltage):
+    def __init__(self, n, v):
+        super(AnalogVoltage, self).__init__(n, v)
+        self.type = 'analog'
+
+class DigitalVoltage(Voltage):
+    def __init__(self, n, v):
+        super(DigitalVoltage, self).__init__(n, v)
+        self.type = 'digital'
+
 class Port():
-"""
-Store information about ports
-"""
-    def __init__(self, portNumber):
+    """
+    Store information about ports
+    """
+    def __init__(self, portNumber, calibrationCoeffs = None):
         self.portNumber = portNumber
         self.analogVoltage = None
         self.digitalVoltage = None
-    
+
         """
-Try to get calibration from registry. If no calibration exists, use the naive value.
-We will obtain, in either case, a function of the form
-analog voltage = m*(digital voltage) + b
+        calibrationCoeffs is a list of the form [c0, c1, ..., cn]
+        such that
 
+        dv = c0 + c1*(av) + c2*(av)**2 + ... + cn*(av)**n
 
-        registry.cd(['Calibrations'])
-        (subs, keys) = registry.dir()
-        
-        if str(portNumber) in subs:
-            registry.cd(['', 'Calibrations', str(portNumber)])
-            self.m = registry.get('slope')
-            self.b = registry.get('y_int')
-
-        else:"""
-        self.m = (NOMINAL_VMAX - NOMINAL_VMIN)/float((2**PREC_BITS - 1)) # slope
-        self.b = NOMINAL_VMIN #intercept
-    
-    def setAnalogVoltage(self, av):
         """
-Assume, for the moment, that the calibration is linear in the form:
-av = m*(digital code) + b
-so that digital code = ( (analog voltage) - b ) / m
-"""
 
-        self.analogVoltage = float(av)
-        dv = int(round( (av - self.b) / float(self.m) ))
-        
-        if dv < 0:
-            self.digitalVoltage = 0 # Set to the minimum acceptable code
-        elif dv > ( 2**PREC_BITS - 1 ): # Largest acceptable code
-            self.digitalVoltage = (2**PREC_BITS - 1)
+        if not calibrationCoeffs:
+            self.coeffs = [2**(PREC_BITS - 1), float(2**(PREC_BITS))/(NOMINAL_VMAX - NOMINAL_VMIN) ]
         else:
-            self.digitalVoltage = dv
+            self.coeffs = calibrationCoeffs
+    
+    def setVoltage(self, v):
 
-    def setDigitalVoltage(self, dv):
-        if dv < 0:
-            self.digitalVoltage = 0
-            self.analogVoltage = self.b
-        elif dv > ( 2**PREC_BITS - 1 ):
-            self.digitalVoltage = (2**PREC_BITS - 1)
-            self.analogVoltage = self.m*(2**PREC_BITS - 1) + self.b
-        else:
-            self.digitalVoltage = dv
-            self.analogVoltage = self.m*dv + self.b
-    
-    def getVmax(self):
-        return self.m * (2**PREC_BITS - 1) + self.b
-    
-    def getVmin(self):
-        return self.m
-        
+        if v.type == 'analog':
+            self.analogVoltage = float(v.voltage)
+            print sum([self.coeffs[n]*self.analogVoltage**n  for n  in range(len(self.coeffs))])
+            dv = int(round(sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )))
+            
+            if dv < 0:
+                self.digitalVoltage = 0 # Set to the minimum acceptable code
+            elif dv > ( 2**PREC_BITS - 1 ): # Largest acceptable code
+                self.digitalVoltage = (2**PREC_BITS - 1)
+            else:
+                self.digitalVoltage = dv
+
+        if v.type == 'digital':
+            dv = int(v.voltage)
+            if dv < 0:
+                self.digitalVoltage = 0
+                self.analogVoltage = NOMINAL_VMIN
+            elif dv > ( 2**PREC_BITS - 1 ):
+                self.digitalVoltage = (2**PREC_BITS - 1)
+                self.analogVoltage = NOMINAL_VMAX
+            else:
+                self.digitalVoltage = dv
         
 class CCTDACServer( SerialDeviceServer ):
     """
@@ -149,15 +150,25 @@ Initialize CCTDACServer
             else: raise
         self.listeners = set()
         self.free = True
-
+    
+    @inlineCallbacks
     def createInfo( self ):
         """
-Initialize channel list
-"""
+        Initialize channel list
+        """
+        registry = self.client.registry
+        degreeOfCalibration = 1 # 1st order fit. update this to auto-detect 
         self.portList = []
-        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller (I think)
-            #self.portList.append(Port(i, self.client.registry))
-            self.portList.append(Port(i))
+        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller
+            #registry.cd(['', 'Calibrations'])
+            c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
+            subs, keys = yield registry.dir()
+            if str(i) in subs:
+                registry.cd(['', 'Calibrations', str(i)])
+                c = [registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 ) ]
+                self.portList.append(Port(i, c))
+            else:
+                self.portList.append(Port(i)) # no preset calibration
 
     @inlineCallbacks
     def checkQueue( self, c ):
@@ -172,7 +183,7 @@ When timer expires, check queue for values to write
             self.free = True
 
     @inlineCallbacks
-    def tryToUpdate( self, c, ports ):
+    def tryToUpdate( self, c, voltages ):
         """
 Check if serial connection is free.
 If free, write the list of ports to the DAC.
@@ -184,16 +195,15 @@ Raise error when queue fills up.
 """
         if self.free:
             self.free = False
-            yield self.writeToSerial(c, ports )
+            yield self.writeToSerial(c, voltages )
         elif len( self.queue ) > MAX_QUEUE_SIZE:
             raise DCBoxError( 2 )
         else:
-            newPorts = [ cpy.copy(p) for p in ports] # copy the portList by value into the queue
-            self.queue.append( newPorts )
+            self.queue.append( voltages )
             
 
     @inlineCallbacks
-    def writeToSerial( self, c, ports ):
+    def writeToSerial( self, c, voltages ):
         """
 Write value to specified channel through serial connection.
 Convert message to microcontroller's syntax.
@@ -204,42 +214,36 @@ We'll prob want to make the DAC confirm a successful update
 After the list has been written, update the current portList
 """
         self.checkConnection()
-        toSend = self.makeComString( ports )
-        #print binascii.hexlify(toSend)
+
+        for v in voltages:
+            self.portList[v.portNum - 1].setVoltage(v)
+        toSend = self.makeComString( voltages )
         yield self.ser.write( toSend )
-        #print 'about to read'
-        #resp = yield self.ser.read( len( ports ) )
-        #print 'read',resp, len(resp)
-        #self.portList = [ cpy.copy(p) for p in ports ] # now that the new values have been written, update the portList
-        for p in ports:
-            self.portList[p.portNumber-1] = cpy.copy(p)
         self.notifyOtherListeners(c)
+        sleep(0.3)
         yield self.checkQueue(c)
 
-    def makeComString(self, ports):
+    def makeComString(self, voltages):
         """
 Pass a list of Port objects to update. The updated value must already be written to the Port.
 
 Construct a com string in the appropriate format.
 """
-        numPortsChanged = len(ports)
+        numPortsChanged = len( voltages )
         setNum = 1
         
         nChanged = binascii.unhexlify(hex(numPortsChanged)[2:].zfill(2)) # Number of ports to change
-
         comstr = nChanged
-        for p in ports:
-            portNum = p.portNumber
+        for v in voltages:
+            portNum = v.portNum
+            p = self.portList[portNum - 1]
             codeInDec = int(p.digitalVoltage)
-            # a hack to make the least significant bit a 0 to deal
-            # with an obscure problem in the FPGA code.
-            #if codeInDec % 2:
-            # codeInDec = codeInDec - 1
-            #print codeInDec
+            print "codeInDec ", codeInDec
             port = binascii.unhexlify(hex(portNum)[2:].zfill(2)) # Which port to change
             setn = binascii.unhexlify(hex(setNum)[2:].zfill(4)) # Which set of updates are we applying ( = 1 for now, always)
             code = binascii.unhexlify(hex(codeInDec)[2:].zfill(4)) # What digital code to write to the port
             comstr += 'P' + port + 'I' + setn + ',' + code
+        print comstr
         return comstr
     
     def initContext(self, c):
@@ -263,10 +267,10 @@ Notifies all listeners except the one in the given context
 Pass digitalVoltages, a list of digital voltages to update.
 Currently, there must be one for each port.
 """
-        newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
-        for (p, dv) in zip(newPorts, digitalVoltages):
-            p.setDigitalVoltage(dv)
-        self.tryToUpdate(c, newPorts )
+        newVoltages = []
+        for (n, dv) in zip(range(1, NUMCHANNELS + 1), digitalVoltages):
+            newVoltages.append( DigitalVoltage(n, dv) )
+        self.tryToUpdate(c, newVoltages )
         
 
     @setting( 1 , 'Set Analog Voltages', analogVoltages='*v', returns = '' )
@@ -275,10 +279,10 @@ Currently, there must be one for each port.
 Pass analogVoltages, a list of analog voltages to update.
 Currently, there must be one for each port.
 """
-        newPorts = [ Port(i) for i in range(1, NUMCHANNELS + 1) ]
-        for (p, av) in zip(newPorts, analogVoltages):
-            p.setAnalogVoltage(av)
-        yield self.tryToUpdate(c, newPorts )
+        newVoltages = []
+        for (n, av) in zip(range(1, NUMCHANNELS + 1), analogVoltages):
+            newVoltages.append( AnalogVoltage(n, av) )
+        yield self.tryToUpdate(c, newVoltages )
  
 
     @setting( 2, 'Set Individual Analog Voltages', analogVoltages = '*(iv)', returns = '')
@@ -287,21 +291,17 @@ Currently, there must be one for each port.
 Pass a list of tuples of the form:
 (portNum, newVolts)
 """
-        newPorts = []
+        newVoltages = []
         for (num, av) in analogVoltages:
-            p = Port(num)
-            p.setAnalogVoltage(av)
-            newPorts.append(p)
-        yield self.tryToUpdate(c, newPorts)
+            newVoltages.append( AnalogVoltage(num, av) )
+        yield self.tryToUpdate(c, newVoltages)
         
     @setting( 8, 'Set Individual Digital Voltages', digitalVoltages = '*(iv)', returns = '')
     def setIndivDigVoltages(self, c, digitalVoltages):
-        newPorts = []
-        for (num, av) in digitalVoltages:
-            p = Port(num)
-            p.setDigitalVoltage(av)
-            newPorts.append(p)
-        yield self.tryToUpdate(c, newPorts)
+        newVoltages = []
+        for (num, dv) in digitalVoltages:
+            newVoltages.append( DigitalVoltage(num, dv) )
+        yield self.tryToUpdate(c, newVoltages)
 
     @setting( 3, 'Get Analog Voltages', returns = '*v' )
     def getAnalogVoltages(self, c):

@@ -102,7 +102,8 @@ class SerialDeviceServer( LabradServer ):
             timeout = kwargs.get('timeout')
             baudrate = kwargs.get('baudrate')
             ser.open( port )
-            if timeout is not None: ser.timeout( timeout )
+            if timeout is not None:
+                ser.timeout( timeout )
             if baudrate is not None: ser.baudrate( baudrate )
             self.write = lambda s: ser.write( s )
             self.write_line = lambda s: ser.write_line(s)

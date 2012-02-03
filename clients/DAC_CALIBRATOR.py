@@ -25,29 +25,34 @@ class DAC_CALIBRATOR(QDACCalibrator):
     # This is where the magic happens
     def calib(self):
         
-        stepsize = 100
+        #stepsize = 0b101010101
 
-        digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
-        anaVoltages = [] # corresponding analog voltages in volts
-        self.dacserver.set_individual_digital_voltages([(self.channelToCalib, 0)])
-        time.sleep(1)
-        for dv in digVoltages: # iterate over digital voltages
+        stepsize = 1000
 
-            self.dacserver.set_individual_digital_voltages([(self.channelToCalib, dv)]) 
+        #self.digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
+        self.digVoltages = range(0, 2**16, stepsize)
+        self.anaVoltages = [] # corresponding analog voltages in volts
+        self.dacserver.set_individual_digital_voltages([(int(self.channelToCalib), 0)])
+        #time.sleep(1)
+        for dv in self.digVoltages: # iterate over digital voltages
+
+            self.dacserver.set_individual_digital_voltages([(int(self.channelToCalib), dv)]) 
 
             time.sleep(1)
             
             av = self.dmmserver.get_dc_volts()
+
+            time.sleep(1)
             #av = 0
 
-            anaVoltages.append(av)
+            self.anaVoltages.append(av)
             print dv, "; ", av
         
-
-        plt.plot(digVoltages, anaVoltages, 'ro')
+        plt.figure(1)
+        plt.plot(self.digVoltages, self.anaVoltages, 'ro')
         plt.show()
 
-        fit = np.polyfit(digVoltages, anaVoltages, 2) # fit to a second order polynomial
+        fit = np.polyfit(self.digVoltages, self.anaVoltages, 3) # fit to a second order polynomial
         
         print fit
     
@@ -55,12 +60,13 @@ class DAC_CALIBRATOR(QDACCalibrator):
         now = time.ctime()
         self.datavault.cd( ( ['DACCalibrations', self.channelToCalib], True ) )
         self.datavault.new( (now, [('Digital voltage', 'num')], [('Volts','Analog Voltage','v')]) )
-        self.datavault.add( np.array([digVoltages, anaVoltages]).transpose().tolist() )
+        self.datavault.add( np.array([self.digVoltages, self.anaVoltages]).transpose().tolist() )
 
         # Update the registry with the new calibration
         self.r.cd( ( ['Calibrations', self.channelToCalib], True ) )
         self.r.set( ( 'y_int', fit[2] ) )
         self.r.set( ( 'slope', fit[1] ) )
+        self.r.cd( ( [''] ))
 
         return fit
 
@@ -70,12 +76,33 @@ class DAC_CALIBRATOR(QDACCalibrator):
         
         self.clicked = True
         fit = self.calib() # Now calibrate
-        
+
+        #fit = [ -6.87774335e-18, 6.05469803e-13, 3.05235677e-04, -1.00067658e+01]
+        #fit = [ -7.59798451e-18 ,  7.42121115e-13 ,  3.05226445e-04 , -1.00065850e+01]
+        fit = [ -6.33002825e-18 ,  5.78910501e-13  , 3.05234325e-04,  -1.00066765e+01]
         self.results.setText('RESULTS')
         self.y_int.setText('Intercept: ' + str(fit[2]))
         self.slope.setText('Slope: ' + str(fit[1]))
-        self.order2.setText('Nonlinearity: ' + str(fit[0]))
-
+        #self.order2.setText('Nonlinearity: ' + str(fit[0]))
+        
+        fitvals = np.array([ v*v*v*fit[0] + v*v*fit[1] + v * fit[2] + fit[3] for v in self.digVoltages])
+        diffs = fitvals - self.anaVoltages
+        
+        m = 20./(2**16 - 1)
+        b = -10
+        idealVals = np.array([m*v + b for v in self.digVoltages])
+        uncalDiffs = idealVals - self.anaVoltages
+        
+        print "MAX DEVIATION: ", 1000*max(abs(diffs)), " mV"
+        plt.figure(2)
+        plt.plot(self.digVoltages, 1000*(diffs))
+        plt.title('Actual deviation from fit (mV)')
+        plt.figure(3)
+        plt.plot(self.digVoltages, 1000*(uncalDiffs) )
+        plt.title('Deviation from nominal settings (mV)')
+        plt.show()
+        
+        print "MAX DEV FROM NOMINAL: ", 1000*max(abs(uncalDiffs)), " mV"
 
 if __name__=="__main__":
     import labrad
