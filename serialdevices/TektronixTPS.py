@@ -47,6 +47,7 @@ class TPSserver( SerialDeviceServer ):
 
     @inlineCallbacks
     def populateDict(self):
+        print "populateDict()"
         X0 = yield self._readX0() 
         Xinc = yield self._readXinc()
         Ymulti = yield self._readYmulti()
@@ -141,7 +142,7 @@ class TPSserver( SerialDeviceServer ):
     @inlineCallbacks
     def _readX0(self):
         command=self.getX0str()
-        yield self.ser.write_line(command)        
+        yield self.ser.write_line(command)
         answer=yield self.ser.readline()
         returnValue(answer)
 
@@ -200,7 +201,7 @@ class TPSserver( SerialDeviceServer ):
     @inlineCallbacks
     def _readdatasource(self):
         command = self.getdatasourcestr()
-        yield self.ser.write_line(command)        
+        yield self.ser.write_line(command)
         answer=yield self.ser.readline()
         returnValue(answer)        
 

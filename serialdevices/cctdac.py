@@ -14,13 +14,14 @@ import copy as cpy # copy objects by value
 from numpy import *
 import sys
 import os
+from time import *
 
 SERVERNAME = 'CCTDAC'
 PREC_BITS = 16.
 DAC_MAX = 2500.
 MAX_QUEUE_SIZE = 1000
 #time to wait for response from dc box
-TIMEOUT = 0.01
+TIMEOUT = 1
 #expected response from dc box after write
 RESP_STRING = 'r'
 #time to wait if correct response not received
@@ -131,7 +132,8 @@ Initialize CCTDACServer
         self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
-        port = yield self.getPortFromReg( self.regKey )
+        #port = yield self.getPortFromReg( self.regKey )
+        port = 'COM10'
         self.port = port
         try:
             print self.serNode

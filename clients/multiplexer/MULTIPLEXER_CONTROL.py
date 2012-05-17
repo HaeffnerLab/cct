@@ -15,7 +15,7 @@ class widgetWrapper():
         self.hint = hint
         self.widget = None
         self.codeDict = codeDict = {-3.0: 'UnderExposed', -4.0: 'OverExposed', -5.0: 'NeedStartWM', -6.0 :'NotMeasured'}
-        self.widget = multiplexerChannel(self.wavelength, self.hint)           
+        self.widget = multiplexerChannel(self.wavelength, self.hint, self.chanName)           
         
     def setFreq(self, freq):
         if freq in self.codeDict.keys():
@@ -58,14 +58,21 @@ class multiplexerWidget(QtGui.QWidget):
         self.d['422'] = widgetWrapper(chanName = '422',wavelength = '422', hint = '354.53921') 
         self.d['732'] = widgetWrapper(chanName = '732',wavelength = '732', hint = '409.09585') 
         self.d['397s'] = widgetWrapper(chanName = '397s',wavelength = '397', hint = '377.61131') 
+        self.d['729'] = widgetWrapper(chanName = '729',wavelength = '729', hint = '411.04196') 
+        self.d['854'] = widgetWrapper(chanName = '854',wavelength = '854', hint = '854.00000') 
+        self.d['405'] = widgetWrapper(chanName = '405',wavelength = '405', hint = '405.00000') 
     
     @inlineCallbacks
     def connect(self):
         from labrad.wrappers import connectAsync
-        self.cxn = yield connectAsync('192.168.169.254')
-        self.server = yield self.cxn.multiplexer_server
-        yield self.initializeGUI()
-        yield self.setupListeners()
+        from labrad.types import Error
+        self.cxn = yield connectAsync('192.168.169.49')
+        try:
+            self.server = yield self.cxn.multiplexer_server
+            yield self.initializeGUI()
+            yield self.setupListeners()
+        except:
+            self.setEnabled(False)
         
     @inlineCallbacks
     def initializeGUI(self):
@@ -92,6 +99,9 @@ class multiplexerWidget(QtGui.QWidget):
         self.grid.addWidget(self.d['422'].widget,0,1)
         self.grid.addWidget(self.d['732'].widget,1,1)
         self.grid.addWidget(self.d['397s'].widget,2,0)
+        self.grid.addWidget(self.d['729'].widget,2,1)
+        self.grid.addWidget(self.d['854'].widget,3,0)
+        self.grid.addWidget(self.d['405'].widget,3,1)
         
         #connect functions
         self.pushButton.toggled.connect(self.setOnOff)
@@ -113,13 +123,16 @@ class multiplexerWidget(QtGui.QWidget):
         yield self.server.addListener(listener = self.followNewCycling, source = None, ID = SIGNALID4)
     
     def followNewState(self,x,(chanName,state)):
-        self.d[chanName].setState(state, True)
+        if chanName in self.d.keys():
+            self.d[chanName].setState(state, True)
         
     def followNewExposure(self, x, (chanName,exp)):
-        self.d[chanName].setExposure(exp, True)
+        if chanName in self.d.keys():
+            self.d[chanName].setExposure(exp, True)
     
     def followNewFreq(self, x, (chanName, freq)):
-        self.d[chanName].setFreq(freq)
+        if chanName in self.d.keys():
+            self.d[chanName].setFreq(freq)
     
     def followNewCycling(self, x, cycling):
         self.pushButton.blockSignals(True)
@@ -164,7 +177,7 @@ class multiplexerWidget(QtGui.QWidget):
 
                 
 class multiplexerChannel(QtGui.QWidget):
-    def __init__(self, wavelength, hint, parent=None):
+    def __init__(self, wavelength, hint, name, parent=None):
         QtGui.QWidget.__init__(self, parent)
         basepath = os.environ.get('LABRADPATH',None)
         if not basepath:
@@ -174,11 +187,14 @@ class multiplexerChannel(QtGui.QWidget):
         self.RGBconverter = RGB.RGBconverter()
         self.setColor(wavelength)
         self.setHint(hint)
+        self.setLabel(name)
         
     def setColor(self, wavelength):
         [r,g,b] = self.RGBconverter.wav2RGB(int(wavelength))
         self.label.setStyleSheet('color:rgb(%d,%d,%d)' %(r,g,b))
-        self.label.setText(wavelength + 'nm')
+        
+    def setLabel(self, name):
+        self.label.setText(name)
     
     def setHint(self, hint):
         self.expectedfreq.setText(hint)

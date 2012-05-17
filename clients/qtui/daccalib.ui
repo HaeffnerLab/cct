@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>daccalib</string>
+   <string>DACCalibrator</string>
   </property>
   <widget class="QLineEdit" name="port">
    <property name="geometry">
@@ -26,14 +26,14 @@
   <widget class="QLabel" name="title">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>125</x>
      <y>10</y>
-     <width>101</width>
+     <width>150</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>DAC Calibrator</string>
+    <string>DAC Calibrator | Version SQIP</string>
    </property>
   </widget>
   <widget class="QPushButton" name="start">
@@ -121,6 +121,74 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checksave">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>110</y>
+     <width>101</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save Results?</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkreverse">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>140</y>
+     <width>161</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reverse DigitalVoltage scan</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="customsave">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>170</y>
+     <width>281</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save in separate Folder: channelcharacterization</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="datainfo">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>210</y>
+     <width>221</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="extradatainfo">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>190</y>
+     <width>171</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Enter extra data info (optional):</string>
    </property>
   </widget>
  </widget>

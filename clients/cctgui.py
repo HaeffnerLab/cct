@@ -28,16 +28,18 @@ class CCT_GUI(QtGui.QMainWindow):
         widget = QtGui.QWidget()
         from DAC_CONTROL import DAC_CONTROL
         from PMT_CONTROL import pmtWidget
-        from TRAPDRIVE_MODULATION_CONTROL import TRAPDRIVE_MODULATION_CONTROL
+        from RS_CTRL import RS_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         gridLayout = QtGui.QGridLayout()
+        subLayout = QtGui.QGridLayout()
         gridLayout.addWidget(DAC_CONTROL(reactor),0,0)
-        gridLayout.addWidget(pmtWidget(reactor),0,1)
-        #gridLayout.addWidget(TRAPDRIVE_MODULATION_CONTROL(reactor),1,0)
-        
+        gridLayout.setColumnMinimumWidth(0,750)
+        gridLayout.addLayout(subLayout,0,1)
+        subLayout.addWidget(pmtWidget(reactor),0,0)
+#        gridLayout.addWidget(pmtWidget(reactor),0,1)
+        subLayout.addWidget(RS_CONTROL(reactor),1,0)
         widget.setLayout(gridLayout)
         return widget
-
 
     def closeEvent(self, x):
         self.reactor.stop()
