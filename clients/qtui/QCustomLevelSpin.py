@@ -8,10 +8,11 @@ class QCustomLevelSpin(QtGui.QWidget):
     onNewValues = QtCore.pyqtSignal()
     def __init__(self, title, levelRange, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        basepath = os.environ.get('LABRADPATH',None)
-        if not basepath:
-            raise Exception('Please set your LABRADPATH environment variable')
-        path = os.path.join(basepath,'cct/clients/qtui/levelspinslider.ui')
+	basepath = os.path.dirname(__file__)
+        #        basepath = os.environ.get('LABRADPATH',None)
+#        if not basepath:
+#            raise Exception('Please set your LABRADPATH environment variable')
+        path = os.path.join(basepath,'levelspinslider.ui')
         uic.loadUi(path,self)
         #set widget properties
         self.title.setText(title)

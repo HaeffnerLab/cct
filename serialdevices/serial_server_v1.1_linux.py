@@ -341,8 +341,7 @@ class SerialServer(LabradServer):
             if r != skip:
                 recd += r
         returnValue(recd)
-
-
+        
 __server__ = SerialServer()
 
 if __name__ == '__main__':

@@ -1,9 +1,23 @@
 '''
-9 Aug 2011
-Dylan Gorman
+### BEGIN NODE INFO
+[info]
+name = CCTDAC
+version = 1.1
+description = 
+instancename = CCTDAC
 
-Adapted from laserdacbox.py
+[startup]
+cmdline = %PYTHON% %FILE%
+timeout = 20
+
+[shutdown]
+message = 987654321
+timeout = 20
+
+### END NODE INFO
 '''
+#Adapted from laserdacbox.py
+
 
 from serialdeviceserver import SerialDeviceServer, setting, inlineCallbacks, SerialDeviceError, SerialConnectionError, PortRegError
 from twisted.internet import reactor
@@ -14,14 +28,14 @@ import copy as cpy # copy objects by value
 from numpy import *
 import sys
 import os
-from time import *
+import time
 
 SERVERNAME = 'CCTDAC'
 PREC_BITS = 16.
 DAC_MAX = 2500.
 MAX_QUEUE_SIZE = 1000
 #time to wait for response from dc box
-TIMEOUT = 1
+TIMEOUT = 0.01
 #expected response from dc box after write
 RESP_STRING = 'r'
 #time to wait if correct response not received
@@ -31,8 +45,8 @@ SIGNALID = 270837
 NUMCHANNELS = 18
 
 # Nominal analog voltage range. Just used if there's no calibration available
-NOMINAL_VMIN = -10.0
-NOMINAL_VMAX = 10.0
+NOMINAL_VMIN = -40.0
+NOMINAL_VMAX = 40.0
 
 class DCBoxError( SerialConnectionError ):
     errorDict = {
@@ -59,7 +73,6 @@ class DigitalVoltage(Voltage):
     def __init__(self, n, v):
         super(DigitalVoltage, self).__init__(n, v)
         self.type = 'digital'
-
 class Port():
     """
     Store information about ports
@@ -81,14 +94,15 @@ class Port():
             self.coeffs = [2**(PREC_BITS - 1), float(2**(PREC_BITS))/(NOMINAL_VMAX - NOMINAL_VMIN) ]
         else:
             self.coeffs = calibrationCoeffs
-    
+        print 'Coeff.Ch'+str(portNumber)+': '+str(self.coeffs)    
+            
     def setVoltage(self, v):
 
         if v.type == 'analog':
             self.analogVoltage = float(v.voltage)
-            print sum([self.coeffs[n]*self.analogVoltage**n  for n  in range(len(self.coeffs))])
             dv = int(round(sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )))
-            
+            print 'Analog Voltage Value: '+str(self.analogVoltage) #\033[1;33mYellow like Yolk\033[1;m
+            print 'Digital Voltage Value: '+str(dv)
             if dv < 0:
                 self.digitalVoltage = 0 # Set to the minimum acceptable code
             elif dv > ( 2**PREC_BITS - 1 ): # Largest acceptable code
@@ -105,6 +119,7 @@ class Port():
                 self.digitalVoltage = (2**PREC_BITS - 1)
                 self.analogVoltage = NOMINAL_VMAX
             else:
+                print dv
                 self.digitalVoltage = dv
         
 class CCTDACServer( SerialDeviceServer ):
@@ -129,11 +144,10 @@ the queue, and the portList can be safely updated.
         """
 Initialize CCTDACServer
 """
-        self.createInfo() # Populate list of Channels
+        yield self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
-        #port = yield self.getPortFromReg( self.regKey )
-        port = 'COM10'
+        port = yield self.getPortFromReg( self.regKey )
         self.port = port
         try:
             print self.serNode
@@ -159,19 +173,29 @@ Initialize CCTDACServer
         Initialize channel list
         """
         registry = self.client.registry
-        degreeOfCalibration = 1 # 1st order fit. update this to auto-detect 
+        degreeOfCalibration = 2 # 1st order fit. update this to auto-detect 
         self.portList = []
+        yield registry.cd(['', 'Calibrations'])
+        subs, keys = yield registry.dir()
+        print 'Calibrated channels: '
+        print subs
         for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller
             #registry.cd(['', 'Calibrations'])
             c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
-            subs, keys = yield registry.dir()
             if str(i) in subs:
-                registry.cd(['', 'Calibrations', str(i)])
-                c = [registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 ) ]
+                #print str(i)
+                yield registry.cd(['', 'Calibrations', str(i)])
+                for n in range( degreeOfCalibration + 1):
+                    e = yield registry.get( 'c'+str(n) )
+                    #print e
+                    c.append(e)
+                #c = [ registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 )]
                 self.portList.append(Port(i, c))
             else:
                 self.portList.append(Port(i)) # no preset calibration
-
+        
+        
+        
     @inlineCallbacks
     def checkQueue( self, c ):
         """
@@ -198,6 +222,7 @@ Raise error when queue fills up.
         if self.free:
             self.free = False
             yield self.writeToSerial(c, voltages )
+            
         elif len( self.queue ) > MAX_QUEUE_SIZE:
             raise DCBoxError( 2 )
         else:
@@ -220,9 +245,9 @@ After the list has been written, update the current portList
         for v in voltages:
             self.portList[v.portNum - 1].setVoltage(v)
         toSend = self.makeComString( voltages )
+        time.sleep(0.3)
         yield self.ser.write( toSend )
         self.notifyOtherListeners(c)
-        sleep(0.3)
         yield self.checkQueue(c)
 
     def makeComString(self, voltages):
@@ -245,7 +270,7 @@ Construct a com string in the appropriate format.
             setn = binascii.unhexlify(hex(setNum)[2:].zfill(4)) # Which set of updates are we applying ( = 1 for now, always)
             code = binascii.unhexlify(hex(codeInDec)[2:].zfill(4)) # What digital code to write to the port
             comstr += 'P' + port + 'I' + setn + ',' + code
-        print comstr
+        print 'Serial String: '+str(comstr)
         return comstr
     
     def initContext(self, c):
@@ -296,7 +321,7 @@ Pass a list of tuples of the form:
         newVoltages = []
         for (num, av) in analogVoltages:
             newVoltages.append( AnalogVoltage(num, av) )
-        yield self.tryToUpdate(c, newVoltages)
+        yield self.tryToUpdate(c, newVoltages )
         
     @setting( 8, 'Set Individual Digital Voltages', digitalVoltages = '*(iv)', returns = '')
     def setIndivDigVoltages(self, c, digitalVoltages):

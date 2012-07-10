@@ -79,6 +79,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     def sendToServer(self):
         if self.inputUpdated:
             print "sending to server ", self.multipoleValues
+            print 'why?'
             self.dacserver.set_multipole_voltages(self.multipoleValues.items())
             print "set the values"
             self.inputUpdated = False
@@ -185,7 +186,9 @@ class CHANNEL_CONTROL (QtGui.QWidget):
     def sendToServer(self):
         if self.inputUpdated:
             c = self.changedChannel
+            print 'hi'
             self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])])
+            print [(self.labelToNumber[c], self.channelValues[c])]
             print "set the values"
             self.inputUpdated = False
             

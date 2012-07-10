@@ -19,8 +19,9 @@ class CCT_GUI(QtGui.QMainWindow):
         from CAVITY_CONTROL import cavityWidget
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         gridLayout = QtGui.QGridLayout()
-        gridLayout.addWidget(cavityWidget(reactor),0,0)
         gridLayout.addWidget(multiplexerWidget(reactor),0,1)
+        gridLayout.addWidget(cavityWidget(reactor),0,0)
+        gridLayout.setColumnStretch(1,5000)
         widget.setLayout(gridLayout)
         return widget
 
@@ -29,6 +30,7 @@ class CCT_GUI(QtGui.QMainWindow):
         from DAC_CONTROL import DAC_CONTROL
         from PMT_CONTROL import pmtWidget
         from RS_CTRL import RS_CONTROL
+        from SHUTTER_CONTROL import SHUTTER
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         gridLayout = QtGui.QGridLayout()
         subLayout = QtGui.QGridLayout()
@@ -38,6 +40,7 @@ class CCT_GUI(QtGui.QMainWindow):
         subLayout.addWidget(pmtWidget(reactor),0,0)
 #        gridLayout.addWidget(pmtWidget(reactor),0,1)
         subLayout.addWidget(RS_CONTROL(reactor),1,0)
+        subLayout.addWidget(SHUTTER(reactor), 2,0)
         widget.setLayout(gridLayout)
         return widget
 
