@@ -272,9 +272,11 @@ class DAC_CONTROL(QtGui.QMainWindow):
 
         channelControlTab = self.buildChannelControlTab()        
         multipoleControlTab = self.buildMultipoleControlTab()
+        scanTab = self.buildScanTab()
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(multipoleControlTab,'&Multipoles')
         tabWidget.addTab(channelControlTab, '&Channels')
+        tabWidget.addTab(scanTab, '&Scans')
         self.setCentralWidget(tabWidget)
     
     def buildMultipoleControlTab(self):
@@ -292,6 +294,16 @@ class DAC_CONTROL(QtGui.QMainWindow):
         widget.setLayout(gridLayout)
         return widget
     
+    def buildScanTab(self):
+	from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
+	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
+	widget = QtGui.QWidget()
+	gridLayout = QtGui.QGridLayout()
+	gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
+	gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
+	widget.setLayout(gridLayout)
+	return widget
+	
     def closeEvent(self, x):
         self.reactor.stop()  
 

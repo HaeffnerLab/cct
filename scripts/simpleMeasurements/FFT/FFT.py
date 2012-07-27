@@ -1,6 +1,8 @@
 import sys; 
-sys.path.append('F:\\Experiment_control\\LabRAD\\cct\\scripts')
-sys.path.append('F:\\Experiment_control\\LabRAD\\cct\\scripts\\PulseSequences')
+#sys.path.append('F:\\Experiment_control\\LabRAD\\cct\\scripts')
+sys.path.append('/home/cct/LabRAD/cct/scripts')
+sys.path.append('/home/cct/LabRAD/cct/scripts/PulseSequences')
+#sys.path.append('F:\\Experiment_control\\LabRAD\\cct\\scripts\\PulseSequences')
 import labrad
 import numpy as np
 from PulseSequences.TimeResolvedRecord import TimeResolved
@@ -21,7 +23,7 @@ class measureFFT():
     
     def getCenterFreq(self):
         #rffreq = float(self.trap_drive.frequency())*10.0**6 #in Hz
-        rffreq = float(41.53)*10.**6
+        rffreq = float(43.90)*10.**6#MR: computer set
         return rffreq
 
     def defineServers(self, cxn):
@@ -81,7 +83,7 @@ if  __name__ == '__main__':
     recordTime = 0.5 #seconds
     average = 4
     freqSpan = 50#Hz 
-    freqOffset = -889 #Hz, the offset between the counter clock and the rf synthesizer clock
+    freqOffset = -920 #Hz, the offset between the counter clock and the rf synthesizer clock
     fft = measureFFT(cxn, recordTime, average, freqSpan, freqOffset, savePlot = True)
     #totalPower = fft.getTotalPower()
     peakArea = fft.getPeakArea(ptsAround = 3)

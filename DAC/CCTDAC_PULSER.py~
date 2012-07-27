@@ -198,10 +198,10 @@ the queue, and the portList can be safely updated.
             seq.setVariables(**params)
             seq.defineSequence()
             pulser.program_sequence()
-            #pulser.reset_timetags()
-            #pulser.start_single()
-            #pulser.wait_sequence_done()
-            #pulser.stop_sequence()
+            pulser.reset_timetags()
+            pulser.start_single()
+            pulser.wait_sequence_done()
+            pulser.stop_sequence()
             self.notifyOtherListeners(c)
             yield self.checkQueue(c)
                         
@@ -330,7 +330,7 @@ class microControllerSim(Sequence):
 
         self.start = 0
         self.m = 0
-        self.dTime = 10e-8
+        self.dTime = 10e-6
         self.DTime = 1e3 * self.dTime
         dTime = self.dTime
         DTime = self.DTime

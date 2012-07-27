@@ -17,26 +17,26 @@ timeout = 20
 """
 
 from serialdeviceserver import SerialDeviceServer, setting, inlineCallbacks, SerialDeviceError, SerialConnectionError, PortRegError
+from labrad.server import Signal
 from labrad.types import Error
 from twisted.internet import reactor
 from twisted.internet.defer import returnValue
-from labrad.server import Signal
-from time import *
 
 SIGNALID = 209068
 
 class PS(SerialDeviceServer):
     name = '%LABRADNODE% Piezo Server'
     regKey = 'piezokey'
-    port = None
     serNode = 'cctmain'
+    onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)')
+    port = None
+    ret = None
+    
     timeout = .01
     baudrate = 38400
     xonxoff = False
     stopbits = 1
     bytesize = 8
-    onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)')
-    ret = None
     
     @inlineCallbacks
     def initServer(self):
@@ -48,19 +48,9 @@ class PS(SerialDeviceServer):
         self.port = port
         try:
             serStr = yield self.findSerial(self.serNode)
-            self.initSerial( serStr, port )
-        except SerialConnectionError, e:
-            self.ser = None
-            if e.code == 0:
-                print 'Could not find serial server for node: %s' % self.serNode
-                print 'Please start correct serial server'
-            elif e.code == 1:
-                print 'Error opening serial connection'
-                print 'Check set up and restart serial server'
-            else: raise
-            
-	for i in range(100):
-	    self.ser.readline()
+            self.initSerial( serStr, port )            
+	#for i in range(100):
+	    #self.ser.readline()
             
     def createFreqDict(self):
         f = {}
@@ -87,7 +77,6 @@ class PS(SerialDeviceServer):
     def step(self, c, axis, numSteps):
 	self.ser.write('setm ' + str(axis) + ' stp' + '\r\n')
 	cmd = self.gtStepStr(axis, numSteps)
-	print cmd
 	self.ser.write(cmd)
 	    
     @setting(2, 'continuous', axis = 'i', dirn = 's', returns = '')
@@ -95,7 +84,6 @@ class PS(SerialDeviceServer):
 	self.ser.write('setm ' + str(axis) + ' stp' + '\r\n')
 	if dirn == 'U':
 	    self.ser.write('stepu ' + str(axis) + ' c\r\n')
-	    print str('stepu ' + str(axis) + ' c\r\n')
 	if dirn == 'D':
 	    self.ser.write('stepd ' + str(axis) + ' c\r\n')
 	
@@ -103,11 +91,11 @@ class PS(SerialDeviceServer):
     def stop(self, c, axis):
 	self.ser.write('stop ' + str(axis) + '\r\n')
 
-    @setting(4, "sFreq", axis = 'i', freq = 'v', returns = '')
+    @setting(4, "sFreq", axis = 'i', freq = 'i', returns = '')
     def sFreq(self, c, axis, freq):
 	self.ser.write('setf ' + str(axis) + ' ' + str(freq) + '\r\n')
 
-    @setting(5, "sVolt", axis = 'i', volt = 'v', returns = '')
+    @setting(5, "sVolt", axis = 'i', volt = 'i', returns = '')
     def sVolt(self, c, axis, volt):
 	self.ser.write('setv ' + str(axis) + ' ' + str(volt) + '\r\n')
 
@@ -116,7 +104,6 @@ class PS(SerialDeviceServer):
 	self.ser.write('getf ' + str(axis) + '\r\n')
 	yield self.getAns(c, 'f')
 	freq = int(self.ret)
-	print freq
 	self.freqDict[str(axis)] = freq
 	
     @setting(7, "gVolt", axis = 'i', returns = '')
@@ -124,9 +111,7 @@ class PS(SerialDeviceServer):
 	self.ser.write('getv ' + str(axis) + '\r\n')
 	yield self.getAns(c, 'v')
 	volt = int(self.ret)
-	print volt
 	self.voltDict[str(axis)] = volt
-	
 	
     @setting(8, "gCap", axis = 'i', returns = '')
     def gCap(self, c, axis):
@@ -134,7 +119,6 @@ class PS(SerialDeviceServer):
 	self.ser.write('getc ' + str(axis) + '\r\n')
 	yield self.getAns(c, 'c')
 	cap = int(self.ret)
-	print cap
 	self.capDict[str(axis)] = cap
 	
     @setting(9, "rFreq", axis = 'i', returns = 'i')
@@ -158,11 +142,9 @@ class PS(SerialDeviceServer):
     @setting(12, "gAns", prop = 's', returns = '')
     def getAns(self, c, prop):
 	listy = []
-	n = 0
 	ans = '1'
 	ret = 'ERROR'
 	while ans != '':
-	    n+=1
 	    ans = yield self.ser.readline()
 	    listy.append(ans)
 	print listy
@@ -175,6 +157,8 @@ class PS(SerialDeviceServer):
 		ret = listy[num][11:-3]
 	if ret != 'ERROR':
 	    self.ret = ret
+	else:
+	    self.ret = 0
 	  
     def gtStepStr(self, axis, numSteps):
 	if numSteps >= 0:

@@ -54,6 +54,7 @@ class hardwareConfiguration():
                    'rst2':channelConfiguration(5, False, False, False, False),
                    'dat2':channelConfiguration(6, False, False, False, True),
                    'clk2':channelConfiguration(7, False, False, False, True),
+                   '397main':channelConfiguration(8, False, False, False, False),
                    #------------INTERNAL CHANNELS----------------------------------------#
                    'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
                    'TimeResolvedCount':channelConfiguration(17, False, False, False, False),

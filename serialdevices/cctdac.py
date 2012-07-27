@@ -382,7 +382,6 @@ set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
     
     @setting( 7, 'Get Multipole Voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
-        print "Shhhh... I shouldn't be here!"
         return self.multipoleSet.items()
     
         

@@ -8,5 +8,4 @@ node.start('CCTDAC')
 #node.start('Pulser')
 node.start('Data Vault')
 #node.start('Normal PMT Flow')
-
 #cxn.node_cctmain.start('RS Server trapdrive sideband')
