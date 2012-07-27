@@ -1,0 +1,10 @@
+*.pyc
+Errors.log
+.project
+.pydevproject
+*.pyc
+.recent.ini
+.DS_store
+.settings
+.directory
+/installs

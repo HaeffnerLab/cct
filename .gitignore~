@@ -1,0 +1,8 @@
+*.pyc
+Errors.log
+.progject
+.pydevproject
+*.pyc
+.settings
+.directory
+/data
