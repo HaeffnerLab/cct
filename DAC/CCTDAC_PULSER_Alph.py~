@@ -33,8 +33,8 @@ SIGNALID = 270837
 NUMCHANNELS = 28
 
 # Nominal analog voltage range. Just used if there's no calibration available
-NOMINAL_VMIN = -10.
-NOMINAL_VMAX = 10.
+NOMINAL_VMIN = -10.0
+NOMINAL_VMAX = 10.0
 
 
 class Voltage(object):
@@ -78,7 +78,6 @@ class Port():
     def setVoltage(self, v):
         if v.type == 'analog':
             self.analogVoltage = float(v.voltage)
-            
             dv = int(round(sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )))
             print 'Analog Voltage Value: '+str(self.analogVoltage)
             print 'Digital Voltage Value: '+str(dv)
@@ -190,6 +189,9 @@ the queue, and the portList can be safely updated.
             print 'channel', portNum
 	    stry = self.getHexRep(portNum, 1, codeInDec)
 	    yield self.pulser.set_dac_voltage(stry)
+	    print stry
+	#yield self.pulser.set_dac_voltage('\xff\xff\x02\x08')
+	#print '\xff\xff\x02\x08'
 	yield self.pulser.set_dac_voltage('\x00\x00\x00\x00')    
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
@@ -214,20 +216,44 @@ the queue, and the portList can be safely updated.
         for i in range(5):
             chan.append(None)
         chan = self.f(channel, chan)
+        print chan
         
         sety=[]
         for i in range(10):
             sety.append(None)
         sety = self.f(setindex, sety)
+        print sety
         
         val=[]
         for i in range(16):
             val.append(None)
         val = self.f(value, val)
+        print val
         
         big = val + chan + sety 
         big.append(False)
-
+        
+        #hex1 = self.g(big[:8])[2:]
+        #if len(hex1) < 2:
+	    #hex1 = '0' + hex1
+	#hex1 = '\\x' + hex1
+	#print hex1
+        #hex2 = self.g(big[8:16])[2:]
+        #if len(hex2) < 2:
+	    #hex2 = '0' + hex2        
+        #hex2 = '\\x' + hex2
+        #print hex2
+        #hex3 = self.g(big[16:24])[2:]
+        #if len(hex3) < 2:
+	    #hex3 = '0' + hex3        
+        #hex3 = '\\x' + hex3
+        #print hex3
+        #hex4 = self.g(big[24:32])[2:]
+        #if len(hex4) < 2:
+	    #hex4 = '0' + hex4        
+        #hex4 = '\\x' + hex4
+        #print '\\' + hex4
+        #return hex2[1:] + hex1[1:] +  hex4[1:] + hex3[1:]
         return self.g(big[8:16]) + self.g(big[:8]) + self.g(big[24:32]) + self.g(big[16:24])
         
     def f(self, num, listy): #binary representation of values in the form of a list
@@ -305,8 +331,7 @@ the queue, and the portList can be safely updated.
         """
 	Return a list of digital voltages currently in portList
 	"""
-        #return [ dv for dv in [ p.digitalVoltage for p in self.portList ] ]
-        return [ p.digitalVoltage for p in self.portlist ]
+        return [ dv for v in [ p.digitalVoltage for p in self.portList ] ]
     
     @setting( 5, 'set multipole control file', file='s: multipole control file')
     def setMultipoleControlFile(self, c, file):
@@ -341,9 +366,6 @@ the queue, and the portList can be safely updated.
     
     @setting( 7, 'get multipole voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
-	"""
-	Return a list of multipole voltages
-	"""
         return self.multipoleSet.items()
        
 if __name__ == "__main__":

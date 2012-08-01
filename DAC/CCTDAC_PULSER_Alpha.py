@@ -18,6 +18,7 @@ timeout = 20
 '''
 
 from labrad.server import LabradServer, setting, Signal, inlineCallbacks 
+from sequence import Sequence
 from twisted.internet import reactor
 from twisted.internet.defer import returnValue
 import copy as cpy # copy objects by value
@@ -33,8 +34,8 @@ SIGNALID = 270837
 NUMCHANNELS = 28
 
 # Nominal analog voltage range. Just used if there's no calibration available
-NOMINAL_VMIN = -10.
-NOMINAL_VMAX = 10.
+NOMINAL_VMIN = -10.0
+NOMINAL_VMAX = 10.0
 
 
 class Voltage(object):
@@ -78,7 +79,6 @@ class Port():
     def setVoltage(self, v):
         if v.type == 'analog':
             self.analogVoltage = float(v.voltage)
-            
             dv = int(round(sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )))
             print 'Analog Voltage Value: '+str(self.analogVoltage)
             print 'Digital Voltage Value: '+str(dv)
@@ -116,15 +116,15 @@ the queue, and the portList can be safely updated.
 
     @inlineCallbacks
     def initServer( self ):
-	self.createInfo() # Populate list of Channels
-	self.queue = []
-	self.portlist = []
-	if not self.serNode: raise SerialDeviceError( 'Must define serNode' )
-	from labrad.wrappers import connectAsync
-	cxn = yield connectAsync()
-	self.pulser = cxn.pulser
-	self.listeners = set()
-	self.free = True
+        self.createInfo() # Populate list of Channels
+        self.queue = []
+        self.portlist = []
+        if not self.serNode: raise SerialDeviceError( 'Must define serNode' )
+        from labrad.wrappers import connectAsync
+        cxn = yield connectAsync()
+        self.pulser = cxn.pulser
+        self.listeners = set()
+        self.free = True
             
     @inlineCallbacks
     def createInfo( self ):
@@ -168,6 +168,7 @@ the queue, and the portList can be safely updated.
         else:
             self.queue.append( v)
         
+
     @inlineCallbacks
     def checkQueue( self, c ):
         if self.queue:
@@ -180,7 +181,6 @@ the queue, and the portList can be safely updated.
     @inlineCallbacks
     def sendToPulser(self, c, voltage):
         pulser = self.pulser
-        yield self.pulser.reset_fifo_dac()
         for v in voltage:
             self.portList[v.portNum - 1].setVoltage(v)
             portNum = v.portNum
@@ -188,11 +188,23 @@ the queue, and the portList can be safely updated.
             codeInDec = int(p.digitalVoltage)
             print "codeInDec ", codeInDec
             print 'channel', portNum
-	    stry = self.getHexRep(portNum, 1, codeInDec)
-	    yield self.pulser.set_dac_voltage(stry)
-	yield self.pulser.set_dac_voltage('\x00\x00\x00\x00')    
-        self.notifyOtherListeners(c)
-        yield self.checkQueue(c)
+         
+            seq = microControllerSim(pulser)
+            pulser.new_sequence()
+            params = {
+                      'channel': portNum,
+                      'setindex':1,
+                      'value':codeInDec,
+                      }
+            seq.setVariables(**params)
+            seq.defineSequence()
+            pulser.program_sequence()
+            pulser.reset_timetags()
+            pulser.start_single()
+            pulser.wait_sequence_done()
+            pulser.stop_sequence()
+            self.notifyOtherListeners(c)
+            yield self.checkQueue(c)
                         
     def initContext(self, c):
         self.listeners.add(c.ID)
@@ -208,44 +220,7 @@ the queue, and the portList can be safely updated.
         notified.remove(context.ID)
         self.onNewUpdate('Channels updated', notified)
         print "Notifyin' them listeners"
-        
-    def getHexRep(self, channel, setindex, value):
-        chan=[]
-        for i in range(5):
-            chan.append(None)
-        chan = self.f(channel, chan)
-        
-        sety=[]
-        for i in range(10):
-            sety.append(None)
-        sety = self.f(setindex, sety)
-        
-        val=[]
-        for i in range(16):
-            val.append(None)
-        val = self.f(value, val)
-        
-        big = val + chan + sety 
-        big.append(False)
-
-        return self.g(big[8:16]) + self.g(big[:8]) + self.g(big[24:32]) + self.g(big[16:24])
-        
-    def f(self, num, listy): #binary representation of values in the form of a list
-        for i in range(len(listy)):
-            if num >= 2**(len(listy)-1)/(2**i):
-                listy[i] = True
-                num -= 2**(len(listy)-1)/(2**i)
-            else:
-                listy[i] = False 
-        return listy
-        
-    def g(self, listy):
-	num = 0
-	for i in range(8):
-		if listy[i]:
-			num += 2**7/2**i
-	return chr(num)
-
+    
     @setting( 0 , 'set digital voltages', returns = '' )
     def setDigitalVoltages( self, c, digitalVoltages ):
         """
@@ -278,20 +253,19 @@ the queue, and the portList can be safely updated.
 	(portNum, newVolts)
 	"""
         newVoltages = []
+        waste=[]
         for (num, av) in analogVoltages:
             newVoltages.append( AnalogVoltage(num, av) )
-        yield self.tryToUpdate(c, newVoltages )
+        for i in range (1):
+            yield self.tryToUpdate(c, newVoltages )
         
     @setting( 8, 'set individual digital voltages', digitalVoltages = '*(iv)', returns = '')
     def setIndivDigVoltages(self, c, digitalVoltages):
-        """
-	Pass a list of tuples of the form:
-	(portNum, newVolts)
-	"""        
         newVoltages = []
         for (num, dv) in digitalVoltages:
             newVoltages.append( DigitalVoltage(num, dv) )
-        yield self.tryToUpdate(c, newVoltages )
+        for i in range (1):
+            yield self.tryToUpdate(c, newVoltages )
 
     @setting( 3, 'get analog voltages', returns = '*v' )
     def getAnalogVoltages(self, c):
@@ -305,8 +279,7 @@ the queue, and the portList can be safely updated.
         """
 	Return a list of digital voltages currently in portList
 	"""
-        #return [ dv for dv in [ p.digitalVoltage for p in self.portList ] ]
-        return [ p.digitalVoltage for p in self.portlist ]
+        return [ dv for v in [ p.digitalVoltage for p in self.portList ] ]
     
     @setting( 5, 'set multipole control file', file='s: multipole control file')
     def setMultipoleControlFile(self, c, file):
@@ -341,10 +314,143 @@ the queue, and the portList can be safely updated.
     
     @setting( 7, 'get multipole voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
-	"""
-	Return a list of multipole voltages
-	"""
+        print "Shhhh... I shouldn't be here!"
         return self.multipoleSet.items()
+
+class microControllerSim(Sequence):
+    requiredVars = {
+                         'channel':(int, 0, 31, 31),
+                         'setindex':(int, 0, 1, 1023),
+                         'value':(int, 0, 65535, 65535),
+                    }
+    def defineSequence(self):
+	pulser = self.pulser
+        channel = self.vars['channel'] # Which port to change
+        setindex = self.vars['setindex'] # Which set of updates are we applying ( = 1 for now, always)
+        value = self.vars['value'] # What digital code to write to the port
+
+        self.start = 0
+        self.m = 0
+        self.dTime = 10e-8
+        self.DTime = 1e3 * self.dTime
+        dTime = self.dTime
+        DTime = self.DTime
+
+	self.clk = 'clk'
+	self.dat = 'dat'
+	self.rst = 'rst'
+        
+	if channel < 20:
+	    p = '1'
+        elif channel >= 20:
+	    p = '2'
+	    channel -= 19
+
+	self.clk += p
+	self.dat += p
+	self.rst += p
+                
+        chan=[]
+        for i in range(5):
+            chan.append(None)
+        chan = self.f(channel, chan)
+        
+        sety=[]
+        for i in range(10):
+            sety.append(None)
+        sety = self.f(setindex, sety)
+        
+        val=[]
+        for i in range(16):
+            val.append(None)
+        val = self.f(value, val)
+        
+        self.start += 4 * dTime + DTime 
+        a = self.g(chan+sety+val, 0, 0)                            #compose 'dat' sequence                
+        
+        self.start = 5*dTime + DTime                               #begin composing 'clk' sequence
+        duration = dTime
+        pulser.add_ttl_pulse(str(self.clk), self.start, duration)
+        for i in range(len(chan+sety+val)-1):
+            self.start += 3*dTime
+            duration = dTime
+            pulser.add_ttl_pulse(str(self.clk), self.start, duration)
+        self.start += 3*dTime
+        duration = 2*dTime 
+        pulser.add_ttl_pulse(str(self.clk), self.start, duration)
+        self.start += 4*dTime
+        duration = dTime
+        pulser.add_ttl_pulse(str(self.clk), self.start, duration)
+        self.start += 3*dTime
+        for i in range(5):
+            pulser.add_ttl_pulse(str(self.clk), self.start, duration)
+            self.start += 2*dTime                                  #End composing 'clk' sequence
+            
+        duration = self.start - 3*dTime - DTime                    
+        pulser.add_ttl_pulse(str(self.rst), 3*dTime + DTime, duration)  #'rst' sequence
+                
+    def g(self, listy, numEntry, n):
+        pulser = self.pulser
+        dTime = self.dTime
+        DTime = self.DTime
+        if numEntry == 0:
+            if not listy[0]:
+                duration = 3 * dTime 
+                pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                self.start += 6*dTime
+                self.g(listy, 1, 0)
+            else:
+                self.m+=1
+                self.g(listy, 1,2)
+        
+        elif numEntry == len(listy)-1:
+            if listy[numEntry]:
+                self.m+=1 
+                duration = 3*(n+1) * dTime + dTime
+                if self.m%2:
+                    duration += 16 * dTime
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                if not self.m%2:
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                    self.start += duration + 3*dTime
+                    duration = 13 * dTime
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                
+            elif not listy[numEntry]:
+                duration = 3*n*dTime
+                if n:
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                    #print 'ind', n, duration
+                self.start+=4*dTime + duration
+                if self.m%2:
+                    duration = 16 * dTime
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                if not self.m%2:
+                    self.start += 3 * dTime
+                    duration = 13 * dTime
+                    pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                
+        elif listy[numEntry]:
+            self.m+=1
+            n += 1
+            self.g(listy, numEntry+1, n)
+            
+        elif not listy[numEntry]:
+            duration = 3*n*dTime
+            if n:                
+                pulser.add_ttl_pulse(str(self.dat), self.start, duration)
+                #print numEntry, duration 
+            self.start += duration + 3 * dTime
+            self.g(listy, numEntry+1, 0)
+                                
+    def f(self, num, listy): #binary representation of values in the form of a list
+        for i in range(len(listy)):
+            if num >= 2**(len(listy)-1)/(2**i):
+                listy[i] = True
+                num -= 2**(len(listy)-1)/(2**i)
+            else:
+                listy[i] = False 
+        return listy
        
 if __name__ == "__main__":
     from labrad import util

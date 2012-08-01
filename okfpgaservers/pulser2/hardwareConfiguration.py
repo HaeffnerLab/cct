@@ -47,7 +47,7 @@ class hardwareConfiguration():
     #name: (channelNumber, ismanual, manualstate,  manualinversion, autoinversion)
     channelDict = {
 		    '866':channelConfiguration(0, True, True, False, False),
-		    'bluePI':channelConfiguration(1, True, True, False, False),
+		   'bluePI':channelConfiguration(1, True, True, False, False),
                    #'rst':channelConfiguration(2, False, False, False, False),
                    #'dat':channelConfiguration(3, False, False, False, True),
                    #'clk':channelConfiguration(4, False, False, False, True),
@@ -62,6 +62,6 @@ class hardwareConfiguration():
                    }
     
     ddsDict = {
-               '866':ddsConfiguration(0, (30.0,130.0), (70.0,90.0), (-63.0,-3.0), (-63.0,-3.0), 80.0, -33.0),
-               '397':ddsConfiguration(1, (170.0,270.0), (190.0,250.0), (-63.0,-3.0), (-63.0,-3.0), 220.0, -33.0),               
+               '866DP':ddsConfiguration(3, (30.0,130.0), (70.0,90.0), (-63.0,-3.0), (-63.0,-3.0), 80.0, -33.0),
+#               '397':ddsConfiguration(2, (170.0,270.0), (190.0,250.0), (-63.0,-3.0), (-63.0,-3.0), 220.0, -33.0),               
                }

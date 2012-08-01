@@ -80,23 +80,7 @@ def sequence(self):
             iters = iteration * numpy.ones_like(timetags)
             self.dv.add(numpy.vstack((iters,timetags)).transpose())
             #add to binning of the entire sequence
-            self.Binner.add(timetags)
-            self.Splicer.add(timetags)
-            #auto crystallization
-            if xP.auto_crystal:
-                success = self.xtal.auto_crystallize()
-                if not success: break
-            #auto frequency correct
-            if xP.freq_correct:
-                if (xP.iterations % xP.freq_correct_interval == 0):
-                    success = self.freqCorrect.auto_correct()
-                    if not success: print 'Cant the drift, Boss'
-            
-        #adding readout counts to data vault:
-        readout = self.Splicer.getList()
-        self.dv.cd(['', self.topdirectory, 'Experiments', self.experimentName, self.dirappend])
-        self.dv.new('readout',[('Iter', 'Number')], [('PMT counts','Counts/Sec','Counts/Sec')] )
-        self.dv.add(readout)
+            self.Binner.add(timetags)           
         #adding binned fluorescence to data vault:
         binX, binY = self.Binner.getBinned()
         self.dv.cd(['', self.topdirectory, 'Experiments', self.experimentName, self.dirappend])
@@ -104,14 +88,6 @@ def sequence(self):
         data = numpy.vstack((binX, binY)).transpose()
         self.dv.add(data)
         self.dv.add_parameter('Window',['Binned Fluorescence'])
-        self.dv.add_parameter('plotLive',True)
-        #adding histogram of counts to data vault
-        binX, binY = self.Splicer.getHistogram()
-        self.dv.cd(['', self.topdirectory, 'Experiments', self.experimentName, self.dirappend])
-        self.dv.new('histogram',[('Time', 'sec')], [('PMT counts','Arb','Arb')] )
-        data = numpy.vstack((binX, binY)).transpose()
-        self.dv.add(data)
-        self.dv.add_parameter('Window',['Histogram'])
         self.dv.add_parameter('plotLive',True)
         # gathering parameters and adding them to data vault
         measureList = ['trapdrive','endcaps','compensation','dcoffsetonrf','cavity397','cavity866','multiplexer397','multiplexer866','axialDP', 'pulser']

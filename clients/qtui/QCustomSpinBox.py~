@@ -2,28 +2,19 @@ import sys
 import os
 from PyQt4 import QtGui
 from PyQt4 import QtCore,uic
-import math
 
 class QCustomSpinBox(QtGui.QWidget):
     onNewValues = QtCore.pyqtSignal()
     def __init__(self, title, levelRange, parent=None):
         QtGui.QWidget.__init__(self, parent)
 	basepath = os.path.dirname(__file__)
-        #        basepath = os.environ.get('LABRADPATH',None)
-#        if not basepath:
-#            raise Exception('Please set your LABRADPATH environment variable')
         path = os.path.join(basepath,'titlespin.ui')
         uic.loadUi(path,self)
-        #set widget properties
         self.title.setText(title)
         self.levelRange = levelRange
-        #set ranges
-        maxDifference = abs(levelRange[1] - levelRange[0])
         self.spinLevel.setRange(*levelRange)
         self.spinLevel.setDecimals(4)
-        #self.dict = {'level':0}
         self.level = 0
-        #connect functions
         self.spinLevel.valueChanged.connect(self.spinLevelChanged)
 
     def setValues(self, level):
@@ -37,7 +28,6 @@ class QCustomSpinBox(QtGui.QWidget):
     
     def spinLevelChanged(self, newlevel):
         oldlevel = self.level
-        #withinRange = self.checkLevelTilt(newlevel, self.dict['tilt'])
         withinRange = self.checkRange(newlevel)
         if withinRange:
             self.level = newlevel

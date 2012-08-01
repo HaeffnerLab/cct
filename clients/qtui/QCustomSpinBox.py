@@ -13,7 +13,7 @@ class QCustomSpinBox(QtGui.QWidget):
         self.title.setText(title)
         self.levelRange = levelRange
         self.spinLevel.setRange(*levelRange)
-        self.spinLevel.setDecimals(4)
+        self.spinLevel.setDecimals(3)
         self.level = 0
         self.spinLevel.valueChanged.connect(self.spinLevelChanged)
 

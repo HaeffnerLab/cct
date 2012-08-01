@@ -190,6 +190,9 @@ the queue, and the portList can be safely updated.
             print 'channel', portNum
 	    stry = self.getHexRep(portNum, 1, codeInDec)
 	    yield self.pulser.set_dac_voltage(stry)
+	    print stry
+	#yield self.pulser.set_dac_voltage('\xff\xff\x02\x08')
+	#print '\xff\xff\x02\x08'
 	yield self.pulser.set_dac_voltage('\x00\x00\x00\x00')    
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
@@ -214,16 +217,19 @@ the queue, and the portList can be safely updated.
         for i in range(5):
             chan.append(None)
         chan = self.f(channel, chan)
+        print chan
         
         sety=[]
         for i in range(10):
             sety.append(None)
         sety = self.f(setindex, sety)
+        print sety
         
         val=[]
         for i in range(16):
             val.append(None)
         val = self.f(value, val)
+        print val
         
         big = val + chan + sety 
         big.append(False)
@@ -305,8 +311,7 @@ the queue, and the portList can be safely updated.
         """
 	Return a list of digital voltages currently in portList
 	"""
-        #return [ dv for dv in [ p.digitalVoltage for p in self.portList ] ]
-        return [ p.digitalVoltage for p in self.portlist ]
+        return [ dv for v in [ p.digitalVoltage for p in self.portList ] ]
     
     @setting( 5, 'set multipole control file', file='s: multipole control file')
     def setMultipoleControlFile(self, c, file):
@@ -341,9 +346,6 @@ the queue, and the portList can be safely updated.
     
     @setting( 7, 'get multipole voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
-	"""
-	Return a list of multipole voltages
-	"""
         return self.multipoleSet.items()
        
 if __name__ == "__main__":

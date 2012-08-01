@@ -58,8 +58,6 @@ def programPulser(self):
         self.seqP['endReadout'] = seq.parameters.endReadout
         
 def run(self):
-        sP = self.seqP
-        xP = self.expP
         self.initialize()
         self.sequence()
         self.finalize()
