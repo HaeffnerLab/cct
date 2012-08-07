@@ -69,6 +69,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.cxn = yield connectAsync()
         self.dacserver = yield self.cxn.cctdac
         yield self.setupListeners()
+        yield self.followSignal(0, 0)
         
     def inputHasUpdated(self):
         self.inputUpdated = True
@@ -93,13 +94,13 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         yield self.dacserver.signal__ports_updated(SIGNALID)
         yield self.dacserver.addListener(listener = self.followSignal, source = None, ID = SIGNALID) #cxzv 
     
-    def followSignal(self, x, (s)):
-        """
-        Update the sliders
-        """
-        multipoles = yield self.dacserver.get_multipole_voltages()
-        for (k,v) in multipoles:
-           self.controls[k].setValueNoSignal(v)
+    @inlineCallbacks
+    def followSignal(self, x, s):
+	try:
+	    multipoles = yield self.dacserver.get_multipole_voltages()
+	    for (k,v) in multipoles:
+		self.controls[k].setValueNoSignal(v)
+	except: print '...'
     
     def closeEvent(self, x):
         self.reactor.stop()  
@@ -240,6 +241,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.cxn = yield connectAsync()
         self.dacserver = yield self.cxn.cctdac
         yield self.setupListeners()
+        yield self.followSignal(0, 0)
         
     @inlineCallbacks    
     def setupListeners(self):

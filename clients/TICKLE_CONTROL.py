@@ -4,7 +4,7 @@ from PyQt4 import QtCore,uic
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 MinPower = -100 #dbM
-MaxPower = -10
+MaxPower = 0
 MinFreq = 0 #Mhz
 MaxFreq = 100
 

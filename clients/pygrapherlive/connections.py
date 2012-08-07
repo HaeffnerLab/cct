@@ -134,13 +134,16 @@ class CONNECTIONS(QtGui.QGraphicsObject):
     # new dataset signal
     def updateDataset(self,x,y):
         dataset = int(y[0][0:5]) # retrieve dataset number
+        datasetName = str(y[0][8:len(y[0])])
+        print datasetName
         directory = y[1] # retrieve directory
         itemLabel = y[0]
         self.addDatasetItem(itemLabel, directory)
         print directory
         print dataset
+        print x, y
         manuallyLoaded = False # ensure that this dataset was not loaded manually
-        self.newDataset(dataset, directory, manuallyLoaded)
+        self.newDataset(dataset, directory, manuallyLoaded, datasetName)
  
     def addDatasetItem(self, itemLabel, directory):
         self.introWindow.datavaultwidget.addDatasetItem(itemLabel, directory)
@@ -151,9 +154,9 @@ class CONNECTIONS(QtGui.QGraphicsObject):
  
     # Creates a new Dataset object and checks if it has the 'plotLive' parameter
     @inlineCallbacks
-    def newDataset(self, dataset, directory, manuallyLoaded):
+    def newDataset(self, dataset, directory, manuallyLoaded, datasetName):
         context = yield self.cxn.context() # create a new context
-        datasetObject = Dataset(self.cxn, context, dataset, directory, self.reactor)
+        datasetObject = Dataset(self, self.cxn, context, dataset, directory, datasetName, self.reactor)
         self.datasetDict[dataset, directory] = datasetObject
         yield datasetObject.openDataset(context)
         yield datasetObject.setupParameterListener(context)
@@ -190,11 +193,14 @@ class CONNECTIONS(QtGui.QGraphicsObject):
         overlayWindows = self.getOverlayingWindows()
         overlayWindowNames = []
         if overlayWindows:
-            self.dwDict[datasetObject] = overlayWindows
+            # if the dataset is already in the window
+            overlayWindows = [x for x in overlayWindows if ((dataset, directory) not in x.qmc.dataDict.keys())]
             for overlayWindow in overlayWindows:
                 overlayWindow.qmc.initializeDataset(dataset, directory, datasetLabels)
-                overlayWindow.createDatasetCheckbox(dataset, directory)
+#                overlayWindow.createDatasetCheckbox(dataset, directory)
                 overlayWindowNames.append(overlayWindow.windowName)
+            if overlayWindows:
+                self.dwDict[datasetObject] = overlayWindows
         elif (len(windowNames) == 0):
             windowName = 'Window ' + str(self.windowCounter)
             self.windowCounter = self.windowCounter + 1
@@ -203,7 +209,7 @@ class CONNECTIONS(QtGui.QGraphicsObject):
             yield deferToThread(time.sleep, .01)
             self.dwDict[datasetObject] = [win]
             win.qmc.initializeDataset(dataset, directory, datasetLabels)
-            win.createDatasetCheckbox(dataset, directory)
+#            win.createDatasetCheckbox(dataset, directory)
                     
         # process windowNames that came from parameters (the following won't happen without window parameters specified)
         for windowName in windowNames:
@@ -216,7 +222,7 @@ class CONNECTIONS(QtGui.QGraphicsObject):
                 except KeyError:
                     self.dwDict[datasetObject] = [self.winDict[windowName]]    
                 self.winDict[windowName].qmc.initializeDataset(dataset, directory, datasetLabels)
-                self.winDict[windowName].createDatasetCheckbox(dataset, directory)
+#                self.winDict[windowName].createDatasetCheckbox(dataset, directory)
             else:
                 context = yield self.cxn.context() # create a new context
                 win = self.newGraph(context, windowName)
@@ -226,7 +232,7 @@ class CONNECTIONS(QtGui.QGraphicsObject):
                 except KeyError:
                     self.dwDict[datasetObject] = [win]    
                 win.qmc.initializeDataset(dataset, directory, datasetLabels)
-                win.createDatasetCheckbox(dataset, directory)
+#                win.createDatasetCheckbox(dataset, directory)
 
     # create a new graph window
 #    def newGraph(self, context, windowName):
@@ -254,7 +260,6 @@ class CONNECTIONS(QtGui.QGraphicsObject):
                 for i in windowsToDrawOn:
 #                    print 'still happening connections'
                     i.qmc.setPlotData(datasetObject.dataset, datasetObject.directory, data)
-                # del data?
     # Cycles through the values in each key for checked Overlay boxes, returns the windows...
     # ...with the overlay button checked
     def getOverlayingWindows(self):

@@ -144,6 +144,7 @@ the queue, and the portList can be safely updated.
         """
 Initialize CCTDACServer
 """
+
         yield self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
@@ -165,17 +166,31 @@ Initialize CCTDACServer
                 print 'Check set up and restart serial server'
             else: raise
         self.listeners = set()
-        self.free = True
+        self.free = True 
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac', 'Multipoles'])
+        Ex = yield registry.get('Ex')
+        Ey = yield registry.get('Ey')
+        Ez = yield registry.get('Ez')
+        U1 = yield registry.get('U1')
+        U2 = yield registry.get('U2')
+        U3 = yield registry.get('U3')
+        U4 = yield registry.get('U4')
+        U5 = yield registry.get('U5')        
+        yield self.setMultipoleVoltages(0, [('Ex', Ex), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])           
+
+        
     
     @inlineCallbacks
     def createInfo( self ):
         """
         Initialize channel list
         """
+        self.init = True
         registry = self.client.registry
         degreeOfCalibration = 2 # 1st order fit. update this to auto-detect 
         self.portList = []
-        yield registry.cd(['', 'Calibrations'])
+        yield registry.cd(['', 'cctdac', 'Calibrations'])
         subs, keys = yield registry.dir()
         print 'Calibrated channels: '
         print subs
@@ -184,7 +199,7 @@ Initialize CCTDACServer
             c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
             if str(i) in subs:
                 #print str(i)
-                yield registry.cd(['', 'Calibrations', str(i)])
+                yield registry.cd(['', 'cctdac', 'Calibrations', str(i)])
                 for n in range( degreeOfCalibration + 1):
                     e = yield registry.get( 'c'+str(n) )
                     #print e
@@ -193,8 +208,9 @@ Initialize CCTDACServer
                 self.portList.append(Port(i, c))
             else:
                 self.portList.append(Port(i)) # no preset calibration
-        
-        
+	yield registry.cd(['', 'cctdac', 'Cfile'])
+	Cpath = yield registry.get('MostRecent')
+	yield self.setMultipoleControlFile(0, Cpath)    
         
     @inlineCallbacks
     def checkQueue( self, c ):
@@ -282,7 +298,10 @@ Construct a com string in the appropriate format.
     def notifyOtherListeners(self, context):
         """
 Notifies all listeners except the one in the given context
-"""
+"""	
+        if self.init:
+	    self.init = False
+	    return
         notified = self.listeners.copy()
         notified.remove(context.ID)
         self.onNewUpdate('Channels updated', notified)
@@ -361,6 +380,10 @@ Read in a matrix of multipole values
         self.multipoleVectors['U3'] = data[:,5]
         self.multipoleVectors['U4'] = data[:,6]
         self.multipoleVectors['U5'] = data[:,7]
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac', 'Cfile'])
+        yield registry.set('MostRecent', file)
+        print file
         
     @setting( 6, 'Set Multipole Voltages', ms = '*(sv): dictionary of multipole voltages')
     def setMultipoleVoltages(self, c, ms):
@@ -379,6 +402,17 @@ set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
             realVolts += dot(multipoleSet[key],self.multipoleVectors[key])
             #realVolts += multipoleSet[key] * self.multipoleVectors[key]
         self.setAnalogVoltages(c, realVolts)
+        
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac', 'Multipoles'])
+        yield registry.set('Ex', multipoleSet['Ex'])
+        yield registry.set('Ey', multipoleSet['Ey'])
+        yield registry.set('Ez', multipoleSet['Ez'])
+        yield registry.set('U1', multipoleSet['U1'])
+        yield registry.set('U2', multipoleSet['U2'])
+        yield registry.set('U3', multipoleSet['U3'])
+        yield registry.set('U4', multipoleSet['U4'])
+        yield registry.set('U5', multipoleSet['U5'])        
     
     @setting( 7, 'Get Multipole Voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):

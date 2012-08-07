@@ -24,6 +24,7 @@ import copy as cpy # copy objects by value
 from numpy import *
 import sys
 import os
+import time
 
 SERVERNAME = 'CCTDAC_Pulser'
 PREC_BITS = 16.
@@ -33,8 +34,8 @@ SIGNALID = 270837
 NUMCHANNELS = 28
 
 # Nominal analog voltage range. Just used if there's no calibration available
-NOMINAL_VMIN = -10.
-NOMINAL_VMAX = 10.
+NOMINAL_VMIN = -40.
+NOMINAL_VMAX = 40.
 
 
 class Voltage(object):
@@ -116,6 +117,7 @@ the queue, and the portList can be safely updated.
 
     @inlineCallbacks
     def initServer( self ):
+	self.init = True
 	self.createInfo() # Populate list of Channels
 	self.queue = []
 	self.portlist = []
@@ -125,39 +127,55 @@ the queue, and the portList can be safely updated.
 	self.pulser = cxn.pulser
 	self.listeners = set()
 	self.free = True
+	self.init = False
+	
             
     @inlineCallbacks
     def createInfo( self ):
         """
         Initialize channel list
         """
+        
         registry = self.client.registry
-        degreeOfCalibration = 2 # 1st order fit. update this to auto-detect 
+        degreeOfCalibration = 3 # 1st order fit. update this to auto-detect 
         self.portList = []
-        yield registry.cd(['', 'Calibrations'])
+        yield registry.cd(['', 'cctdac_pulser', 'Calibrations'])
         subs, keys = yield registry.dir()
         print 'Calibrated channels: '
         print subs
-#        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller
-#            #registry.cd(['', 'Calibrations'])
-#            print i
-#            c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
-#            if str(i) in subs:
-#                #print str(i)
-#                yield registry.cd(['', 'Calibrations', str(i)])
-#                for n in range( degreeOfCalibration + 1):
-#                    e = yield registry.get( 'c'+str(n) )
-#                    #print e
-#                    c.append(e)
-#                #c = [ registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 )]
-#                self.portList.append(Port(i, c))
-#            else:
-#                self.portList.append(Port(i)) # no preset calibration
+        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller
+            #registry.cd(['', 'Calibrations'])
+            print i
+            c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
+            if str(i) in subs:
+                #print str(i)
+                yield registry.cd(['', 'cctdac_pulser', 'Calibrations', str(i)])
+                for n in range( degreeOfCalibration + 1):
+                    e = yield registry.get( 'c'+str(n) )
+                    #print e
+                    c.append(e)
+                #c = [ registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 )]
+                self.portList.append(Port(i, c))
+            else:
+                self.portList.append(Port(i)) # no preset calibration
         for i in range(1, NUMCHANNELS + 1):
             self.portList.append(Port(i))
         for p in self.portList:
             p.analogVoltage = 0
-            
+        yield registry.cd(['', 'cctdac_pulser', 'Cfile'])
+        Cpath = yield registry.get('MostRecent')
+        yield self.setMultipoleControlFile(0, Cpath)
+        yield registry.cd(['', 'cctdac_pulser', 'Multipoles'])
+        Ex = yield registry.get('Ex')
+        Ey = yield registry.get('Ey')
+        Ez = yield registry.get('Ez')
+        U1 = yield registry.get('U1')
+        U2 = yield registry.get('U2')
+        U3 = yield registry.get('U3')
+        U4 = yield registry.get('U4')
+        U5 = yield registry.get('U5')        
+        yield self.setMultipoleVoltages(0, [('Ex', Ex), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+        
     @inlineCallbacks
     def tryToUpdate( self, c, v ):
         if self.free:
@@ -179,18 +197,18 @@ the queue, and the portList can be safely updated.
 
     @inlineCallbacks
     def sendToPulser(self, c, voltage):
+	#time.sleep(1)
         pulser = self.pulser
-        yield self.pulser.reset_fifo_dac()
+        pulser.reset_fifo_dac()
         for v in voltage:
             self.portList[v.portNum - 1].setVoltage(v)
             portNum = v.portNum
             p = self.portList[portNum - 1]
             codeInDec = int(p.digitalVoltage)
-            print "codeInDec ", codeInDec
             print 'channel', portNum
 	    stry = self.getHexRep(portNum, 1, codeInDec)
-	    yield self.pulser.set_dac_voltage(stry)
-	yield self.pulser.set_dac_voltage('\x00\x00\x00\x00')    
+	    self.pulser.set_dac_voltage(stry)	    	
+        self.pulser.set_dac_voltage('\x00\x00\x00\x00')
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
                         
@@ -204,10 +222,13 @@ the queue, and the portList can be safely updated.
         """
 	Notifies all listeners except the one in the given context
 	"""
+	if self.init:
+	    return	
         notified = self.listeners.copy()
-        notified.remove(context.ID)
+        try: notified.remove(context.ID)
+        except: print "no context"
         self.onNewUpdate('Channels updated', notified)
-        print "Notifyin' them listeners"
+        print "Notifyin' them listeners"        
         
     def getHexRep(self, channel, setindex, value):
         chan=[]
@@ -264,12 +285,10 @@ the queue, and the portList can be safely updated.
 	Pass analogVoltages, a list of analog voltages to update.
 	Currently, there must be one for each port.
 	"""
-        newVoltages = []
+        li = []
         for (n, av) in zip(range(1, NUMCHANNELS + 1), analogVoltages):
-            newVoltages.append( AnalogVoltage(n, av) )
-            yield self.tryToUpdate(c, newVoltages )
-            newVoltages = []
- 
+	    li.append((n, av))
+	self.setIndivAnaVoltages(c, li)
 
     @setting( 2, 'set individual analog voltages', analogVoltages = '*(iv)', returns = '')
     def setIndivAnaVoltages(self, c, analogVoltages ):
@@ -300,12 +319,17 @@ the queue, and the portList can be safely updated.
 	"""
         return [ p.analogVoltage for p in self.portList ] # Yay for list comprehensions
 
-    @setting( 4, 'get digital voltages' )
+    @setting( 4, 'get digital voltages', returns = '*v' )
     def getDigitalVoltages(self, c):
         """
 	Return a list of digital voltages currently in portList
 	"""
         #return [ dv for dv in [ p.digitalVoltage for p in self.portList ] ]
+        #digVolts = []
+        #for i in range(NUMCHANNELS):
+	    #p = self.portList[i]
+	    #digVolts.append(p.digitalVoltage)
+	#return  digVolts
         return [ p.digitalVoltage for p in self.portlist ]
     
     @setting( 5, 'set multipole control file', file='s: multipole control file')
@@ -313,6 +337,7 @@ the queue, and the portList can be safely updated.
         """
 	Read in a matrix of multipole values
 	"""
+        registry = self.client.registry
         data = genfromtxt(file)
         self.multipoleVectors = {}
         self.multipoleVectors['Ex'] = data[:,0]
@@ -323,6 +348,10 @@ the queue, and the portList can be safely updated.
         self.multipoleVectors['U3'] = data[:,5]
         self.multipoleVectors['U4'] = data[:,6]
         self.multipoleVectors['U5'] = data[:,7]
+        
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac_pulser', 'Cfile'])
+        yield registry.set('MostRecent', file)
         
     @setting( 6, 'set multipole voltages', ms = '*(sv): dictionary of multipole voltages')
     def setMultipoleVoltages(self, c, ms):
@@ -335,9 +364,23 @@ the queue, and the portList can be safely updated.
         
         self.multipoleSet = multipoleSet # may want to keep track of the current set.
         realVolts = zeros(NUMCHANNELS)
+        for i in range(5):
+	  try: realVolts[i] = self.portList[i].analogVoltage
+	  except: realVolts[i] = 0
         for key in self.multipoleVectors.keys():
             realVolts += dot(multipoleSet[key],self.multipoleVectors[key])
         self.setAnalogVoltages(c, realVolts)
+        
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac_pulser', 'Multipoles'])
+        yield registry.set('Ex', multipoleSet['Ex'])
+        yield registry.set('Ey', multipoleSet['Ey'])
+        yield registry.set('Ez', multipoleSet['Ez'])
+        yield registry.set('U1', multipoleSet['U1'])
+        yield registry.set('U2', multipoleSet['U2'])
+        yield registry.set('U3', multipoleSet['U3'])
+        yield registry.set('U4', multipoleSet['U4'])
+        yield registry.set('U5', multipoleSet['U5'])
     
     @setting( 7, 'get multipole voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):

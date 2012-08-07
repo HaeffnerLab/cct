@@ -22,6 +22,7 @@ timeout = 20
 from labrad.server import LabradServer, setting, Signal
 from twisted.internet.defer import Deferred, returnValue, inlineCallbacks
 from twisted.internet.task import LoopingCall
+import datetime
 import time
 
 SIGNALID = 331483
@@ -38,8 +39,8 @@ class NormalPMTFlow( LabradServer):
         self.dv = yield self.client.data_vault
         self.pulser = yield self.client.pulser
         self.collectTimeRange = yield self.pulser.get_collection_time()
-        self.saveFolder = ['','PMT Counts']
-        self.dataSetName = 'PMT Counts'
+        
+        
         self.dataSet = None
         self.collectTimes = {'Normal':0.100, 'Differential':0.100}
         self.lastDifferential = {'ON': 0, 'OFF': 0}
@@ -61,7 +62,12 @@ class NormalPMTFlow( LabradServer):
         return notified
        
     @inlineCallbacks
-    def makeNewDataSet(self):
+    def makeNewDataSet(self):		   
+        now = datetime.datetime.now()
+        Date = now.strftime("%Y%m%d")
+        Time = now.strftime('%H%M%S')
+        self.saveFolder = ['', Date, 'PMT Counts']  
+        self.dataSetName = 'PMT Counts'
         dir = self.saveFolder
         name = self.dataSetName
         yield self.dv.cd(dir, True)

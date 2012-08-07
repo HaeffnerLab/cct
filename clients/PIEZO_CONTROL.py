@@ -46,7 +46,7 @@ class PC (QtGui.QWidget,):
             self.control[axis + 's'] = QtGui.QSpinBox()
             self.control[axis + 's'].setSingleStep (1)
             self.control[axis + 's'].setRange (1, 500)
-            self.control[axis + 's'].setValue(1)
+            self.control[axis + 's'].setValue(50)
             self.control[axis + 's'].setPrefix('steps: ')
             
             self.indicator[axis + 'v'] = QtGui.QDoubleSpinBox()

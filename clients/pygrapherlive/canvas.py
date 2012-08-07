@@ -110,13 +110,16 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet.threads import deferToThread
+from matplotlib.widgets import RectangleSelector 
 from matplotlib import pyplot
 from PyQt4 import QtCore
 import time
 import numpy as np
+from itertools import cycle
+
 
 TIMERREFRESH = .01 #s
-MAXDATASETSIZE = 20000
+MAXDATASETSIZE = 100000
 SCALEFACTOR = 1.5
 SCROLLFRACTION = .8; # Data reaches this much of the screen before auto-scroll takes place
 INDEPENDENT = 0
@@ -151,7 +154,17 @@ class Qt4MplCanvas(FigureCanvas):
         # create plot 
         self.ax = self.fig.add_subplot(111)
         self.ax.grid()
+        colormap = pyplot.cm.gist_ncar
+#        self.ax.set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, 15)])
+        colors = ['b', 'g', 'r', 'm', 'k']
+        colors.extend([colormap(i) for i in np.linspace(.2, 0.9, 7)])
+        colors.pop(8)
+        self.ax.set_color_cycle(colors)
+        lines = ["-"]#,"-","-","-","-","-.","-.","-.","-.","-.","--","--","--","--","--",":",":",":",":",":"]
+        self.linecycler = cycle(lines)
+
         self.background = self.copy_from_bbox(self.ax.bbox)
+    
     
     # This method is called upon whenever the plot axes change
     def on_draw(self, event):
@@ -161,17 +174,22 @@ class Qt4MplCanvas(FigureCanvas):
     # Initialize a place in the dictionary for the dataset
     def initializeDataset(self, dataset, directory, labels):
         self.dataDict[dataset, directory] = None
-        self.datasetLabelsDict[dataset, directory] = labels     
+        self.datasetLabelsDict[dataset, directory] = labels 
     
     # retrieve and store the new data from Connections
     def setPlotData(self, dataset, directory, data):
         # First Time
         numberOfDependentVariables = data.shape[1] - 1 # total number of variables minus the independent variable           
         numberOfDataPoints = data.shape[0]
-
         if (self.dataDict[dataset, directory] == None):        
+            if (directory[-1][-5:len(directory[-1])] != 'Model'):
+                for i in range(numberOfDependentVariables):
+                    label = self.datasetLabelsDict[dataset, directory][i]
+                    self.parent.createDatasetAnalysisCheckbox(dataset, directory, label, i)                
+
             self.dataDict[dataset, directory] = [[np.zeros([MAXDATASETSIZE]), np.zeros([MAXDATASETSIZE*numberOfDependentVariables]).reshape(numberOfDependentVariables, MAXDATASETSIZE)]]#, [np.zeros([MAXDATASETSIZE]), np.zeros([MAXDATASETSIZE*numberOfDependentVariables]).reshape(numberOfDependentVariables, MAXDATASETSIZE)]]           
             self.plotDict[dataset, directory] = [[]]*numberOfDependentVariables
+            self.parent.createDatasetCheckbox(dataset, directory)
             # plot parameters
             self.plotParametersDict[dataset, directory] = [MAXDATASETSIZE, 0, False, False, False]          
             # update the data points
@@ -179,7 +197,7 @@ class Qt4MplCanvas(FigureCanvas):
 
             self.initializePlots(dataset, directory, numberOfDependentVariables)
 
-            self.fitData()
+            #self.fitData()
             # find initial graph limits
             #self.initialxmin, self.initialxmax = self.getDataXLimits()
             #self.ax.set_xlim(self.initialxmin,self.initialxmax)
@@ -193,6 +211,7 @@ class Qt4MplCanvas(FigureCanvas):
 
             self.cidpress = self.mpl_connect('draw_event', self.on_draw)
             self.drawGraph()
+            self.fitData()
         else:
             # New Data      
             
@@ -254,13 +273,13 @@ class Qt4MplCanvas(FigureCanvas):
             # This will occur if data is coming at the rate of 1 data point per signal, at most.
             # This might be incorrect (what's written above)
             self.setPointsTwoArrays(dataset, directory, numberOfDependentVariables,data, data.shape[0], dataIndex, dataIndexOffset)
-            print dataIndex, ' ',dataIndexOffset, ' ', numberOfDataPoints
+#            print dataIndex, ' ',dataIndexOffset, ' ', numberOfDataPoints
 
     # Create the initial plot lines
     def initializePlots(self, dataset, directory, numberOfDependentVariables):
         for i in range(numberOfDependentVariables):
             label = self.datasetLabelsDict[dataset, directory][i]
-            self.plotDict[dataset, directory][i] = self.ax.plot(self.dataDict[dataset, directory][FIRST][INDEPENDENT],self.dataDict[dataset, directory][FIRST][DEPENDENT][i], label = label,animated=True)#'ko', markersize=2
+            self.plotDict[dataset, directory][i] = self.ax.plot(self.dataDict[dataset, directory][FIRST][INDEPENDENT],self.dataDict[dataset, directory][FIRST][DEPENDENT][i], label = label,animated=True, linestyle = next(self.linecycler))#'ko', markersize=2
         self.plotDict[dataset, directory] = self.flatten(self.plotDict[dataset, directory])
         
     
@@ -307,7 +326,10 @@ class Qt4MplCanvas(FigureCanvas):
             self.drawGraph()
 
     def endTimer(self):
-        self.timer.stop()
+        try:
+            self.timer.stop()
+        except AttributeError:
+            pass
        
     # Draw the plot legend
     def drawLegend(self):
@@ -319,12 +341,13 @@ class Qt4MplCanvas(FigureCanvas):
                 for i in self.plotDict[dataset, directory]:
                     handles.append(i)
                     labels.append(str(dataset) + ' - ' + i.get_label())
-        self.ax.legend(handles, labels)
+        self.ax.legend(handles, labels, loc='best')
     
     # Check which datasets are meant to be plotted and draw them.
     def drawGraph(self):
 #        tstartupdate = time.clock()
-        for dataset, directory in self.dataDict:
+#        for dataset, directory in self.dataDict:
+        for dataset,directory in self.parent.datasetCheckboxes.keys():
             # if dataset is intended to be drawn (a checkbox governs this)
             if self.parent.datasetCheckboxes[dataset, directory].isChecked():
                 self.drawPlot(dataset, directory)
@@ -356,6 +379,7 @@ class Qt4MplCanvas(FigureCanvas):
                 drawRange = (self.plotParametersDict[dataset, directory][DATAINDEX] + MAXDATASETSIZE/2)%MAXDATASETSIZE 
             #print 'drawRange: ', drawRange, ' array to plot: ', self.plotParametersDict[dataset, directory][ARRAYTOPLOT]
             for i in range(numberOfDependentVariables):
+                #if the box is checked, otherwise skip this!
                 self.plotDict[dataset, directory][i].set_data(self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][INDEPENDENT][0:drawRange],self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][DEPENDENT][i][0:drawRange])
                 try:
                     self.ax.draw_artist(self.plotDict[dataset, directory][i])
@@ -423,8 +447,13 @@ class Qt4MplCanvas(FigureCanvas):
         xmin = None
         xmax = None
         for dataset, directory in self.parent.datasetCheckboxes.keys():
-            if self.parent.datasetCheckboxes[dataset, directory].isChecked():
-                for i in self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][INDEPENDENT]:
+            if (self.plotParametersDict[dataset, directory][ARRAYTOPLOT] == 0):
+                drawRange = self.plotParametersDict[dataset, directory][DATAINDEX]%MAXDATASETSIZE
+            else:
+                drawRange = (self.plotParametersDict[dataset, directory][DATAINDEX] + MAXDATASETSIZE/2)%MAXDATASETSIZE
+            if self.parent.datasetCheckboxes[dataset, directory].isChecked():             
+                for j in range(drawRange):
+                    i = self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][INDEPENDENT][j]
                     if (xmin == None):
                         xmin = i
                         xmax = i
@@ -434,18 +463,23 @@ class Qt4MplCanvas(FigureCanvas):
                         elif i > xmax:
                             xmax = i        
         return xmin, xmax
-    
+           
     def getDataYLimits(self):
         ymin = None
         ymax = None
         for dataset, directory in self.parent.datasetCheckboxes.keys():
+            if (self.plotParametersDict[dataset, directory][ARRAYTOPLOT] == 0):
+                drawRange = self.plotParametersDict[dataset, directory][DATAINDEX]%MAXDATASETSIZE
+            else:
+                drawRange = (self.plotParametersDict[dataset, directory][DATAINDEX] + MAXDATASETSIZE/2)%MAXDATASETSIZE           
             if self.parent.datasetCheckboxes[dataset, directory].isChecked():
                 for i in range(len(self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][DEPENDENT])):
-                    for j in self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][DEPENDENT][i]:
+                    for k in range(drawRange):
                         if (ymin == None):
                             ymin = i
                             ymax = i
                         else:
+                            j = self.dataDict[dataset, directory][self.plotParametersDict[dataset, directory][ARRAYTOPLOT]][DEPENDENT][i][k]
                             if j < ymin:
                                 ymin = j
                             elif j > ymax:
@@ -498,3 +532,71 @@ class Qt4MplCanvas(FigureCanvas):
                     else:
                             out.append(item)
             return out
+
+#
+#class HistogramCanvas(FigureCanvas):
+#    """Class to plot a histogram"""
+#    def __init__(self, parent):    
+#        # instantiate figure
+#        self.fig = Figure()
+#        FigureCanvas.__init__(self, self.fig)
+#        self.ax = self.fig.add_subplot(111)
+#        self.setupSelector()
+#        
+#
+#    
+#    
+#    
+#    # Initialize a place in the dictionary for the dataset
+#    def initializeDataset(self, dataset, directory, labels):
+#        self.dataDict[dataset, directory] = None
+#        self.datasetLabelsDict[dataset, directory] = labels     
+#        
+#
+#    # retrieve and store the new data from Connections
+#    def setPlotData(self, dataset, directory, data):
+#        # First Time
+#
+#        if (self.dataDict[dataset, directory] == None):        
+#            pass
+#            #do the intial plot stuff
+#        else:
+#            #update the data, tell it to redraw
+#            pass
+#
+#
+#
+#    def onselect(self, eclick, erelease):
+#        'eclick and erelease are matplotlib events at press and release'
+#        print ' startposition : (%f, %f)' % (eclick.xdata, eclick.ydata)
+#        print ' endposition   : (%f, %f)' % (erelease.xdata, erelease.ydata)
+#          
+#        if (eclick.ydata > erelease.ydata):
+#            eclick.ydata, erelease.ydata= erelease.ydata, eclick.ydata
+#        if (eclick.xdata > erelease.xdata):
+#            eclick.xdata, erelease.xdata = erelease.xdata, eclick.xdata
+#           
+#    def setupSelector(self):
+#        self.rectSelect = RectangleSelector(self.ax, self.onselect, drawtype='line', lineprops = dict(color='black', linestyle='-',
+#                 linewidth = 2, alpha=0.5))    
+#        
+#        
+#    def constantUpdate(self):
+#        self.drawCounter = self.drawCounter + 1
+#        if (self.drawCounter == 10): # 10*10ms = 100ms
+#            self.timer.stop()
+#            self.drawGraph()
+#
+#    def endTimer(self):
+#        try:
+#            self.timer.stop()
+#        except AttributeError:
+#            pass
+#
+#    # Check which datasets are meant to be plotted and draw them.
+#    def drawGraph(self):
+##        tstartupdate = time.clock()
+#        for dataset, directory in self.dataDict:
+#            # if dataset is intended to be drawn (a checkbox governs this)
+#            if self.parent.datasetCheckboxes[dataset, directory].isChecked():
+#                self.drawPlot(dataset, directory)

@@ -86,6 +86,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     def selectCFile(self):
         fn = QtGui.QFileDialog().getOpenFileName()
         self.dacserver.set_multipole_control_file(str(fn))
+        print str(fn)
         
     @inlineCallbacks    
     def setupListeners(self):
@@ -120,13 +121,13 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         self.controls = {}
         for label in self.controlLabels:
 	    if int(label) < 6: 
-		self.controls[label] = QCustomSpinBox(label, (-40, 40))
+		self.controls[label] = QCustomSpinBox(label, (-30, 30))
 	    elif int(label) < 15: 
-		self.controls[label] = QCustomSpinBox(str(int(label) - 5) + '   ' , (-40, 40))
+		self.controls[label] = QCustomSpinBox(str(int(label) - 5) + '   ' , (-30, 30))
 	    else:
-		self.controls[label] = QCustomSpinBox(str(int(label) - 5) , (-40, 40))
+		self.controls[label] = QCustomSpinBox(str(int(label) - 5) , (-30, 30))
         self.controlLabels.append('CNT')
-        self.controls['CNT'] = QCustomSpinBox('CNT', (-40, 40))
+        self.controls['CNT'] = QCustomSpinBox('CNT', (-30, 30))
         
         self.labelToNumber = {}
         for l in self.controlLabels:
@@ -316,8 +317,8 @@ class DAC_CONTROL(QtGui.QMainWindow):
 	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
 	widget = QtGui.QWidget()
 	gridLayout = QtGui.QGridLayout()
-	gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
-	gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
+	#gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
+	#gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
 	widget.setLayout(gridLayout)
 	return widget
     

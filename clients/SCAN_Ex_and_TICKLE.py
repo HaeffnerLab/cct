@@ -117,6 +117,7 @@ class Ex(QtGui.QWidget):
 	
     @inlineCallbacks  
     def scan(self, c):
+	self.control['scan'].setText('Scan is running')
 	self.running = True
 	yield self.rs.onoff(True)
 	now = datetime.datetime.now()
@@ -160,6 +161,7 @@ class Ex(QtGui.QWidget):
 		if self.running == False:
 		    yield self.rs.onoff(False)
 		    yield self.ds.set_multipole_voltages([('Ex', Exi), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+		    self.control['scan'].setText('Scan')
 		    return
 		self.rs.frequency(f)
 		TIME.sleep(.3)
@@ -167,6 +169,7 @@ class Ex(QtGui.QWidget):
 		yield self.dv.add(f, pmtcount)
 	yield self.rs.onoff(False)
 	yield self.ds.set_multipole_voltages([('Ex', Exi), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+	self.control['scan'].setText('Scan')
 	    
     def stopScan(self, c):
 	self.running = False

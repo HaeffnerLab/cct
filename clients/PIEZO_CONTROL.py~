@@ -183,7 +183,6 @@ class PC (QtGui.QWidget,):
 	if axis == '4':
 	    return 'sweep'
     
-	
     def op(self, dirn):
 	if dirn == 'U':
 	    return 'D'

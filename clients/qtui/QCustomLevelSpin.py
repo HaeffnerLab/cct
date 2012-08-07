@@ -20,6 +20,7 @@ class QCustomLevelSpin(QtGui.QWidget):
         #set ranges
         maxDifference = abs(levelRange[1] - levelRange[0])
         self.spinLevel.setRange(*levelRange)
+        self.spinLevel.setDecimals(3)
         self.sliderLevel.setRange(100.*levelRange[0],100.*levelRange[1])
         #self.dict = {'level':0}
         self.level = 0

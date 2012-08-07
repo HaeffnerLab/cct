@@ -6,6 +6,7 @@ from PyQt4 import QtGui, QtCore
 from canvas import Qt4MplCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from datavault import DataVaultWidget
+from analysis import AnalysisWidget
 import time
 
 class GrapherWindow(QtGui.QWidget):
@@ -18,7 +19,10 @@ class GrapherWindow(QtGui.QWidget):
         self.windowName = windowName
         self.parameterWindows = {}
         self.datasetCheckboxes = {}
+        self.datasetAnalysisCheckboxes = {}
         self.datasetCheckboxCounter = 0
+        self.datasetCheckboxPositionDict = {}
+        self.datasetAnalysisCheckboxCounter = 0
         self.manuallyLoaded = True
         self.setWindowTitle(self.windowName)
    
@@ -41,10 +45,15 @@ class GrapherWindow(QtGui.QWidget):
         mainLayout.addLayout(datasetLayout)
         mainLayout.addLayout(grapherLayout)
         
-        # Layout for keeping track of datasets on a graph
+        # Layout for keeping track of datasets on a graph and analysis
         self.datasetCheckboxListWidget = QtGui.QListWidget()
         self.datasetCheckboxListWidget.setMaximumWidth(180)
+        self.datasetCheckboxListWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         datasetLayout.addWidget(self.datasetCheckboxListWidget)
+        self.analysisWidget = AnalysisWidget(self)
+        datasetLayout.addWidget(self.analysisWidget)
+        
+        
 
         self.setLayout(mainLayout)
 
@@ -58,7 +67,7 @@ class GrapherWindow(QtGui.QWidget):
         # checkbox to toggle AutoFit
         self.cb3 = QtGui.QCheckBox('AutoFit', self)
         #self.cb3.move(290, 39)
-        self.cb3.toggle()
+#        self.cb3.toggle()
         self.cb3.clicked.connect(self.autofitSignal) 
         # button to fit data on screen
         fitButton = QtGui.QPushButton("Fit", self)
@@ -68,6 +77,8 @@ class GrapherWindow(QtGui.QWidget):
         windowNameButton = QtGui.QPushButton("Change Window Name", self)
         windowNameButton.setGeometry(QtCore.QRect(0, 0, 30, 30))
         windowNameButton.clicked.connect(self.changeWindowName)
+        
+        
         
         # Layout that controls graph options
         buttonBox = QtGui.QHBoxLayout()
@@ -81,13 +92,81 @@ class GrapherWindow(QtGui.QWidget):
 
     # adds a checkbox when a new dataset is overlaid on the graph
     def createDatasetCheckbox(self, dataset, directory):
-        datasetCheckbox = QtGui.QCheckBox(str(dataset) + ' ' + str(directory[-1]), self)
+        datasetCheckbox = QtGui.QCheckBox(str(dataset) + ' - ' + str(directory[-1]), self)
+#        datasetCheckbox = QtGui.QCheckBox(str(dataset) + ' - ' + label, self)
         datasetCheckbox.toggle()
         datasetCheckbox.clicked.connect(self.datasetCheckboxSignal)
-        self.datasetCheckboxes[dataset, directory] = datasetCheckbox
-        self.datasetCheckboxListWidget.addItem('')
-        self.datasetCheckboxListWidget.setItemWidget(self.datasetCheckboxListWidget.item(self.datasetCheckboxCounter), datasetCheckbox)
-        self.datasetCheckboxCounter = self.datasetCheckboxCounter + 1
+        try:
+            #This if statement should fail if no model exists.
+            if (self.datasetCheckboxes[dataset, directory] != None):
+                # if the checkbox does exist, then just reassign it.
+                self.datasetCheckboxes[dataset, directory] = datasetCheckbox
+                self.datasetCheckboxListWidget.setItemWidget(self.datasetCheckboxListWidget.item(self.datasetCheckboxPositionDict[dataset, directory]), datasetCheckbox)
+        except:
+            self.datasetCheckboxes[dataset, directory] = datasetCheckbox
+            # The trick here is to create an item with enough text to activate the scrollbar, and then hide the text.
+            # This must be done because a checkbox, even with a lot of text, does not activate the scroll bar horizontally
+            item = QtGui.QListWidgetItem()
+            item.setText('     ' + str(dataset) + ' - ' + str(directory[-1]))
+            item.setTextColor(QtGui.QColor(255, 255, 255))
+            self.datasetCheckboxListWidget.addItem(item)
+    #        self.datasetCheckboxListWidget.addItem(str(dataset) + ' ' + str(directory[-1]))
+            self.datasetCheckboxListWidget.setItemWidget(self.datasetCheckboxListWidget.item(self.datasetCheckboxCounter), datasetCheckbox)
+            self.datasetCheckboxPositionDict[dataset, directory] = self.datasetCheckboxCounter
+            self.datasetCheckboxCounter = self.datasetCheckboxCounter + 1
+
+    # adds a checkbox when a new dataset is overlaid on the graph
+    def createDatasetAnalysisCheckbox(self, dataset, directory, label, index):
+#        datasetAnalysisCheckbox = QtGui.QCheckBox(str(dataset) + ' ' + str(directory[-1]) + ' ' + label, self)
+        datasetAnalysisCheckbox = QtGui.QCheckBox(str(dataset) + ' - ' + str(directory[-1]) + ' - ' + label, self)
+        self.datasetAnalysisCheckboxes[dataset, directory, index] = datasetAnalysisCheckbox
+        # The trick here is to create an item with enough text to activate the scrollbar, and then hide the text.
+        # This must be done because a checkbox, even with a lot of text, does not activate the scroll bar horizontally
+        item = QtGui.QListWidgetItem()
+        item.setText('     ' + str(dataset) + ' - ' + str(directory[-1]) + ' - ' + label)
+        item.setTextColor(QtGui.QColor(255, 255, 255))
+        #self.analysisWidget.datasetCheckboxListWidget.addItem(str(dataset) + ' - ' + label)
+        self.analysisWidget.datasetCheckboxListWidget.addItem(item)
+        self.analysisWidget.datasetCheckboxListWidget.setItemWidget(self.analysisWidget.datasetCheckboxListWidget.item(self.datasetAnalysisCheckboxCounter), datasetAnalysisCheckbox)
+        self.datasetAnalysisCheckboxCounter = self.datasetAnalysisCheckboxCounter + 1
+
+    def fitFromScript(self, dataset, directory, numberDependentVariables, scriptParameters):
+        datasetsToFit = eval(scriptParameters[0])
+        curveToFit = scriptParameters[1]
+        curveParameters = eval(scriptParameters[2])
+        
+        # if no selection of datasets, fit all of them
+        if (len(datasetsToFit) == 0):
+            datasetsToFit = range(numberDependentVariables)
+        else:
+            # naming convention. Dataset 1, for purposes is this program, has an index of 0, not 1. Ex: datasetsToFit = [1, 2, 3] -> [0, 1, 2] 
+            for i in range(len(datasetsToFit)):
+                datasetsToFit[i] = datasetsToFit[i] - 1
+        
+        # cycle through all the dataset checkboxes and uncheck them.
+        for checkBoxDataset, checkBoxDirectory, checkBoxIndex in self.datasetAnalysisCheckboxes.keys():
+            if self.datasetAnalysisCheckboxes[checkBoxDataset, checkBoxDirectory, checkBoxIndex].isChecked():
+                 self.datasetAnalysisCheckboxes[checkBoxDataset, checkBoxDirectory, checkBoxIndex].toggle()
+        
+        # toggle the datasets we care about
+        for datasetToFit in datasetsToFit:
+            print 'datasetToFit: ', datasetToFit
+            for checkBoxDataset, checkBoxDirectory, checkBoxIndex in self.datasetAnalysisCheckboxes.keys():
+                if (dataset == checkBoxDataset and directory == checkBoxDirectory and datasetToFit == checkBoxIndex):
+                    self.datasetAnalysisCheckboxes[dataset, directory, datasetToFit].toggle()
+                    
+        # cycle through the curves checkboxes and uncheck them.
+        for curve in self.analysisWidget.analysisCheckboxes.keys():
+            if self.analysisWidget.analysisCheckboxes[curve].isChecked():
+                self.analysisWidget.analysisCheckboxes[curve].toggle()
+        
+        # toggle the curve we care about
+        for curve in self.analysisWidget.analysisCheckboxes.keys():
+            if (curve == curveToFit):
+                self.analysisWidget.analysisCheckboxes[curveToFit].toggle()
+
+        # everything is now set up to fit, so call fitCurves and pass in the parameters
+        self.analysisWidget.fitCurves(curveParameters)
 
     def datasetCheckboxSignal(self):
         self.qmc.drawLegend()
