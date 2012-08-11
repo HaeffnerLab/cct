@@ -145,6 +145,7 @@ the queue, and the portList can be safely updated.
 Initialize CCTDACServer
 """
 
+        
         yield self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
@@ -167,18 +168,20 @@ Initialize CCTDACServer
             else: raise
         self.listeners = set()
         self.free = True 
-        registry = self.client.registry
+        registry = self.client.registry        
         yield registry.cd(['', 'cctdac', 'Multipoles'])
-        Ex = yield registry.get('Ex')
-        Ey = yield registry.get('Ey')
-        Ez = yield registry.get('Ez')
-        U1 = yield registry.get('U1')
-        U2 = yield registry.get('U2')
-        U3 = yield registry.get('U3')
-        U4 = yield registry.get('U4')
-        U5 = yield registry.get('U5')        
-        yield self.setMultipoleVoltages(0, [('Ex', Ex), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])           
-
+        ms = yield registry.get('Multipole Set')
+        yield self.setMultipoleVoltages(0, ms)      
+        #Ex = yield registry.get('Ex')
+        #Ey = yield registry.get('Ey')
+        #Ez = yield registry.get('Ez')
+        #U1 = yield registry.get('U1')
+        #U2 = yield registry.get('U2')
+        #U3 = yield registry.get('U3')
+        #U4 = yield registry.get('U4')
+        #U5 = yield registry.get('U5')        
+        #yield self.setMultipoleVoltages(0, [('Ex1', Ex), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])           
+	
         
     
     @inlineCallbacks
@@ -210,7 +213,9 @@ Initialize CCTDACServer
                 self.portList.append(Port(i)) # no preset calibration
 	yield registry.cd(['', 'cctdac', 'Cfile'])
 	Cpath = yield registry.get('MostRecent')
-	yield self.setMultipoleControlFile(0, Cpath)    
+	yield self.setMultipoleControlFile(0, Cpath)
+        #ms = yield registry.get('Multipole Set')
+        #yield self.setMultipoleVoltages(0, [('U5',0.0),('U4',0.0),('U1',-0.22),('Ez1',0.0),('U3',-0.22),('U2',4.5),('Ey1',0.0),('V1',-0.22),('V2',4.5),('Ey2',0.0),('Ex2',0.0),('Ez2',0.0),('V3',0.22),('Ex1',0.0),('V4',4.0),('V5',0.0)])	
         
     @inlineCallbacks
     def checkQueue( self, c ):
@@ -303,7 +308,8 @@ Notifies all listeners except the one in the given context
 	    self.init = False
 	    return
         notified = self.listeners.copy()
-        notified.remove(context.ID)
+        try: notified.remove(context.ID)
+        except: print 'no context'
         self.onNewUpdate('Channels updated', notified)
         print "Notifyin' them listeners"
     
@@ -372,14 +378,27 @@ Read in a matrix of multipole values
 
         data = genfromtxt(file)
         self.multipoleVectors = {}
-        self.multipoleVectors['Ex'] = data[:,0]
-        self.multipoleVectors['Ey'] = data[:,1]
-        self.multipoleVectors['Ez'] = data[:,2]
+        self.multipoleVectors['Ex1'] = data[:,0]
+        self.multipoleVectors['Ey1'] = data[:,1]
+        self.multipoleVectors['Ez1'] = data[:,2]
         self.multipoleVectors['U1'] = data[:,3]
         self.multipoleVectors['U2'] = data[:,4]
         self.multipoleVectors['U3'] = data[:,5]
         self.multipoleVectors['U4'] = data[:,6]
         self.multipoleVectors['U5'] = data[:,7]
+        try:
+	    self.multipoleVectors['Ex2'] = data[:,8]
+	    self.multipoleVectors['Ey2'] = data[:,9]
+	    self.multipoleVectors['Ez2'] = data[:,10]
+	    self.multipoleVectors['V1'] = data[:,11]
+	    self.multipoleVectors['V2'] = data[:,12]
+	    self.multipoleVectors['V3'] = data[:,13]
+	    self.multipoleVectors['V4'] = data[:,14]
+	    self.multipoleVectors['V5'] = data[:,15]
+	    self.numWells = 2
+	except: self.numWells = 1
+	print "num. wells: " + str(self.numWells)        
+        
         registry = self.client.registry
         yield registry.cd(['', 'cctdac', 'Cfile'])
         yield registry.set('MostRecent', file)
@@ -405,18 +424,26 @@ set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
         
         registry = self.client.registry
         yield registry.cd(['', 'cctdac', 'Multipoles'])
-        yield registry.set('Ex', multipoleSet['Ex'])
-        yield registry.set('Ey', multipoleSet['Ey'])
-        yield registry.set('Ez', multipoleSet['Ez'])
-        yield registry.set('U1', multipoleSet['U1'])
-        yield registry.set('U2', multipoleSet['U2'])
-        yield registry.set('U3', multipoleSet['U3'])
-        yield registry.set('U4', multipoleSet['U4'])
-        yield registry.set('U5', multipoleSet['U5'])        
+        yield registry.set('Multipole Set', ms)        
+        #yield registry.set('Ex', multipoleSet['Ex'])
+        #yield registry.set('Ey', multipoleSet['Ey'])
+        #yield registry.set('Ez', multipoleSet['Ez'])
+        #yield registry.set('U1', multipoleSet['U1'])
+        #yield registry.set('U2', multipoleSet['U2'])
+        #yield registry.set('U3', multipoleSet['U3'])
+        #yield registry.set('U4', multipoleSet['U4'])
+        #yield registry.set('U5', multipoleSet['U5'])        
     
     @setting( 7, 'Get Multipole Voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
         return self.multipoleSet.items()
+        
+    @setting( 9, 'return number wells', returns = 'i')
+    def returnNumWells(self, c):
+	"""
+	Return the number of wells as determined by the size of the current Cfile
+	"""
+	return self.numWells        
     
         
 if __name__ == "__main__":

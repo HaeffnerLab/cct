@@ -67,11 +67,11 @@ class api():
     def resetFIFONormal(self):
         self.xem.ActivateTriggerIn(0x40,2)
     
-    def resetFIFODAC(self):
-	self.xem.ActivateTriggerIn(0x40,8)
-    
     def resetFIFOResolved(self):
         self.xem.ActivateTriggerIn(0x40,3)
+        
+    def resetFIFOReadout(self):
+        self.xem.ActivateTriggerIn(0x40,4)
     
     def setModeNormal(self):
         """user selects PMT counting rate"""
@@ -101,7 +101,7 @@ class api():
         return buf
     
     def getNormalTotal(self):
-        self.xem.SetWireInValue(0x00,0x40,0xf0)
+        self.xem.SetWireInValue(0x00,0xa0,0xf0)
         self.xem.UpdateWireIns()
         self.xem.UpdateWireOuts()
         done = self.xem.GetWireOutValue(0x21)
@@ -109,7 +109,19 @@ class api():
     
     def getNormalCounts(self, number):
         buf = "\x00"* ( number * 2 )
-        self.xem.ReadFromBlockPipeOut(0xa1,2,buf)
+        self.xem.ReadFromBlockPipeOut(0xa3,2,buf)
+        return buf
+    
+    def getReadoutTotal(self):
+        self.xem.SetWireInValue(0x00,0x80,0xf0)
+        self.xem.UpdateWireIns()
+        self.xem.UpdateWireOuts()
+        done = self.xem.GetWireOutValue(0x21)
+        return done
+        
+    def getReadoutCounts(self, number):
+        buf = "\x00"* ( number * 2 )
+        self.xem.ReadFromBlockPipeOut(0xa2,2,buf)
         return buf
     
     def howManySequencesDone(self):
@@ -123,9 +135,6 @@ class api():
         #takes time in seconds
         self.xem.SetWireInValue(0x01,int(1000 * time))
         self.xem.UpdateWireIns()
-        
-    def setDACVoltage(self, volstr):
-	self.xem.WriteToBlockPipeIn(0x82, 2, volstr)
         
     def setAuto(self, channel, inversion):
         self.xem.SetWireInValue(0x02,0x00, 2**channel)

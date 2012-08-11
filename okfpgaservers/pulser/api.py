@@ -74,13 +74,13 @@ class api():
         self.xem.ActivateTriggerIn(0x40,4)
     
     def resetFIFODAC(self):
-	self.xem.ActivateTriggerIn(0x40,8)        
+	    self.xem.ActivateTriggerIn(0x40,8)        
     
     def setModeNormal(self):
         """user selects PMT counting rate"""
         self.xem.SetWireInValue(0x00,0x00,0x01)
         self.xem.UpdateWireIns()
-    
+        
     def setModeDifferential(self):
         """pulse sequence controls the PMT counting rate"""
         self.xem.SetWireInValue(0x00,0x01,0x01)
@@ -104,17 +104,31 @@ class api():
         return buf
     
     def getNormalTotal(self):
-        self.xem.SetWireInValue(0x00,0x40,0xf0)
+        self.xem.SetWireInValue(0x00,0x40,0xf0) #0x40
         self.xem.UpdateWireIns()
         self.xem.UpdateWireOuts()
         done = self.xem.GetWireOutValue(0x21)
+        print done
         return done
     
+    def getSecondaryNormalTotal(self):
+        self.xem.SetWireInValue(0x00,0xa0,0xf0)
+        self.xem.UpdateWireIns()
+        self.xem.UpdateWireOuts()
+        done = self.xem.GetWireOutValue(0x21)
+        print done
+        return done        
+        
     def getNormalCounts(self, number):
         buf = "\x00"* ( number * 2 )
         self.xem.ReadFromBlockPipeOut(0xa1,2,buf)
         return buf
-    
+        
+    def getSecondaryNormalCounts(self, number):
+        buf = "\x00"* ( number * 2 )
+        self.xem.ReadFromBlockPipeOut(0xa3,2,buf)
+        return buf     
+        
     def getReadoutTotal(self):
         self.xem.SetWireInValue(0x00,0x80,0xf0)
         self.xem.UpdateWireIns()
@@ -169,7 +183,7 @@ class api():
         self.xem.UpdateWireIns()
 
     def setDACVoltage(self, volstr):
-	self.xem.WriteToBlockPipeIn(0x82, 2, volstr)        
+	    self.xem.WriteToBlockPipeIn(0x82, 2, volstr)        
     
     def programDDS(self, prog):
         '''program the dds channel with a list of frequencies and amplitudes. The channel of the particular channel must be selected first'''

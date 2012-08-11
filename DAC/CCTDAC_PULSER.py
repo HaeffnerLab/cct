@@ -1,10 +1,10 @@
 '''
 ### BEGIN NODE INFO
 [info]
-name = CCTDAC_PULSER
+name = CCTDAC Pulser
 version = 1.0
 description = 
-instancename = CCTDAC_PULSER
+instancename = CCTDAC Pulser
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -20,7 +20,7 @@ timeout = 20
 from labrad.server import LabradServer, setting, Signal, inlineCallbacks 
 from twisted.internet import reactor
 from twisted.internet.defer import returnValue
-import copy as cpy # copy objects by value
+import copy as cpy 
 from numpy import *
 import sys
 import os
@@ -56,20 +56,15 @@ class DigitalVoltage(Voltage):
 class Port():
     """
     Store information about ports
+    
+    calibrationCoeffs is a list of the form [c0, c1, ..., cn]
+    such that
+    dv = c0 + c1*(av) + c2*(av)**2 + ... + cn*(av)**n
     """
     def __init__(self, portNumber, calibrationCoeffs = None):
         self.portNumber = portNumber
         self.analogVoltage = None
         self.digitalVoltage = None
-
-        """
-        calibrationCoeffs is a list of the form [c0, c1, ..., cn]
-        such that
-
-        dv = c0 + c1*(av) + c2*(av)**2 + ... + cn*(av)**n
-
-        """
-
         if not calibrationCoeffs:
             self.coeffs = [2**(PREC_BITS - 1), float(2**(PREC_BITS))/(NOMINAL_VMAX - NOMINAL_VMIN) ]
         else:
@@ -79,8 +74,10 @@ class Port():
     def setVoltage(self, v):
         if v.type == 'analog':
             self.analogVoltage = float(v.voltage)
-            
+            print self.analogVoltage
+            print sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )
             dv = int(round(sum( [ self.coeffs[n]*self.analogVoltage**n for n in range(len(self.coeffs)) ] )))
+            print '\nChannel Value' + str(v.portNum)
             print 'Analog Voltage Value: '+str(self.analogVoltage)
             print 'Digital Voltage Value: '+str(dv)
             if dv < 0:
@@ -89,7 +86,7 @@ class Port():
                 self.digitalVoltage = (2**PREC_BITS - 1)
             else:
                 self.digitalVoltage = dv
-
+                
         if v.type == 'digital':
             dv = int(v.voltage)
             if dv < 0:
@@ -103,78 +100,59 @@ class Port():
         
 class CCTDACServer( LabradServer ):
     """
-CCTDAC Server
-Used for controlling DC trap electrodes
+    CCTDAC Server
+    Used for controlling DC trap electrodes
 
-portList always holds the _most recent_ values. If a list cannot be written
-because the serial port is unavailable, the portList is copied (by value!) to
-the queue, and the portList can be safely updated.
-"""
+    portList always holds the _most recent_ values. If a list cannot be written
+    because the serial port is unavailable, the portList is copied (by value!) to
+    the queue, and the portList can be safely updated.
+    """
 
     name = SERVERNAME
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')
+    numWells = 1
 
     @inlineCallbacks
     def initServer( self ):
-	self.init = True
-	self.createInfo() # Populate list of Channels
-	self.queue = []
-	self.portlist = []
-	if not self.serNode: raise SerialDeviceError( 'Must define serNode' )
-	from labrad.wrappers import connectAsync
-	cxn = yield connectAsync()
-	self.pulser = cxn.pulser
-	self.listeners = set()
-	self.free = True
-	self.init = False
-	
+        self.free = True        
+        self.queue = []
+        self.portlist = []    
+        from labrad.wrappers import connectAsync
+        cxn = yield connectAsync()
+        self.pulser = cxn.pulser        
+        self.createInfo() 
+        self.listeners = set()
             
     @inlineCallbacks
     def createInfo( self ):
         """
         Initialize channel list
-        """
-        
-        registry = self.client.registry
+        """        
         degreeOfCalibration = 3 # 1st order fit. update this to auto-detect 
         self.portList = []
+        registry = self.client.registry
         yield registry.cd(['', 'cctdac_pulser', 'Calibrations'])
         subs, keys = yield registry.dir()
         print 'Calibrated channels: '
-        print subs
-        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1 in the microcrontroller
-            #registry.cd(['', 'Calibrations'])
-            print i
+        for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1
             c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
             if str(i) in subs:
-                #print str(i)
                 yield registry.cd(['', 'cctdac_pulser', 'Calibrations', str(i)])
                 for n in range( degreeOfCalibration + 1):
-                    e = yield registry.get( 'c'+str(n) )
-                    #print e
+                    e = yield registry.get( 'c'+str(n) )                    
                     c.append(e)
-                #c = [ registry.get( 'c'+str(n) ) for n in range( degreeOfCalibration + 1 )]
                 self.portList.append(Port(i, c))
             else:
                 self.portList.append(Port(i)) # no preset calibration
-        for i in range(1, NUMCHANNELS + 1):
-            self.portList.append(Port(i))
         for p in self.portList:
             p.analogVoltage = 0
         yield registry.cd(['', 'cctdac_pulser', 'Cfile'])
         Cpath = yield registry.get('MostRecent')
         yield self.setMultipoleControlFile(0, Cpath)
         yield registry.cd(['', 'cctdac_pulser', 'Multipoles'])
-        Ex = yield registry.get('Ex')
-        Ey = yield registry.get('Ey')
-        Ez = yield registry.get('Ez')
-        U1 = yield registry.get('U1')
-        U2 = yield registry.get('U2')
-        U3 = yield registry.get('U3')
-        U4 = yield registry.get('U4')
-        U5 = yield registry.get('U5')        
-        yield self.setMultipoleVoltages(0, [('Ex', Ex), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+        ms = yield registry.get('Multipole Set')
+        yield self.setMultipoleVoltages(0, ms)        
         
     @inlineCallbacks
     def tryToUpdate( self, c, v ):
@@ -197,7 +175,6 @@ the queue, and the portList can be safely updated.
 
     @inlineCallbacks
     def sendToPulser(self, c, voltage):
-	#time.sleep(1)
         pulser = self.pulser
         pulser.reset_fifo_dac()
         for v in voltage:
@@ -205,10 +182,10 @@ the queue, and the portList can be safely updated.
             portNum = v.portNum
             p = self.portList[portNum - 1]
             codeInDec = int(p.digitalVoltage)
-            print 'channel', portNum
 	    stry = self.getHexRep(portNum, 1, codeInDec)
 	    self.pulser.set_dac_voltage(stry)	    	
         self.pulser.set_dac_voltage('\x00\x00\x00\x00')
+        print 'sent to pulser'
         self.notifyOtherListeners(c)
         yield self.checkQueue(c)
                         
@@ -220,10 +197,8 @@ the queue, and the portList can be safely updated.
     
     def notifyOtherListeners(self, context):
         """
-	Notifies all listeners except the one in the given context
-	"""
-	if self.init:
-	    return	
+        Notifies all listeners except the one in the given context
+	    """	        
         notified = self.listeners.copy()
         try: notified.remove(context.ID)
         except: print "no context"
@@ -270,9 +245,9 @@ the queue, and the portList can be safely updated.
     @setting( 0 , 'set digital voltages', returns = '' )
     def setDigitalVoltages( self, c, digitalVoltages ):
         """
-	Pass digitalVoltages, a list of digital voltages to update.
-	Currently, there must be one for each port.
-	"""
+	    Pass digitalVoltages, a list of digital voltages to update.
+	    Currently, there must be one for each port.
+	    """        
         newVoltages = []
         for (n, dv) in zip(range(1, NUMCHANNELS + 1), digitalVoltages):
             newVoltages.append( DigitalVoltage(n, dv) )
@@ -282,13 +257,13 @@ the queue, and the portList can be safely updated.
     @setting( 1 , 'set analog voltages', analogVoltages='*v', returns = '' )
     def setAnalogVoltages( self, c, analogVoltages ):
         """
-	Pass analogVoltages, a list of analog voltages to update.
-	Currently, there must be one for each port.
-	"""
+	    Pass analogVoltages, a list of analog voltages to update.
+	    Currently, there must be one for each port.
+	    """        
         li = []
         for (n, av) in zip(range(1, NUMCHANNELS + 1), analogVoltages):
-	    li.append((n, av))
-	self.setIndivAnaVoltages(c, li)
+            li.append((n, av))
+        self.setIndivAnaVoltages(c, li)
 
     @setting( 2, 'set individual analog voltages', analogVoltages = '*(iv)', returns = '')
     def setIndivAnaVoltages(self, c, analogVoltages ):
@@ -304,9 +279,9 @@ the queue, and the portList can be safely updated.
     @setting( 8, 'set individual digital voltages', digitalVoltages = '*(iv)', returns = '')
     def setIndivDigVoltages(self, c, digitalVoltages):
         """
-	Pass a list of tuples of the form:
-	(portNum, newVolts)
-	"""        
+	    Pass a list of tuples of the form:
+	    (portNum, newVolts)
+	    """        
         newVoltages = []
         for (num, dv) in digitalVoltages:
             newVoltages.append( DigitalVoltage(num, dv) )
@@ -315,39 +290,44 @@ the queue, and the portList can be safely updated.
     @setting( 3, 'get analog voltages', returns = '*v' )
     def getAnalogVoltages(self, c):
         """
-	Return a list of the analog voltages currently in portList
-	"""
+	    Return a list of the analog voltages currently in portList
+	    """
         return [ p.analogVoltage for p in self.portList ] # Yay for list comprehensions
 
     @setting( 4, 'get digital voltages', returns = '*v' )
     def getDigitalVoltages(self, c):
         """
-	Return a list of digital voltages currently in portList
-	"""
-        #return [ dv for dv in [ p.digitalVoltage for p in self.portList ] ]
-        #digVolts = []
-        #for i in range(NUMCHANNELS):
-	    #p = self.portList[i]
-	    #digVolts.append(p.digitalVoltage)
-	#return  digVolts
+	    Return a list of digital voltages currently in portList
+	    """
         return [ p.digitalVoltage for p in self.portlist ]
     
-    @setting( 5, 'set multipole control file', file='s: multipole control file')
+    @setting( 5, 'set multipole control file', file='s: multipole control file', returns = '')
     def setMultipoleControlFile(self, c, file):
         """
-	Read in a matrix of multipole values
-	"""
-        registry = self.client.registry
+	    Read in a matrix of multipole values
+	    """
         data = genfromtxt(file)
         self.multipoleVectors = {}
-        self.multipoleVectors['Ex'] = data[:,0]
-        self.multipoleVectors['Ey'] = data[:,1]
-        self.multipoleVectors['Ez'] = data[:,2]
+        self.multipoleVectors['Ex1'] = data[:,0]
+        self.multipoleVectors['Ey1'] = data[:,1]
+        self.multipoleVectors['Ez1'] = data[:,2]
         self.multipoleVectors['U1'] = data[:,3]
         self.multipoleVectors['U2'] = data[:,4]
         self.multipoleVectors['U3'] = data[:,5]
         self.multipoleVectors['U4'] = data[:,6]
         self.multipoleVectors['U5'] = data[:,7]
+        try:
+            self.multipoleVectors['Ex2'] = data[:,8]
+            self.multipoleVectors['Ey2'] = data[:,9]
+            self.multipoleVectors['Ez2'] = data[:,10]
+            self.multipoleVectors['V1'] = data[:,11]
+            self.multipoleVectors['V2'] = data[:,12]
+            self.multipoleVectors['V3'] = data[:,13]
+            self.multipoleVectors['V4'] = data[:,14]
+            self.multipoleVectors['V5'] = data[:,15]
+            self.numWells = 2
+        except: self.numWells = 1
+        print "num. wells: " + str(self.numWells)
         
         registry = self.client.registry
         yield registry.cd(['', 'cctdac_pulser', 'Cfile'])
@@ -356,8 +336,8 @@ the queue, and the portList can be safely updated.
     @setting( 6, 'set multipole voltages', ms = '*(sv): dictionary of multipole voltages')
     def setMultipoleVoltages(self, c, ms):
         """
-	set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
-	"""
+	    set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
+	    """
         multipoleSet = {}
         for (k,v) in ms:
             multipoleSet[k] = v
@@ -365,30 +345,31 @@ the queue, and the portList can be safely updated.
         self.multipoleSet = multipoleSet # may want to keep track of the current set.
         realVolts = zeros(NUMCHANNELS)
         for i in range(5):
-	  try: realVolts[i] = self.portList[i].analogVoltage
-	  except: realVolts[i] = 0
+            try: realVolts[i] = self.portList[i].analogVoltage
+            except: realVolts[i] = 0	
+        print self.multipoleVectors.keys()
         for key in self.multipoleVectors.keys():
             realVolts += dot(multipoleSet[key],self.multipoleVectors[key])
         self.setAnalogVoltages(c, realVolts)
         
         registry = self.client.registry
         yield registry.cd(['', 'cctdac_pulser', 'Multipoles'])
-        yield registry.set('Ex', multipoleSet['Ex'])
-        yield registry.set('Ey', multipoleSet['Ey'])
-        yield registry.set('Ez', multipoleSet['Ez'])
-        yield registry.set('U1', multipoleSet['U1'])
-        yield registry.set('U2', multipoleSet['U2'])
-        yield registry.set('U3', multipoleSet['U3'])
-        yield registry.set('U4', multipoleSet['U4'])
-        yield registry.set('U5', multipoleSet['U5'])
+        yield registry.set('Multipole Set', ms)
     
     @setting( 7, 'get multipole voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):
-	"""
-	Return a list of multipole voltages
-	"""
+        """
+        Return a list of multipole voltages
+        """
         return self.multipoleSet.items()
-       
+        
+    @setting( 9, 'return number wells', returns = 'i')
+    def returnNumWells(self, c):
+        """
+	    Return the number of wells as determined by the size of the current Cfile
+        """
+        return self.numWells
+	       
 if __name__ == "__main__":
     from labrad import util
     util.runServer( CCTDACServer() )

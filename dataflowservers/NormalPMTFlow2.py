@@ -4,10 +4,10 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = NormalPMTFlow
+name = NormalPMTFlow2
 version = 1.3
 description = 
-instancename = NormalPMTFlow
+instancename = NormalPMTFlow2
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -24,17 +24,17 @@ from twisted.internet.defer import Deferred, returnValue, inlineCallbacks
 from twisted.internet.task import LoopingCall
 import time
 
-SIGNALID = 331483
+SIGNALID = 331474
 
 class NormalPMTFlow( LabradServer):
     
-    name = 'NormalPMTFlow'
+    name = 'NormalPMTFlow2'
     onNewCount = Signal(SIGNALID, 'signal: new count', 'v')
     onNewSetting = Signal(SIGNALID+1, 'signal: new setting', '(ss)')
     
     @inlineCallbacks
     def initServer(self):
-        self.saveFolder = ['','PMT Counts', 'Primary']
+        self.saveFolder = ['','PMT Counts', 'Secondary']
         self.dataSetName = 'PMT Counts'
         self.collectTimes = {'Normal':0.100, 'Differential':0.100}
         self.lastDifferential = {'ON': 0, 'OFF': 0}
@@ -53,10 +53,10 @@ class NormalPMTFlow( LabradServer):
     
     @inlineCallbacks
     def setupListeners(self):
-        yield self.client.manager.subscribe_to_named_message('Server Connect', 9898989, True)
-        yield self.client.manager.subscribe_to_named_message('Server Disconnect', 9898989+1, True)
-        yield self.client.manager.addListener(listener = self.followServerConnect, source = None, ID = 9898989)
-        yield self.client.manager.addListener(listener = self.followServerDisconnect, source = None, ID = 9898989+1)
+        yield self.client.manager.subscribe_to_named_message('Server Connect', 9898987, True)
+        yield self.client.manager.subscribe_to_named_message('Server Disconnect', 9898987+1, True)
+        yield self.client.manager.addListener(listener = self.followServerConnect, source = None, ID = 9898987)
+        yield self.client.manager.addListener(listener = self.followServerDisconnect, source = None, ID = 9898987+1)
     
     @inlineCallbacks
     def followServerConnect(self, cntx, serverName):
@@ -328,8 +328,9 @@ class NormalPMTFlow( LabradServer):
                     
     @inlineCallbacks
     def _record(self):
+#        rawdata = yield self.pulser.get_secondary_pmt_counts()
         try:
-            rawdata = yield self.pulser.get_pmt_counts()
+            rawdata = yield self.pulser.get_secondary_pmt_counts()
         except:
             print 'Not Able to Get PMT Counts'
             rawdata = []

@@ -63,7 +63,7 @@ class DAC_CALIBRATOR(QDACCalibrator):
         fit = np.polyfit(self.anaVoltages, self.digVoltages, 3) # fit to a second order polynomial
         if self.checksave.isChecked():
 	    self.registry.cd(['', 'cctdac_pulser', 'Calibrations'])
-	    self.registry.mkdir(str(self.channelToCalib))
+	    #self.registry.mkdir(str(self.channelToCalib))
 	    self.registry.cd(['', 'cctdac_pulser', 'Calibrations', str(self.channelToCalib)])
 	    self.registry.set('c0', fit[3])
 	    self.registry.set('c1', fit[2])

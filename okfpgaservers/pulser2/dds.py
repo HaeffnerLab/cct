@@ -1,19 +1,22 @@
-from labrad.server import LabradServer, setting, Signal
+from labrad.server import LabradServer, setting
 from twisted.internet.defer import returnValue, inlineCallbacks
 from twisted.internet.threads import deferToThread
 import array
+from labrad.types import Error
 
 class DDS(LabradServer):
+    
     """Contains the DDS functionality for the pulser server"""
     
+    @inlineCallbacks
     def initializeDDS(self):
-        self.ddsLock = False #boolean whether or not dds can be changed. will be used to block access while pulse sequence is programmed or running.
+        self.ddsLock = False
         self.api.initializeDDS()
-        for chan in self.ddsDict.iterkeys():
-            freq,ampl = (self.ddsDict[chan].frequency, self.ddsDict[chan].amplitude)
-            self._checkRange('amplitude', chan, ampl)
-            self._checkRange('frequency', chan, freq)
-            self._setParameters(chan, freq, ampl)
+        for channel in self.ddsDict.itervalues():
+            freq,ampl = (channel.frequency, channel.amplitude)
+            self._checkRange('amplitude', channel, ampl)
+            self._checkRange('frequency', channel, freq)
+            yield self._setParameters(channel, freq, ampl)
     
     @setting(41, "Get DDS Channels", returns = '*s')
     def getDDSChannels(self, c):
@@ -34,15 +37,15 @@ class DDS(LabradServer):
             raise Exception("DDS access is locked. Running pulse sequence.")
         name = c.get('ddschan')
         if name is None: raise Exception ("Channel not provided and not selected")
+        channel = self.ddsDict[name]
         if amplitude is not None:
             #set the amplitude
             amplitude = amplitude.inUnitsOf('dBm')
             amplitude = float( amplitude )
-            self._checkRange('amplitude', name, amplitude)
-            yield self._setAmplitude(name, amplitude)
-            self.ddsDict[name].amplitude = amplitude
-        #return the current amplitude
-        amplitude = self.ddsDict[name].amplitude
+            self._checkRange('amplitude', channel, amplitude)
+            yield self._setAmplitude(channel, amplitude)
+            channel.amplitude = amplitude
+        amplitude = channel.amplitude
         returnValue(amplitude)
 
     @setting(44, "Frequency", frequency = ['v[MHz]'], returns = ['v[MHz]'])
@@ -54,30 +57,42 @@ class DDS(LabradServer):
             raise Exception("DDS access is locked. Running pulse sequence.")
         name = c.get('ddschan')
         if name is None: raise Exception ("Channel not provided and not selected")
+        channel = self.ddsDict[name]
         if frequency is not None:
             #set the amplitude
             frequency = frequency.inUnitsOf('MHz')
             frequency = float( frequency )
-            self._checkRange('frequency', name, frequency)
-            yield self._setFrequency(name, frequency)
-            self.ddsDict[name].frequency = float(frequency)
-        #return the current amplitude
-        frequency = self.ddsDict[name].frequency
+            self._checkRange('frequency', channel, frequency)
+            yield self._setFrequency(channel, frequency)
+            channel.frequency = float(frequency)
+        frequency = channel.frequency
         returnValue(frequency)
     
-    @setting(45, 'Add DDS Pulses', channel = 's', values = '*(vvv)')
-    def addDDSPulse(self, c, channel, values):
-        """Takes the name of the DDS channel, and the list of values in the form [(start, frequency, amplitude)]
+    @setting(45, 'Add DDS Pulses', name = 's', values = ['*(vvv)','*(vvvv)'])
+    def addDDSPulse(self, c, name, values):
+        """Takes the name of the DDS channel, and the list of values in the form [(start, frequency, amplitude, phase)] or 
+        [(start, frequency, amplitude)]
         where frequency is in MHz, and amplitude is in dBm
         """
-        if channel not in self.ddsDict.keys(): raise Exception("Unknown DDS channel {}".format(channel))
-        hardwareAddr = self.ddsDict.get(channel).channelnumber
+        try:
+            channel = self.ddsDict[name]
+        except KeyError:
+            raise Exception("Unknown DDS channel {}".format(name))
         sequence = c.get('sequence')
         #simple error checking
         if not sequence: raise Exception ("Please create new sequence first")
-        for start,freq,ampl in values:
-            sett = self._valToInt(channel, freq, ampl)
-            sequence.addDDS(hardwareAddr, start, sett)
+        for value in values:
+            try:
+                start,freq,ampl = value
+                phase  = 0.0
+            except ValueError:
+                start,freq,ampl,phase = value
+            if not channel.remote:
+                num = self._valToInt(channel, freq, ampl)
+            else:
+                num = self._valToInt_remote(channel, freq, ampl, phase)
+            if not self.sequenceTimeRange[0] <= start <= self.sequenceTimeRange[1]: raise Exception ("DDS start time out of acceptable input range")
+            sequence.addDDS(name, start, num)
     
     @setting(46, 'Get DDS Amplitude Range', returns = '(vv)')
     def getDDSAmplRange(self, c):
@@ -91,64 +106,120 @@ class DDS(LabradServer):
         if name is None: raise Exception ("Channel not provided and not selected")
         return self.ddsDict[name].allowedfreqrange
     
-    def _checkRange(self, t, name, val):
+    @setting(48, 'Output', state = 'b', returns =' b')
+    def output(self, c, state = None):
+        """To turn off and on the dds. Turning off the DDS sets the frequency and amplitude 
+        to the off_parameters provided in the configuration.
+        """
+        if self.ddsLock: 
+            self.ddsLock = False
+            raise Exception("DDS access is locked. Running pulse sequence.")
+        name = c.get('ddschan')
+        if name is None: raise Exception ("Channel not provided and not selected")
+        channel = self.ddsDict[name]
+        if state is not None:
+            if state and not channel.state:
+                #if asked to turn on and is currently off
+                yield self._setParameters(channel, channel.frequency, channel.amplitude)
+            elif (channel.state and not state):
+                #asked to turn off and is currently on
+                freq,ampl = channel.off_parameters
+                yield self._setParameters(channel, freq, ampl)
+            channel.state = state
+        state = channel.state
+        returnValue(state)
+    
+    def _checkRange(self, t, channel, val):
         if t == 'amplitude':
-            r = self.ddsDict[name].allowedamplrange
+            r = channel.allowedamplrange
         elif t == 'frequency':
-            r = self.ddsDict[name].allowedfreqrange
+            r = channel.allowedfreqrange
         if not r[0]<= val <= r[1]: raise Exception ("Value {} is outside allowed range".format(val))
     
     @inlineCallbacks
-    def _setAmplitude(self, chan, ampl):
-        freq = self.ddsDict[chan].frequency
+    def _setAmplitude(self, channel, ampl):
+        freq = channel.frequency
         yield self.inCommunication.acquire()
-        yield deferToThread(self._setParameters, chan, freq, ampl)
+        yield self._setParameters( channel, freq, ampl)
         self.inCommunication.release()
         
     @inlineCallbacks
-    def _setFrequency(self, chan, freq):
-        ampl = self.ddsDict[chan].amplitude
+    def _setFrequency(self, channel, freq):
+        ampl = channel.amplitude
         yield self.inCommunication.acquire()
-        yield deferToThread(self._setParameters, chan, freq, ampl)
+        yield self._setParameters( channel, freq, ampl)
         self.inCommunication.release()
     
+    @inlineCallbacks
     def _programDDSSequence(self, dds):
         '''takes the parsed dds sequence and programs the board with it'''
         self.ddsLock = True
-        for config in self.ddsDict.itervalues():
-            chan = config.channelnumber
-            buf = dds[chan]
-            self.api.resetAllDDS()
-            self.api.setDDSchannel(chan)
-            self.api.programDDS(buf)
-            
-    def _setParameters(self, chan, freq, ampl):
+        for name,channel in self.ddsDict.iteritems():
+            addr = channel.channelnumber
+            buf = dds[name]
+            if not channel.remote: 
+                yield deferToThread(self._setDDSLocal, addr, buf)
+            else:
+                yield self._setDDSRemote(channel, addr, buf)
+    
+    @inlineCallbacks
+    def _setParameters(self, channel, freq, ampl):
+        addr = channel.channelnumber
+        if not channel.remote:
+            num = self._valToInt(channel, freq, ampl)
+            buf = self._intToBuf(num)
+            buf = buf + '\x00\x00' #adding termination
+            yield deferToThread(self._setDDSLocal, addr, buf)
+        else:
+            num = self._valToInt_remote(channel, freq, ampl)
+            buf = self._intToBuf_remote(num)
+            buf = buf + '\x00\x00' #adding termination
+            yield self._setDDSRemote(channel, addr, buf)
+    
+    def _setDDSLocal(self, addr, buf):
         self.api.resetAllDDS()
-        addr = self.ddsDict[chan].channelnumber
         self.api.setDDSchannel(addr)  
-        num = self._valToInt(chan, freq, ampl)
-        buf = self._intToBuf(num)
-        buf = buf + '\x00\x00' #adding termination
         self.api.programDDS(buf)
     
+    @inlineCallbacks
+    def _setDDSRemote(self, channel, addr, buf):
+        cxn = self.remoteConnections[channel.remote]
+        remote_info = self.remoteChannels[channel.remote]
+        server, reset, program = remote_info.server, remote_info.reset, remote_info.program
+        try:
+            yield cxn.servers[server][reset]()
+            yield cxn.servers[server][program]([(channel.channelnumber, buf)])
+        except (KeyError,AttributeError):
+            print 'Not programing remote channel {}'.format(channel.remote)
+        except Error, e:
+            print 'in dds remote:'
+            print e.code
+            if e.code == 1:
+                print 'Not In Control of Remote Channel'
+            
+    
     def _addDDSInitial(self, seq):
-        for chan in self.ddsDict.iterkeys():
-            freq,ampl = (self.ddsDict[chan].frequency, self.ddsDict[chan].amplitude)
-            self._checkRange('amplitude', chan, ampl)
-            self._checkRange('frequency', chan, freq)
-            addr = self.ddsDict[chan].channelnumber
-            num = self._valToInt(chan, freq, ampl)
-            seq.addDDS(addr, 0, num)
+        '''
+        Writes the current values to the 0 time position of the pulse sequence.
+        '''
+        for name,channel in self.ddsDict.iteritems():
+            freq,ampl = (channel.frequency, channel.amplitude)
+            self._checkRange('amplitude', channel, ampl)
+            self._checkRange('frequency', channel, freq)
+            if not channel.remote:
+                num = self._valToInt(channel, freq, ampl)
+            else:
+                num = self._valToInt_remote(channel, freq, ampl)
+            seq.addDDS(name, 0, num)
         
-    def _valToInt(self, chan, freq, ampl):
+    def _valToInt(self, channel, freq, ampl):
         '''
         takes the frequency and amplitude values for the specific channel and returns integer representation of the dds setting
         freq is in MHz
         power is in dbm
         '''
-        config = self.ddsDict[chan]
         ans = 0
-        for val,r,m in [(freq,config.boardfreqrange, 256**2), (ampl,config.boardamplrange, 1)]:
+        for val,r,m in [(freq,channel.boardfreqrange, 256**2), (ampl,channel.boardamplrange, 1)]:
             minim, maxim = r
             resolution = (maxim - minim) / float(16**4 - 1)
             seq = int((val - minim)/resolution) #sequential representation
@@ -163,4 +234,33 @@ class DDS(LabradServer):
         a, b = num // 256**2, num % 256**2
         arr = array.array('B', [a % 256 ,a // 256, b % 256, b // 256])
         ans = arr.tostring()
+        return ans
+    
+    def _valToInt_remote(self, channel, freq, ampl, phase = 0):
+        '''
+        takes the frequency and amplitude values for the specific channel and returns integer representation of the dds setting
+        freq is in MHz
+        power is in dbm
+        '''
+        ans = 0
+        for val,r,m, precision in [(freq,channel.boardfreqrange, 1, 32), (ampl,channel.boardamplrange, 2 ** 32,  16), (phase,channel.boardphaserange, 2 ** 48,  16)]:
+            minim, maxim = r
+            resolution = (maxim - minim) / float(2**precision - 1)
+            seq = int((val - minim)/resolution) #sequential representation
+            ans += m*seq
+        return ans
+    
+    def _intToBuf_remote(self, num):
+        '''
+        takes the integer representing the setting and returns the buffer string for dds programming
+        '''
+        freq_num = num % 2**32
+        a, b = freq_num // 256**2, freq_num % 256**2
+        freq_arr = array.array('B', [b % 256 ,b // 256, a % 256, a // 256])
+        
+        phase_ampl_num = num // 2**32
+        a, b = phase_ampl_num // 256**2, phase_ampl_num % 256**2
+        phase_ampl_arr = array.array('B', [a % 256 ,a // 256, b % 256, b // 256])
+        
+        ans = phase_ampl_arr.tostring() + freq_arr.tostring()
         return ans
