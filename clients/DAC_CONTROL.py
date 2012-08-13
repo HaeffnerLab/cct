@@ -42,7 +42,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.controls['V2'] = QCustomSpinBox('V2', (0.,20.))
         self.controls['V3'] = QCustomSpinBox('V3', (-10.,10.))
         self.controls['V4'] = QCustomSpinBox('V4', (-10.,10.))
-        self.controls['V5'] = QCustomSpinBox('V5', (-10.,10.))
+        self.controls['V5'] = QCustomSpinBox('V5', (-10.,10.))        
         
         self.multipoleValues = {}
         for k in self.controlLabels:
@@ -76,6 +76,8 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
 	    self.ctrlLayout.addWidget(self.controls['V5'],4,3)	    	            
         self.multipoleFileSelectButton = QtGui.QPushButton('Set C File')
         self.ctrlLayout.addWidget(self.multipoleFileSelectButton,4,0)
+        self.controls['slave'] = QtGui.QCheckBox('slave')
+        self.ctrlLayout.addWidget(self.controls['slave'], 4, 2)
 
         self.inputUpdated = False
         self.timer = QtCore.QTimer(self)
@@ -127,14 +129,26 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         
     def inputHasUpdated(self):
         self.inputUpdated = True
+        if self.controls['slave'].isChecked():
+            self.controls['Ex2'].spinLevel.setValue(round(self.controls['Ex1'].spinLevel.value(), 3))
+            self.controls['Ey2'].spinLevel.setValue(round(self.controls['Ey1'].spinLevel.value(), 3))
+            self.controls['Ez2'].spinLevel.setValue(round(self.controls['Ez1'].spinLevel.value(), 3))
+            self.controls['V1'].spinLevel.setValue(round(self.controls['U1'].spinLevel.value(), 3))
+            self.controls['V2'].spinLevel.setValue(round(self.controls['U2'].spinLevel.value(), 3))
+            self.controls['V3'].spinLevel.setValue(round(self.controls['U3'].spinLevel.value(), 3))
+            self.controls['V4'].spinLevel.setValue(round(self.controls['U4'].spinLevel.value(), 3))
+            self.controls['V5'].spinLevel.setValue(round(self.controls['U5'].spinLevel.value(), 3))           
         for k in self.controlLabels:
             self.multipoleValues[k] = round(self.controls[k].spinLevel.value(), 3)
+
+                    
         
     def sendToServer(self):
         if self.inputUpdated:
             print "sending to server ", self.multipoleValues
             self.dacserver.set_multipole_voltages(self.multipoleValues.items())
             self.inputUpdated = False
+            #yield self.followSignal(0, 0)
     
     @inlineCallbacks        
     def selectCFile(self):
