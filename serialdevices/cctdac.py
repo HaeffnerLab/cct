@@ -211,9 +211,11 @@ Initialize CCTDACServer
                 self.portList.append(Port(i, c))
             else:
                 self.portList.append(Port(i)) # no preset calibration
-	yield registry.cd(['', 'cctdac', 'Cfile'])
-	Cpath = yield registry.get('MostRecent')
-	yield self.setMultipoleControlFile(0, Cpath)
+        yield registry.cd(['', 'cctdac', 'Cfile'])
+        Cpath = yield registry.get('MostRecent')
+        yield self.setMultipoleControlFile(0, Cpath)
+        Cpath = yield registry.get('MostRecentSecondary')
+        yield self.setSecondMultipoleControlFile(0, Cpath)    
         #ms = yield registry.get('Multipole Set')
         #yield self.setMultipoleVoltages(0, [('U5',0.0),('U4',0.0),('U1',-0.22),('Ez1',0.0),('U3',-0.22),('U2',4.5),('Ey1',0.0),('V1',-0.22),('V2',4.5),('Ey2',0.0),('Ex2',0.0),('Ez2',0.0),('V3',0.22),('Ex1',0.0),('V4',4.0),('V5',0.0)])	
         
@@ -387,22 +389,75 @@ Read in a matrix of multipole values
         self.multipoleVectors['U4'] = data[:,6]
         self.multipoleVectors['U5'] = data[:,7]
         try:
-	    self.multipoleVectors['Ex2'] = data[:,8]
-	    self.multipoleVectors['Ey2'] = data[:,9]
-	    self.multipoleVectors['Ez2'] = data[:,10]
-	    self.multipoleVectors['V1'] = data[:,11]
-	    self.multipoleVectors['V2'] = data[:,12]
-	    self.multipoleVectors['V3'] = data[:,13]
-	    self.multipoleVectors['V4'] = data[:,14]
-	    self.multipoleVectors['V5'] = data[:,15]
-	    self.numWells = 2
-	except: self.numWells = 1
-	print "num. wells: " + str(self.numWells)        
+	       self.multipoleVectors['Ex2'] = data[:,8]
+	       self.multipoleVectors['Ey2'] = data[:,9]
+	       self.multipoleVectors['Ez2'] = data[:,10]
+	       self.multipoleVectors['V1'] = data[:,11]
+	       self.multipoleVectors['V2'] = data[:,12]
+	       self.multipoleVectors['V3'] = data[:,13]
+	       self.multipoleVectors['V4'] = data[:,14]
+	       self.multipoleVectors['V5'] = data[:,15]
+	       self.numWells = 2
+        except: self.numWells = 1
+        print "num. wells: " + str(self.numWells)        
         
         registry = self.client.registry
         yield registry.cd(['', 'cctdac', 'Cfile'])
         yield registry.set('MostRecent', file)
-        print file
+        
+    @setting( 10, 'set second multipole control file', file='s: multipole control file', returns = '')
+    def setSecondMultipoleControlFile(self, c, file):
+        """
+        Read in a matrix of multipole values
+        """
+        data = genfromtxt(file)
+        self.multipoleVectors2 = {}
+        self.multipoleVectors2['Ex1'] = data[:,0]
+        self.multipoleVectors2['Ey1'] = data[:,1]
+        self.multipoleVectors2['Ez1'] = data[:,2]
+        self.multipoleVectors2['U1'] = data[:,3]
+        self.multipoleVectors2['U2'] = data[:,4]
+        self.multipoleVectors2['U3'] = data[:,5]
+        self.multipoleVectors2['U4'] = data[:,6]
+        self.multipoleVectors2['U5'] = data[:,7]
+        try:
+            self.multipoleVectors2['Ex2'] = data[:,8]
+            self.multipoleVectors2['Ey2'] = data[:,9]
+            self.multipoleVectors2['Ez2'] = data[:,10]
+            self.multipoleVectors2['V1'] = data[:,11]
+            self.multipoleVectors2['V2'] = data[:,12]
+            self.multipoleVectors2['V3'] = data[:,13]
+            self.multipoleVectors2['V4'] = data[:,14]
+            self.multipoleVectors2['V5'] = data[:,15]
+            self.numWells2 = 2
+        except: self.numWells2 = 1
+        print "num. wells(2): " + str(self.numWells)
+        
+        registry = self.client.registry
+        yield registry.cd(['', 'cctdac', 'Cfile'])
+        yield registry.set('MostRecentSecondary', file)   
+        
+    @setting( 11, "Interpolate", A = 'v: constant between 0 and 1')
+    def interpolate(self, c, A):
+        A = float(A)           
+        realVolts = zeros(NUMCHANNELS)
+        for i in range(5):
+            realVolts[i] = self.portList[i].analogVoltage
+            
+        self.multipoleVectorsA = {}             
+        for key in self.multipoleVectors.keys():
+            self.multipoleVectorsA[key] = self.multipoleVectors[key] + A * ( self.multipoleVectors2[key] - self.multipoleVectors[key] )
+
+        for key in self.multipoleVectorsA.keys():
+            print self.multipoleVectorsA[key]
+            realVolts += dot(self.multipoleSet[key],self.multipoleVectorsA[key])
+        yield self.setAnalogVoltages(c, realVolts)   
+        
+    @setting( 12, "Shuttle Ion", position = 'i: position to move to', steps = 'i: number of steps')
+    def shuttleIon(self, c, position, steps):
+        for i in range(1, steps + 1):                         
+            yield self.interpolate(c, i/float(steps))
+            time.sleep(1)                                        
         
     @setting( 6, 'Set Multipole Voltages', ms = '*(sv): dictionary of multipole voltages')
     def setMultipoleVoltages(self, c, ms):
@@ -424,15 +479,7 @@ set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
         
         registry = self.client.registry
         yield registry.cd(['', 'cctdac', 'Multipoles'])
-        yield registry.set('Multipole Set', ms)        
-        #yield registry.set('Ex', multipoleSet['Ex'])
-        #yield registry.set('Ey', multipoleSet['Ey'])
-        #yield registry.set('Ez', multipoleSet['Ez'])
-        #yield registry.set('U1', multipoleSet['U1'])
-        #yield registry.set('U2', multipoleSet['U2'])
-        #yield registry.set('U3', multipoleSet['U3'])
-        #yield registry.set('U4', multipoleSet['U4'])
-        #yield registry.set('U5', multipoleSet['U5'])        
+        yield registry.set('Multipole Set', ms)          
     
     @setting( 7, 'Get Multipole Voltages',returns='*(s,v)')
     def getMultipoleVolgates(self, c):

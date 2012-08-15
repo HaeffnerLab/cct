@@ -74,8 +74,13 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
 	    self.ctrlLayout.addWidget(self.controls['V3'],2,3)
 	    self.ctrlLayout.addWidget(self.controls['V4'],3,3)
 	    self.ctrlLayout.addWidget(self.controls['V5'],4,3)	    	            
-        self.multipoleFileSelectButton = QtGui.QPushButton('Set C File')
-        self.ctrlLayout.addWidget(self.multipoleFileSelectButton,4,0)
+        self.multipoleFileSelectButton = QtGui.QPushButton('C File')
+        self.ctrlLayout.addWidget(self.multipoleFileSelectButton,5,0)
+        self.multipoleFileSelectButton2 = QtGui.QPushButton('MovTo Cfile')
+        self.ctrlLayout.addWidget(self.multipoleFileSelectButton2,5,1)
+        self.moveButton = QtGui.QPushButton('Move!')
+        self.ctrlLayout.addWidget(self.moveButton,5,2)            
+                
         self.controls['slave'] = QtGui.QCheckBox('slave')
         self.ctrlLayout.addWidget(self.controls['slave'], 4, 2)
 
@@ -85,7 +90,11 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.timer.start(UpdateTime)       
         for k in self.controlLabels:
             self.controls[k].onNewValues.connect(self.inputHasUpdated)
+            
         self.multipoleFileSelectButton.released.connect(self.selectCFile)
+        self.multipoleFileSelectButton2.released.connect(self.selectNextCFile)
+        self.moveButton.released.connect(self.moveToNextPosition)
+        
         self.setLayout(self.ctrlLayout)
         yield self.followSignal(0, 0)
         
@@ -156,6 +165,15 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         yield self.dacserver.set_multipole_control_file(str(fn))
         self.updateGUI()
         self.inputHasUpdated()
+        
+    @inlineCallbacks        
+    def selectNextCFile(self):
+        fn = QtGui.QFileDialog().getOpenFileName()
+        yield self.dacserver.set_second_multipole_control_file(str(fn))
+    
+    @inlineCallbacks    
+    def moveToNextPosition(self):
+        yield self.dacserver.shuttle_ion(0, 10)
         
     @inlineCallbacks    
     def setupListeners(self):

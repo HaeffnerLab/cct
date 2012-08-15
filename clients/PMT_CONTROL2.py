@@ -19,6 +19,7 @@ class pmtWidget(QtGui.QWidget):
         from labrad.wrappers import connectAsync
         cxn = yield connectAsync()
         self.server = cxn.normalpmtflow2
+        self.server2 = cxn.normalpmtflow
         yield self.initializeContent()
         yield self.setupListeners()
         #connect functions
@@ -79,7 +80,8 @@ class pmtWidget(QtGui.QWidget):
     def on_toggled(self, state):
         if state:
             yield self.server.record_data()
-            newset = yield self.server.currentdataset()
+            yield self.server2.record_data()
+            newset = yield self.server.currentdataset()            
             self.lineEdit.setText(newset)
         else:
             yield self.server.stoprecording()

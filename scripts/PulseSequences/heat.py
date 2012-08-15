@@ -5,7 +5,7 @@ class HeatSeq(Sequnce):
     requiredVars = {
                          'initial_cooling':(float, 10e-9, 5.0, 100e-3), 
 
-                         
+                         }
                          
                          
 if __name__ == '__main__':

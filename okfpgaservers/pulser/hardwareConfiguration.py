@@ -48,13 +48,9 @@ class hardwareConfiguration(object):
     #name: (channelNumber, ismanual, manualstate,  manualinversion, autoinversion)
     channelDict = {
 		    '866':channelConfiguration(0, True, True, False, False),
-		   'bluePI':channelConfiguration(1, True, True, False, False),
-                   #'rst':channelConfiguration(2, False, False, False, False),
-                   #'dat':channelConfiguration(3, False, False, False, True),
-                   #'clk':channelConfiguration(4, False, False, False, True),
-                   #'RST':channelConfiguration(5, False, False, False, False),
-                   #'DAT':channelConfiguration(6, False, False, False, True),
-                   #'CLK':channelConfiguration(7, False, False, False, True),
+                    'bluePI':channelConfiguration(1, True, True, False, False),
+                    '397sw':channelConfiguration(12, True, True, False, False),
+                    '866sw':channelConfiguration(13, True, True, False, False),
                    #------------INTERNAL CHANNELS----------------------------------------#
                    'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
                    'TimeResolvedCount':channelConfiguration(17, False, False, False, False),

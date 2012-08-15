@@ -361,7 +361,6 @@ class Pulser(LabradServer, DDS):
         yield self.inCommunication.acquire()
         countlist = yield deferToThread(self.doGetAllCounts)
         self.inCommunication.release()
-        print countlist
         returnValue(countlist)
         
     @setting(36, 'Get Secondary PMT Counts', returns = '*(vsv)')
@@ -430,7 +429,6 @@ class Pulser(LabradServer, DDS):
     def convertKCperSec(self, input):
         [rawCount,type] = input
         countKCperSec = float(rawCount) / self.collectionTime[self.collectionMode] / 1000.
-#        print countKCperSec
         return [countKCperSec, type]
         
     def appendTimes(self, list, timeLast):
@@ -442,7 +440,6 @@ class Pulser(LabradServer, DDS):
         for i in range(len(list)):
             list[-i - 1].append(timeLast - i * collectionTime)
             list[-i - 1] = tuple(list[-i - 1])
-#        print list
         return list
     
     def split_len(self,seq, length):

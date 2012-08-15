@@ -138,7 +138,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     @inlineCallbacks        
     def selectCFile(self):
         fn = QtGui.QFileDialog().getOpenFileName()
-        yield self.dacserver.set_multipole_control_file(str(fn))
+        yield self.dacserver.set_multipole_control_file(1, str(fn))
         self.updateGUI()
         self.inputHasUpdated()
         
@@ -322,7 +322,6 @@ class CHANNEL_MONITOR(QtGui.QWidget):
     
     @inlineCallbacks
     def followSignal(self, x, s):
-        print "CHMON followSignal"
         av = yield self.dacserver.get_analog_voltages()
         for (e, v) in zip(self.electrodes, av):
             e.display(float(v))

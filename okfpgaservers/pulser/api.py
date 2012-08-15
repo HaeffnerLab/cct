@@ -108,15 +108,12 @@ class api():
         self.xem.UpdateWireIns()
         self.xem.UpdateWireOuts()
         done = self.xem.GetWireOutValue(0x21)
-        print done
         return done
     
     def getSecondaryNormalTotal(self):
         self.xem.SetWireInValue(0x00,0xa0,0xf0)
         self.xem.UpdateWireIns()
         self.xem.UpdateWireOuts()
-        done = self.xem.GetWireOutValue(0x21)
-        print done
         return done        
         
     def getNormalCounts(self, number):
@@ -183,7 +180,7 @@ class api():
         self.xem.UpdateWireIns()
 
     def setDACVoltage(self, volstr):
-	    self.xem.WriteToBlockPipeIn(0x82, 2, volstr)        
+        self.xem.WriteToBlockPipeIn(0x82, 2, volstr)        
     
     def programDDS(self, prog):
         '''program the dds channel with a list of frequencies and amplitudes. The channel of the particular channel must be selected first'''
