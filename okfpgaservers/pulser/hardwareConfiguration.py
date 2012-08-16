@@ -49,8 +49,8 @@ class hardwareConfiguration(object):
     channelDict = {
 		    '866':channelConfiguration(0, True, True, False, False),
                     'bluePI':channelConfiguration(1, True, True, False, False),
-                    '397sw':channelConfiguration(12, True, True, False, False),
-                    '866sw':channelConfiguration(13, True, True, False, False),
+                    '397sw':channelConfiguration(12, False, False, False, True),
+                    '866sw':channelConfiguration(13, False, False, False, True),
                    #------------INTERNAL CHANNELS----------------------------------------#
                    'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
                    'TimeResolvedCount':channelConfiguration(17, False, False, False, False),

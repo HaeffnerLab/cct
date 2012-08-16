@@ -18,6 +18,7 @@ class Binner():
     def getBinned(self, normalize = True):
         if normalize:
             try:
+                print sum(self.binned)
                 self.binned = self.binned / self.averaged
                 self.binned = self.binned / self.binWidth
             except FloatingPointError:

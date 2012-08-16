@@ -33,7 +33,7 @@ class CCT_GUI(QtGui.QMainWindow):
         from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
         from TICKLE_CONTROL import Tickle_Control
-        from SHUTTER_CONTROL import SHUTTER
+        from SHUTTER_CONTROLv2 import SHUTTER
         from PIEZO_CONTROL import PIEZO_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle

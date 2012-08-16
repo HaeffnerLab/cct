@@ -22,8 +22,8 @@ from twisted.internet import reactor
 from twisted.internet.defer import returnValue
 from numpy import *
 import sys
-import os
-import time
+#import os
+#import time
 
 SERVERNAME = 'CCTDAC_Pulser'
 PREC_BITS = 16.
@@ -90,9 +90,9 @@ class Port():
         
 class CCTDACServer( LabradServer ):
     """
-CCTDAC Server
-Used for controlling DC trap electrodes
-"""
+    CCTDAC Server
+    Used for controlling DC trap electrodes
+    """
     name = SERVERNAME
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')

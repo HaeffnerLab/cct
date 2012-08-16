@@ -114,6 +114,7 @@ class api():
         self.xem.SetWireInValue(0x00,0xa0,0xf0)
         self.xem.UpdateWireIns()
         self.xem.UpdateWireOuts()
+        done = self.xem.GetWireOutValue(0x21)
         return done        
         
     def getNormalCounts(self, number):
