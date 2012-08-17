@@ -102,7 +102,7 @@ class DopplerRecooling():
 
 
     def finalize(self):
-        self.pulser.switch_manual('397sw')
+        self.pulser.switch_auto('397sw')
 
     def __del__(self):
         self.cxn.disconnect()
@@ -110,13 +110,13 @@ class DopplerRecooling():
 if __name__ == '__main__':
     params = {
         'recordTime':100e-3,
-        'darkTime':0.5,
-        'recoolTime':1e-3
+        'darkTime':1.0,
+        'recoolTime':100e-3
         }
 
     exprtParams = {
-        'iterations':5,
-        'binTime': 10.0*10**-3
+        'iterations':100,
+        'binTime': 50.0*10**-6
         }
 
     exprt = DopplerRecooling(params, exprtParams)

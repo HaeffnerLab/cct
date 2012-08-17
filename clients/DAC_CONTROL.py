@@ -42,47 +42,46 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.controls['V2'] = QCustomSpinBox('V2', (0.,20.))
         self.controls['V3'] = QCustomSpinBox('V3', (-10.,10.))
         self.controls['V4'] = QCustomSpinBox('V4', (-10.,10.))
-        self.controls['V5'] = QCustomSpinBox('V5', (-10.,10.))        
+        self.controls['V5'] = QCustomSpinBox('V5', (-10.,10.)) 
+        self.multipoleFileSelectButton2 = QtGui.QPushButton('MovTo Cfile')
+        self.moveButton = QtGui.QPushButton('Move!')
+        self.controls['slave'] = QtGui.QCheckBox('slave') 
         
         self.multipoleValues = {}
         for k in self.controlLabels:
             self.multipoleValues[k]=0.0
 
         if self.numWells == 1:
-	    self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
-	    self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
-	    self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
-	    self.ctrlLayout.addWidget(self.controls['U1'],0,1)
-	    self.ctrlLayout.addWidget(self.controls['U2'],1,1)
-	    self.ctrlLayout.addWidget(self.controls['U3'],2,1)
-	    self.ctrlLayout.addWidget(self.controls['U4'],3,1)
-	    self.ctrlLayout.addWidget(self.controls['U5'],4,1)
+            self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
+            self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
+            self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
+            self.ctrlLayout.addWidget(self.controls['U1'],0,1)
+            self.ctrlLayout.addWidget(self.controls['U2'],1,1)
+            self.ctrlLayout.addWidget(self.controls['U3'],2,1)
+            self.ctrlLayout.addWidget(self.controls['U4'],3,1)
+            self.ctrlLayout.addWidget(self.controls['U5'],4,1)
         else:
-	    self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
-	    self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
-	    self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
-	    self.ctrlLayout.addWidget(self.controls['U1'],0,1)
-	    self.ctrlLayout.addWidget(self.controls['U2'],1,1)
-	    self.ctrlLayout.addWidget(self.controls['U3'],2,1)
-	    self.ctrlLayout.addWidget(self.controls['U4'],3,1)
-	    self.ctrlLayout.addWidget(self.controls['U5'],4,1)
-	    self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
-	    self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
-	    self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
-	    self.ctrlLayout.addWidget(self.controls['V1'],0,3)
-	    self.ctrlLayout.addWidget(self.controls['V2'],1,3)
-	    self.ctrlLayout.addWidget(self.controls['V3'],2,3)
-	    self.ctrlLayout.addWidget(self.controls['V4'],3,3)
-	    self.ctrlLayout.addWidget(self.controls['V5'],4,3)	    	            
+            self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
+            self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
+            self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
+            self.ctrlLayout.addWidget(self.controls['U1'],0,1)
+            self.ctrlLayout.addWidget(self.controls['U2'],1,1)
+            self.ctrlLayout.addWidget(self.controls['U3'],2,1)
+            self.ctrlLayout.addWidget(self.controls['U4'],3,1)
+            self.ctrlLayout.addWidget(self.controls['U5'],4,1)
+            self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
+            self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
+            self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
+            self.ctrlLayout.addWidget(self.controls['V1'],0,3)
+            self.ctrlLayout.addWidget(self.controls['V2'],1,3)
+            self.ctrlLayout.addWidget(self.controls['V3'],2,3)
+            self.ctrlLayout.addWidget(self.controls['V4'],3,3)
+            self.ctrlLayout.addWidget(self.controls['V5'],4,3)	
+            self.ctrlLayout.addWidget(self.multipoleFileSelectButton2,5,2)
+            self.ctrlLayout.addWidget(self.moveButton,5,3)
+            self.ctrlLayout.addWidget(self.controls['slave'], 4, 2)       	            
         self.multipoleFileSelectButton = QtGui.QPushButton('C File')
         self.ctrlLayout.addWidget(self.multipoleFileSelectButton,5,0)
-        self.multipoleFileSelectButton2 = QtGui.QPushButton('MovTo Cfile')
-        self.ctrlLayout.addWidget(self.multipoleFileSelectButton2,5,1)
-        self.moveButton = QtGui.QPushButton('Move!')
-        self.ctrlLayout.addWidget(self.moveButton,5,2)            
-                
-        self.controls['slave'] = QtGui.QCheckBox('slave')
-        self.ctrlLayout.addWidget(self.controls['slave'], 4, 2)
 
         self.inputUpdated = False
         self.timer = QtCore.QTimer(self)
@@ -102,29 +101,35 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     def updateGUI(self):
         self.numWells = yield self.dacserver.return_number_wells()
         print "num. wells: " + str(self.numWells)           
-	if self.numWells == 2:
-	    try:
-		self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
-		self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
-		self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
-		self.ctrlLayout.addWidget(self.controls['V1'],0,3)
-		self.ctrlLayout.addWidget(self.controls['V2'],1,3)
-		self.ctrlLayout.addWidget(self.controls['V3'],2,3)
-		self.ctrlLayout.addWidget(self.controls['V4'],3,3)
-		self.ctrlLayout.addWidget(self.controls['V5'],4,3)
-	    except: print "previous Cfile also had 2 wells"
-	else:
-	    try:
-		self.ctrlLayout.removeWidget(self.controls['Ex2'])
-		self.ctrlLayout.removeWidget(self.controls['Ey2'])
-		self.ctrlLayout.removeWidget(self.controls['Ez2'])
-		self.ctrlLayout.removeWidget(self.controls['V1'])
-		self.ctrlLayout.removeWidget(self.controls['V2'])
-		self.ctrlLayout.removeWidget(self.controls['V3'])
-		self.ctrlLayout.removeWidget(self.controls['V4'])
-		self.ctrlLayout.removeWidget(self.controls['V5'])	
-	    except: print "previous Cfile also had one well"
-	yield self.followSignal(0, 0)
+        if self.numWells == 2:
+            try:
+                self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
+                self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
+                self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
+                self.ctrlLayout.addWidget(self.controls['V1'],0,3)
+                self.ctrlLayout.addWidget(self.controls['V2'],1,3)
+                self.ctrlLayout.addWidget(self.controls['V3'],2,3)
+                self.ctrlLayout.addWidget(self.controls['V4'],3,3)
+                self.ctrlLayout.addWidget(self.controls['V5'],4,3)
+                self.ctrlLayout.addWidget(self.multipoleFileSelectButton2,5,2)
+                self.ctrlLayout.addWidget(self.moveButton,5,3) 
+                self.ctrlLayout.addWidget(self.controls['slave'], 4, 2)
+            except: print "previous Cfile also had 2 wells"
+        else:
+            try:
+                self.ctrlLayout.removeWidget(self.controls['Ex2'])
+                self.ctrlLayout.removeWidget(self.controls['Ey2'])
+                self.ctrlLayout.removeWidget(self.controls['Ez2'])
+                self.ctrlLayout.removeWidget(self.controls['V1'])
+                self.ctrlLayout.removeWidget(self.controls['V2'])
+                self.ctrlLayout.removeWidget(self.controls['V3'])
+                self.ctrlLayout.removeWidget(self.controls['V4'])
+                self.ctrlLayout.removeWidget(self.controls['V5'])	
+                self.ctrlLayout.removeWidget(self.multipoleFileSelectButton2)
+                self.ctrlLayout.removeWidget(self.moveButton)
+                self.ctrlLayout.removeWidget(self.controls['slave'])
+            except: print "previous Cfile also had one well"
+        yield self.followSignal(0, 0)
 	
         
     @inlineCallbacks
@@ -448,21 +453,20 @@ class CHANNEL_MONITOR(QtGui.QWidget):
     def closeEvent(self, x):
         self.reactor.stop()
 
-class DAC_CONTROL(QtGui.QMainWindow):
+class DAC_Control(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
-        super(DAC_CONTROL, self).__init__(parent)
-        
+        super(DAC_Control, self).__init__(parent)
         self.reactor = reactor
         self.Nelectrodes = 18
-
         channelControlTab = self.buildChannelControlTab()        
         multipoleControlTab = self.buildMultipoleControlTab()
-        scanTab = self.buildScanTab()
+        scanControlTab = self.buildScanControlTab()
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(multipoleControlTab,'&Multipoles')
         tabWidget.addTab(channelControlTab, '&Channels')
-        tabWidget.addTab(scanTab, '&Scans')
+        tabWidget.addTab(scanControlTab, '&Scans')
         self.setCentralWidget(tabWidget)
+        self.setWindowTitle('DAC Control')
     
     def buildMultipoleControlTab(self):
         widget = QtGui.QWidget()
@@ -479,15 +483,15 @@ class DAC_CONTROL(QtGui.QMainWindow):
         widget.setLayout(gridLayout)
         return widget
     
-    def buildScanTab(self):
-	from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
-	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
-	widget = QtGui.QWidget()
-	gridLayout = QtGui.QGridLayout()
-	gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
-	gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
-	widget.setLayout(gridLayout)
-	return widget
+    def buildScanControlTab(self):
+        from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
+        from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
+        widget = QtGui.QWidget()
+        gridLayout = QtGui.QGridLayout()
+        gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
+        gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
+        widget.setLayout(gridLayout)
+        return widget
 	
     def closeEvent(self, x):
         self.reactor.stop()  
@@ -497,6 +501,6 @@ if __name__ == "__main__":
     import qt4reactor
     qt4reactor.install()
     from twisted.internet import reactor
-    DAC_CONTROL = DAC_CONTROL(reactor)
-    DAC_CONTROL.show()
+    DAC_Control = DAC_Control(reactor)
+    DAC_Control.show()
     reactor.run()

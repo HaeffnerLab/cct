@@ -47,16 +47,16 @@ class hardwareConfiguration(object):
     
     #name: (channelNumber, ismanual, manualstate,  manualinversion, autoinversion)
     channelDict = {
-		    '866':channelConfiguration(0, True, True, False, False),
-                    'bluePI':channelConfiguration(1, True, True, False, False),
-                    '397sw':channelConfiguration(12, False, False, False, True),
-                    '866sw':channelConfiguration(13, False, False, False, True),
-                   #------------INTERNAL CHANNELS----------------------------------------#
-                   'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
-                   'TimeResolvedCount':channelConfiguration(17, False, False, False, False),
-                   'AdvanceDDS':channelConfiguration(18, False, False, False, False),
-                   'ResetDDS':channelConfiguration(19, False, False, False, False)
-                   }
+		          '866':channelConfiguration(0, True, True, False, False),
+                  'bluePI':channelConfiguration(1, True, True, False, False),
+                  '397sw':channelConfiguration(12, False, False, False, True),
+                  '866sw':channelConfiguration(13, False, False, False, True),
+                  #------------INTERNAL CHANNELS----------------------------------------#
+                  'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
+                  'TimeResolvedCount':channelConfiguration(17, False, False, False, False),
+                  'AdvanceDDS':channelConfiguration(18, False, False, False, False),
+                  'ResetDDS':channelConfiguration(19, False, False, False, False)
+                  }
     
     ddsDict = {
                '866DP':ddsConfiguration(3, (30.0,130.0),  (-63.0,-3.0), 80.0, -33.0),

@@ -22,8 +22,6 @@ from twisted.internet import reactor
 from twisted.internet.defer import returnValue
 from numpy import *
 import sys
-#import os
-#import time
 
 SERVERNAME = 'CCTDAC_Pulser'
 PREC_BITS = 16.

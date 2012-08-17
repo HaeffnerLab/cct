@@ -133,12 +133,12 @@ class Ex(QtGui.QWidget):
 	    frequencies = frequencies[::-1] # The ion asks that you kindly scan downwards, thanks
 	print self.control['revT'].isChecked()
 	listy = yield self.ds.get_multipole_voltages()
-	for i in range(8):
-	    if listy[i][0] == 'Ey':
+	for i in range(len(listy)):
+	    if listy[i][0] == 'Ey1':
 		Ey = listy[i][1]
-	    if listy[i][0] == 'Ex':
+	    if listy[i][0] == 'Ex1':
 		Exi = listy[i][1]
-	    if listy[i][0] == 'Ez':
+	    if listy[i][0] == 'Ez1':
 		Ez = listy[i][1]
 	    if listy[i][0] == 'U1':
 		U1 = listy[i][1]
@@ -156,11 +156,11 @@ class Ex(QtGui.QWidget):
 	    yield self.dv.add_parameter('Ex', Ex)
 	    yield self.dv.add_parameter('plotLive',True)
 	    print 'Saving {}'.format(name)
-	    yield self.ds.set_multipole_voltages([('Ex', Ex), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+	    yield self.ds.set_multipole_voltages([('Ex1', Ex), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 	    for f in frequencies:
 		if self.running == False:
 		    yield self.rs.onoff(False)
-		    yield self.ds.set_multipole_voltages([('Ex', Exi), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+		    yield self.ds.set_multipole_voltages([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 		    self.control['scan'].setText('Scan')
 		    return
 		self.rs.frequency(f)
@@ -168,7 +168,7 @@ class Ex(QtGui.QWidget):
 		pmtcount = yield self.pmt.get_next_counts('ON', int(self.control['avg'].value()), True)				
 		yield self.dv.add(f, pmtcount)
 	yield self.rs.onoff(False)
-	yield self.ds.set_multipole_voltages([('Ex', Exi), ('Ey', Ey), ('Ez', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+	yield self.ds.set_multipole_voltages([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 	self.control['scan'].setText('Scan')
 	    
     def stopScan(self, c):

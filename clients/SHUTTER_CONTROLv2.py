@@ -3,6 +3,9 @@ from PyQt4 import QtCore,uic
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 class SHUTTER (QtGui.QWidget):
+    """
+    assumes manualinversion in pulser's hardwareConfiguration.py is set to False for each laser
+    """
     def __init__(self, reactor, parent=None):
         super(SHUTTER, self).__init__(parent)
         self.reactor = reactor
@@ -65,14 +68,13 @@ class SHUTTER (QtGui.QWidget):
 class SHUTTER_CONTROL(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
         super(SHUTTER_CONTROL, self).__init__(parent)
-        
         self.reactor = reactor
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()    
-        gridLayout.addWidget(SHUTTER(self.reactor), 0, 0)
-        self.setWindowTitle('Shutter Control')
+        gridLayout.addWidget(SHUTTER(reactor), 0, 0)        
         widget.setLayout(gridLayout) 
         self.setCentralWidget(widget) 
+        self.setWindowTitle('Shutter Control')
                 
     def closeEvent(self, x):
         self.reactor.stop()

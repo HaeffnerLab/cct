@@ -4,7 +4,6 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 updateTime = 100 # ms
 
-
 class PC (QtGui.QWidget,):
     changedAxis = None
     contAxis = None
