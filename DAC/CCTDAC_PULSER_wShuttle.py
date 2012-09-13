@@ -24,6 +24,8 @@ from scipy.interpolate import UnivariateSpline as UniSpline
 from time import *
 from numpy import *
 import sys
+sys.path.append('/home/cct/LabRAD/cct/PulseSequences')
+from advanceDACs import ADV_DAC
 
 SERVERNAME = 'CCTDAC_Pulser'
 PREC_BITS = 16.
@@ -97,6 +99,12 @@ class CCTDACServer( LabradServer ):
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')
     numWells = 1
+    maxIndex = 1000
+    curPosition = 0
+    startIndex = 1
+    stopIndex = 2
+    multipoles = ['Ex1', 'Ey1', 'Ez1', 'U1', 'U2', 'U3', 'U4', 'U5']
+    reset = 1
     
     @inlineCallbacks
     def initServer( self ):  
@@ -133,16 +141,14 @@ class CCTDACServer( LabradServer ):
         for p in self.portList:
             p.analogVoltage = 0
         
-            
+        yield self.advDACs()
+        self.reset = 0
         yield self.registry.cd(['', 'cctdac_pulser', 'Cfile'])
         Cpath = yield self.registry.get('MostRecent')
-        #yield self.setMultipoleControlFile(0, 1, Cpath)
-        #Cpath = yield self.registry.get('MostRecent2')
-        #yield self.setMultipoleControlFile(0, 2, Cpath)        
+        yield self.setMultipoleControlFile(0, Cpath)       
         yield self.registry.cd(['', 'cctdac_pulser', 'Multipoles'])
         ms = yield self.registry.get('Multipole Set')
-        yield self.setMultipoleVoltages(0, ms)   
-        yield self.setBigCfile(0, '/home/cct/LabRAD/cct/clients/Cfiles/A_C_extd.txt')
+        yield self.setMultipoleValues(0, ms)   
 
     @inlineCallbacks
     def sendToPulser(self, c, voltage, setIndex = 1):
@@ -243,7 +249,7 @@ class CCTDACServer( LabradServer ):
 	    (portNum, newVolts)
 	    """
         for (num, av) in analogVoltages:	   
-            yield self.sendToPulser(c, [AnalogVoltage(num, av)], setIndex )
+            yield self.sendToPulser(c, [AnalogVoltage(num, av)], setIndex ) ###!!! setindex --> self.startIndex
 
     @setting( 4, "Get Digital Voltages", returns = '*v' )
     def getDigitalVoltages(self, c):
@@ -259,122 +265,9 @@ class CCTDACServer( LabradServer ):
 	    """
         return [ p.analogVoltage for p in self.portList ] # Yay for list comprehensions
     
-    @setting( 6, "Set Multipole Control File", index = 'i', file = 's: multipole file location', returns = '')
-    def setMultipoleControlFile(self, c, index, file):
-        """
-	    Read in a matrix of multipole values
-	    """
+    @setting( 6, "Set Multipole Control File", file = 's')
+    def setMultipoleControlFile(self, c, file):                
         data = genfromtxt(file)
-        vectors = {}
-        vectors['Ex1'] = data[:,0]
-        vectors['Ey1'] = data[:,1]
-        vectors['Ez1'] = data[:,2]
-        vectors['U1'] = data[:,3]
-        vectors['U2'] = data[:,4]
-        vectors['U3'] = data[:,5]
-        vectors['U4'] = data[:,6]
-        vectors['U5'] = data[:,7]
-        try:
-            print 'o'
-            vectors['Ex2'] = data[:,8]            
-            vectors['Ey2'] = data[:,9]
-            vectors['Ez2'] = data[:,10]
-            vectors['V1'] = data[:,11]
-            vectors['V2'] = data[:,12]
-            vectors['V3'] = data[:,13]
-            vectors['V4'] = data[:,14]
-            vectors['V5'] = data[:,15]
-            print 'k'
-            wells = 2
-        except: wells = 1
-        self.numWells = wells
-
-        if index == 1:
-            self.multipoleVectors1 = {}
-            for key in vectors.keys():
-                self.multipoleVectors1[key] = vectors[key]
-            print 'new primary Cfile: ' + file
-            yield self.registry.cd(['', 'cctdac_pulser', 'Cfile'])
-            yield self.registry.set('MostRecent1', file)                
-        if index == 2:
-            self.multipoleVectors2 = {}
-            for key in vectors.keys():
-                self.multipoleVectors2[key] = vectors[key]
-            print 'new secondary Cfile: ' + file
-            yield self.registry.cd(['', 'cctdac_pulser', 'Cfile'])
-            yield self.registry.set('MostRecent2', file)              
-        print 'num. wells: ' + str(wells) + '\n'
-
-    @setting( 7, "Return Number Wells", returns = 'i')
-    def returnNumWells(self, c):
-        """
-        Return the number of wells as determined by the size of the current Cfile
-        """
-        return self.numWells                               
-
-    @setting( 8, "Set Multipole Voltages", ms = '*(sv): dictionary of multipole voltages')
-    def setMultipoleVoltages(self, c, ms):
-        """
-	    set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
-	    """
-        self.multipoleSet = {}
-        for (k,v) in ms:
-            self.multipoleSet[k] = v
-        
-        realVolts = zeros(NUMCHANNELS)
-        for i in range(5):
-            realVolts[i] = self.portList[i].analogVoltage            
-
-        for key in self.multipoleVectors1.keys():
-            realVolts += dot(self.multipoleSet[key], self.multipoleVectors1[key])
-        self.setAnalogVoltages(c, realVolts)
-        
-        yield self.registry.cd(['', 'cctdac_pulser', 'Multipoles'])
-        yield self.registry.set('Multipole Set', ms)
-    
-    @setting( 9, "Get Multipole Voltages",returns='*(s,v)')
-    def getMultipoleVolgates(self, c):
-        """
-        Return a list of multipole voltages
-        """
-        return self.multipoleSet.items()
-        
-    @setting( 11, "Interpolate", A = 'v: constant between 0 and 1')
-    def interpolate(self, c, A):
-        A = float(A)           
-        realVolts = zeros(NUMCHANNELS)
-        for i in range(5):
-            realVolts[i] = self.portList[i].analogVoltage
-            
-        self.multipoleVectorsA = {}             
-        for key in self.multipoleVectors1.keys():
-            self.multipoleVectorsA[key] = (1 - A) * self.multipoleVectors1[key] + A * self.multipoleVectors2[key]
-
-        for key in self.multipoleVectorsA.keys():
-            realVolts += dot(self.multipoleSet[key],self.multipoleVectorsA[key])
-        yield self.setAnalogVoltages(c, realVolts)        
-        
-    @setting( 12, "Shuttle Ion", position = 'i: position to move to')
-    def shuttleIon(self, c, position):	
-        n=1
-        if position > self.curPosition:
-            for i in range(self.curPosition, position):
-                yield self.ShSetMultipoleVoltages(c, i + 1, n)
-                n += 1
-                #sleep(.1)
-        elif position < self.curPosition:
-            for i in range(position, self.curPosition)[::-1]:
-                yield self.ShSetMultipoleVoltages(c, i, n)
-                n += 1
-                #sleep(.1)            
-            
-    @setting( 13, "Set Big Cfile", file = 's')
-    def setBigCfile(self, c, file):
-        import matplotlib.pyplot as plt
-        data = genfromtxt(file)
-        #data[0:5, 0] gives  first five entries of data's first column
-        #determine width of array (num. solved positions)
-        multipoles = ['Ex1', 'Ey1', 'Ez1', 'U1', 'U2', 'U3', 'U4', 'U5']
         numCols = data.size / (23 * 8)
         numPositions = numCols * 10.
         sp = {}
@@ -387,30 +280,101 @@ class CCTDACServer( LabradServer ):
         for i in range(23):
             sp[i] = {}
             spline[i] = {}	  
-            for j in multipoles:                
+            for j in self.multipoles:                
                 sp[i][j] = UniSpline(x, data[i + n], s = 0 )                
                 spline[i][j] = sp[i][j](p)                                
                 n += 23                           
             n = 0
         self.spline = spline
-        yield self.ShSetMultipoleVoltages(c, 0, 1)
+        #yield self.ShSetMultipoleVoltages(c, 0, 1)
+        self.startIndex = 1       
         
-        #plt.plot(x, data[23*4+1])
-        #plt.show()
-        #plt.plot(p, spline[1]['U2']*4.5 + .1 * spline[1]['Ex1'] + -.22*spline[1]['U1'] + .22 * spline[1]['U3'])
-        #plt.show()
+        #from matplotlib import pyplot as p
+        #for i in range(23):        
+            #p.plot(spline[i]['U2'])
+            #p.show()
         
-    @setting( 14, "Shuttle Set Multipole Voltages", newPosition = 'i')
-    def ShSetMultipoleVoltages(self, c, newPosition, setIndex):
-        multipoles = ['Ex1', 'Ey1', 'Ez1', 'U1', 'U2', 'U3', 'U4', 'U5']
+    @setting( 7, "Return Number Wells", returns = 'i')
+    def returnNumWells(self, c):
+        """
+        Return the number of wells as determined by the size of the current Cfile
+        """
+        return self.numWells     
+
+    @setting( 8, "Set Multipole Values", ms = '*(sv): dictionary of multipole values')
+    def setMultipoleValues(self, c, ms):
+        """
+        set should be a dictionary with keys 'Ex', 'Ey', 'U1', etc.
+        """
+        self.multipoleSet = {}
+        for (k,v) in ms:
+            self.multipoleSet[k] = v
+            
+        self.stopIndex = self.startIndex + 1
+        if self.stopIndex > self.maxIndex: self.stopIndex = 1
+        yield self.setVoltages(c, self.curPosition, self.stopIndex)
+        yield self.advDACs()
+        self.startIndex = self.stopIndex
+        
+        yield self.registry.cd(['', 'cctdac_pulser', 'Multipoles'])
+        yield self.registry.set('Multipole Set', ms)
+    
+    @setting( 9, "Get Multipole Voltages",returns='*(s,v)')
+    def getMultipoleVolgates(self, c):
+        """
+        Return a list of multipole voltages
+        """
+        return self.multipoleSet.items()
+
+    @setting( 12, "Shuttle Ion", position = 'i: position to move to')
+    def shuttleIon(self, c, position):    
+        n = self.startIndex
+        if position > self.curPosition:
+            for i in range(self.curPosition, position):
+                yield self.setVoltages(c, i + 1, n)
+                if n == self.maxIndex: n = 1
+                else: n += 1                                
+        elif position < self.curPosition:
+            for i in range(position, self.curPosition)[::-1]:
+                yield self.setVoltages(c, i, n)
+                if n == self.maxIndex: n = 1
+                else: n += 1   
+        self.stopIndex = n-1
+        if self.stopIndex == 0: self.stopIndex = self.maxIndex
+        yield self.advDACs()
+        self.startIndex = self.stopIndex
+        
+    @inlineCallbacks
+    def advDACs(self):
+        """Pulse Sequence"""
+        pulser = yield self.pulser
+        seq = ADV_DAC(pulser)        
+        pulser.new_sequence()
+        params = {
+                  'startIndex': self.startIndex,
+                  'stopIndex': self.stopIndex,
+                  'maxIndex': self.maxIndex,
+                  'duration': 10e-2,
+                  'reset': self.reset
+                 }
+        seq.setVariables(**params)
+        seq.defineSequence()
+        pulser.program_sequence()
+        pulser.start_single()
+        pulser.wait_sequence_done()
+        pulser.stop_sequence()                        
+        
+    @setting( 14, "Set Voltages", newPosition = 'i', index = 'i')
+    def setVoltages(self, c, newPosition, index):        
         n = newPosition
         realVolts = zeros(NUMCHANNELS)
         for i in range(5):
             realVolts[i] = self.portList[i].analogVoltage  
         for i in range(23): 
-            for j in multipoles:                   
+            for j in self.multipoles:                   
                 realVolts[i + 5] += self.spline[i][j][n] * self.multipoleSet[j]                      
-        yield self.setAnalogVoltages(c, realVolts, setIndex)
+        yield self.setAnalogVoltages(c, realVolts, index)
+        self.curIndex = index
         self.curPosition = n      
         
     @setting(15, "do nothing")

@@ -149,7 +149,8 @@ Initialize CCTDACServer
         yield self.createInfo() # Populate list of Channels
         self.queue = []
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
-        port = yield self.getPortFromReg( self.regKey )
+        #port = yield self.getPortFromReg( self.regKey )
+        port = '/dev/ttyUSB2'
         self.port = port
         try:
             print self.serNode

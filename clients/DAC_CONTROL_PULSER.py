@@ -100,6 +100,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
 		self.ctrlLayout.addWidget(self.controls['V3'],2,3)
 		self.ctrlLayout.addWidget(self.controls['V4'],3,3)
 		self.ctrlLayout.addWidget(self.controls['V5'],4,3)
+		print 'k' 
 	    except: print "previous Cfile also had 2 wells"
 	else:
 	    try:
@@ -110,7 +111,8 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
 		self.ctrlLayout.removeWidget(self.controls['V2'])
 		self.ctrlLayout.removeWidget(self.controls['V3'])
 		self.ctrlLayout.removeWidget(self.controls['V4'])
-		self.ctrlLayout.removeWidget(self.controls['V5'])	
+		self.ctrlLayout.removeWidget(self.controls['V5'])
+		print 'n'
 	    except: print "previous Cfile also had one well"
 	yield self.followSignal(0, 0)
 	
@@ -131,8 +133,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         
     def sendToServer(self):
         if self.inputUpdated:
-            print "sending to server ", self.multipoleValues
-            self.dacserver.set_multipole_voltages(self.multipoleValues.items())
+            self.dacserver.set_multipole_values(self.multipoleValues.items())
             self.inputUpdated = False
     
     @inlineCallbacks        
@@ -166,8 +167,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         self.connect()
      
     def makeGUI(self):
-        layout = QtGui.QGridLayout()
-        
+        layout = QtGui.QGridLayout()                                                                            
         self.controlLabels = []
         for i in range(1, Nelectrodes):
 	    self.controlLabels.append(str(i))
@@ -210,7 +210,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
 	    elecLayout.addWidget(self.controls[str(j+1)],16 - j,1)
 	for j in range(16, 27):
 	    elecLayout.addWidget(self.controls[str(j+1)],27 - j,5)
-        elecLayout.addWidget(self.controls['CNT'], 12, 3)       
+        elecLayout.addWidget(self.controls['CNT'], 12, 3)        
         
         layout.setColumnStretch(1, 1)
        
@@ -246,7 +246,6 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         if self.inputUpdated:
             c = self.changedChannel
             self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])])
-            print [(self.labelToNumber[c], self.channelValues[c])]
             self.inputUpdated = False
             
     @inlineCallbacks    
@@ -270,13 +269,21 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.makeGUI()
         self.connect()
         
-    def makeGUI(self):
+    def makeGUI(self):      
         self.Nelectrodes = Nelectrodes
         self.electrodes = [QtGui.QLCDNumber() for i in range(self.Nelectrodes)]
         for i in range(self.Nelectrodes):
 	    self.electrodes[i].setNumDigits(6)
         
         layout = QtGui.QGridLayout()
+        """
+        adding ion slider
+        """
+        
+        self.slider = QtGui.QSlider(QtCore.Qt.Vertical)
+        self.slider.setTickPosition(2)
+        self.slider.setRange(0, 249)
+       
         
 	smaBox = QtGui.QGroupBox('SMA Out')
 	smaLayout = QtGui.QGridLayout()
@@ -301,8 +308,11 @@ class CHANNEL_MONITOR(QtGui.QWidget):
 	    elecLayout.setColumnStretch(5, 1)
 	
         elecLayout.addWidget(QtGui.QLabel('CNT'), 12, 2)
-        elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3) 
-        elecLayout.setColumnStretch(3, 1)	 
+        elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3)
+        elecLayout.addWidget(self.slider, 2, 3, 9, 1)
+        elecLayout.setColumnStretch(3, 1)
+        
+        self.slider.sliderReleased.connect(self.shuttle)
 
         self.setLayout(layout)  
                 
@@ -331,7 +341,14 @@ class CHANNEL_MONITOR(QtGui.QWidget):
                 self.electrodes[i].setAutoFillBackground(True)
             if math.fabs(v) < 40:
                 self.electrodes[i].setStyleSheet("QWidget {background-color:  }")
-                self.electrodes[i].setAutoFillBackground(False)      
+                self.electrodes[i].setAutoFillBackground(False)     
+                
+    @inlineCallbacks
+    def shuttle(self):
+        #yield self.dacserver.do_nothing()
+        yield self.dacserver.shuttle_ion(self.slider.value() + 1)
+        print self.slider.value()
+        yield self.followSignal(0, 0)
        
     def closeEvent(self, x):
         self.reactor.stop()

@@ -49,6 +49,8 @@ class hardwareConfiguration(object):
     channelDict = {
 		          '866':channelConfiguration(0, True, True, False, False),
                   'bluePI':channelConfiguration(1, True, True, False, False),
+                  'adv':channelConfiguration(8, False, False, False, False),
+                  'rst':channelConfiguration(9, False, False, False, False),                 
                   '397sw':channelConfiguration(12, False, False, False, True),
                   '866sw':channelConfiguration(13, False, False, False, True),
                   #------------INTERNAL CHANNELS----------------------------------------#
@@ -59,7 +61,14 @@ class hardwareConfiguration(object):
                   }
     
     ddsDict = {
-               '866DP':ddsConfiguration(3, (30.0,130.0),  (-63.0,-3.0), 80.0, -33.0),
+               '0':ddsConfiguration(0, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0)
+#'1':ddsConfiguration(1, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0)
+#'2':ddsConfiguration(2, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0),
+#'3':ddsConfiguration(3, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0),
+#'4':ddsConfiguration(4, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0)
+#'5':ddsConfiguration(5, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0),
+#'6':ddsConfiguration(6, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0),
+#'7':ddsConfiguration(7, (170.0,270.0),  (-63.0,-3.0), 220.0, -33.0)
 #               '397':ddsConfiguration(2, (170.0,270.0), (190.0,250.0), (-63.0,-3.0), (-63.0,-3.0), 220.0, -33.0),               
                #'729DP':ddsConfiguration(0, (190.0,250.0), (-63.0,-3.0), 220.0, -33.0, remote = 'pulser_729')
                }
