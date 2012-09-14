@@ -476,11 +476,15 @@ class Pulser(LabradServer, DDS):
     
     @setting(34, "Set DAC Voltage", stringy = 's', returns = '')
     def setDACVoltages(self, c, stringy):
+        yield self.inCommunication.acquire()
         yield deferToThread(self.api.setDACVoltage, stringy)
+        self.inCommunication.release()
 	
     @setting(35, "Reset FIFO DAC", returns = '')
     def resetFIFODAC(self, c):
+        yield self.inCommunication.acquire()
         yield deferToThread(self.api.resetFIFODAC)        
+        self.inCommunication.release()
     
     def wait(self, seconds, result=None):
         """Returns a deferred that will be fired later"""

@@ -35,7 +35,6 @@ class cctGUI(QtGui.QMainWindow):
         widget.setLayout(gridLayout)
         return widget
         
-
     def makeVoltageWidget(self, reactor):        
         from DAC_CONTROL import DAC_Control
         from PMT_CONTROL import pmtWidget

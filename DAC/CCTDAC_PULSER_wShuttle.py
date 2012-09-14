@@ -20,6 +20,7 @@ timeout = 20
 from labrad.server import LabradServer, setting, Signal, inlineCallbacks 
 from twisted.internet import reactor
 from twisted.internet.defer import returnValue
+from scipy import interpolate
 from scipy.interpolate import UnivariateSpline as UniSpline
 from time import *
 from numpy import *
@@ -223,7 +224,7 @@ class CCTDACServer( LabradServer ):
         self.setIndivDigVoltages(c, li)        
 
     @setting( 1 , "Set Analog Voltages", analogVoltages = '*v', setIndex = 'i', returns = '' )
-    def setAnalogVoltages( self, c, analogVoltages, setIndex = 1):
+    def setAnalogVoltages( self, c, analogVoltages, setIndex = startIndex):
         """
 	    Pass analogVoltages, a list of analog voltages to update.
 	    Currently, there must be one for each port.
@@ -243,11 +244,12 @@ class CCTDACServer( LabradServer ):
             yield self.sendToPulser(c, [DigitalVoltage(num, dv)] )        
 
     @setting( 3, "Set Individual Analog Voltages", analogVoltages = '*(iv)', setIndex = 'i', returns = '')
-    def setIndivAnaVoltages(self, c, analogVoltages, setIndex = 1):
+    def setIndivAnaVoltages(self, c, analogVoltages, setIndex = startIndex):
         """
 	    Pass a list of tuples of the form:
 	    (portNum, newVolts)
 	    """
+        print self.startIndex
         for (num, av) in analogVoltages:	   
             yield self.sendToPulser(c, [AnalogVoltage(num, av)], setIndex ) ###!!! setindex --> self.startIndex
 
@@ -269,7 +271,7 @@ class CCTDACServer( LabradServer ):
     def setMultipoleControlFile(self, c, file):                
         data = genfromtxt(file)
         numCols = data.size / (23 * 8)
-        numPositions = numCols * 10.
+        numPositions = (numCols - 1) * 10.
         sp = {}
         spline = {}
         x = []
@@ -287,8 +289,12 @@ class CCTDACServer( LabradServer ):
             n = 0
         self.spline = spline
         #yield self.ShSetMultipoleVoltages(c, 0, 1)
-        self.startIndex = 1       
+        self.startIndex = 1
         
+        y = data[23 * 8]        
+        #fit = interp1d(x, y)
+        fit = interpolate.interp1d(x, y, 'linear')
+        self.pos = fit(p)        
         #from matplotlib import pyplot as p
         #for i in range(23):        
             #p.plot(spline[i]['U2'])
@@ -326,7 +332,7 @@ class CCTDACServer( LabradServer ):
         """
         return self.multipoleSet.items()
 
-    @setting( 12, "Shuttle Ion", position = 'i: position to move to')
+    @setting( 12, "Shuttle Ion", position = 'i: position to move to', returns = 'v')
     def shuttleIon(self, c, position):    
         n = self.startIndex
         if position > self.curPosition:
@@ -343,6 +349,9 @@ class CCTDACServer( LabradServer ):
         if self.stopIndex == 0: self.stopIndex = self.maxIndex
         yield self.advDACs()
         self.startIndex = self.stopIndex
+        p = self.pos[self.curPosition]
+        returnValue( p )
+        
         
     @inlineCallbacks
     def advDACs(self):
@@ -354,7 +363,7 @@ class CCTDACServer( LabradServer ):
                   'startIndex': self.startIndex,
                   'stopIndex': self.stopIndex,
                   'maxIndex': self.maxIndex,
-                  'duration': 10e-2,
+                  'duration': 10e-8,
                   'reset': self.reset
                  }
         seq.setVariables(**params)
@@ -362,7 +371,8 @@ class CCTDACServer( LabradServer ):
         pulser.program_sequence()
         pulser.start_single()
         pulser.wait_sequence_done()
-        pulser.stop_sequence()                        
+        pulser.stop_sequence()
+        pulser.reset_timetags()            
         
     @setting( 14, "Set Voltages", newPosition = 'i', index = 'i')
     def setVoltages(self, c, newPosition, index):        
@@ -372,7 +382,7 @@ class CCTDACServer( LabradServer ):
             realVolts[i] = self.portList[i].analogVoltage  
         for i in range(23): 
             for j in self.multipoles:                   
-                realVolts[i + 5] += self.spline[i][j][n] * self.multipoleSet[j]                      
+                realVolts[i + 5] += self.spline[i][j][n] * self.multipoleSet[j] 
         yield self.setAnalogVoltages(c, realVolts, index)
         self.curIndex = index
         self.curPosition = n      

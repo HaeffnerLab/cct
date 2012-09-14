@@ -276,14 +276,22 @@ class CHANNEL_MONITOR(QtGui.QWidget):
 	    self.electrodes[i].setNumDigits(6)
         
         layout = QtGui.QGridLayout()
+        
         """
         adding ion slider
         """
         
         self.slider = QtGui.QSlider(QtCore.Qt.Vertical)
         self.slider.setTickPosition(2)
-        self.slider.setRange(0, 249)
+        self.slider.setRange(0, 48)
+        self.slider.setTickInterval(2)
        
+        self.posDisplay = QtGui.QDoubleSpinBox()
+        self.posDisplay.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        self.posDisplay.setSuffix('um')
+        self.posDisplay.setRange(760, 1940)
+        self.posDisplay.setDecimals(0)
+        self.posDisplay.setValue(760)
         
 	smaBox = QtGui.QGroupBox('SMA Out')
 	smaLayout = QtGui.QGridLayout()
@@ -309,6 +317,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
 	
         elecLayout.addWidget(QtGui.QLabel('CNT'), 12, 2)
         elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3)
+        elecLayout.addWidget(self.posDisplay, 1, 3)
         elecLayout.addWidget(self.slider, 2, 3, 9, 1)
         elecLayout.setColumnStretch(3, 1)
         
@@ -346,9 +355,17 @@ class CHANNEL_MONITOR(QtGui.QWidget):
     @inlineCallbacks
     def shuttle(self):
         #yield self.dacserver.do_nothing()
-        yield self.dacserver.shuttle_ion(self.slider.value() + 1)
-        print self.slider.value()
+        self.posDisplay.setStyleSheet("QWidget {background-color:  yellow}")
+        self.posDisplay.setAutoFillBackground(True) 
+        self.pos = yield self.dacserver.shuttle_ion(self.slider.value() * 5)
+        print self.pos
         yield self.followSignal(0, 0)
+        self.posDisplay.setValue(self.pos)
+        self.posDisplay.setStyleSheet("QWidget {background-color:  }")
+        self.posDisplay.setAutoFillBackground(False)
+        
+    def nothing(self):
+        return
        
     def closeEvent(self, x):
         self.reactor.stop()

@@ -346,8 +346,8 @@ class CHANNEL_MONITOR(QtGui.QWidget):
     @inlineCallbacks
     def shuttle(self):
         #yield self.dacserver.do_nothing()
-        yield self.dacserver.shuttle_ion(self.slider.value() + 1)
-        print self.slider.value()
+        self.pos = yield self.dacserver.shuttle_ion(self.slider.value())
+        print self.pos
         yield self.followSignal(0, 0)
        
     def closeEvent(self, x):
