@@ -48,9 +48,9 @@ class hardwareConfiguration(object):
     #name: (channelNumber, ismanual, manualstate,  manualinversion, autoinversion)
     channelDict = {
 		          '866':channelConfiguration(0, True, True, False, False),
-                  'bluePI':channelConfiguration(1, True, True, False, False),
-                  'adv':channelConfiguration(8, False, False, False, False),
-                  'rst':channelConfiguration(9, False, False, False, False),                 
+                  'bluePI':channelConfiguration(1, False, True, False, False),
+                  'adv':channelConfiguration(8, False, False, False, True),
+                  'rst':channelConfiguration(9, False, False, False, True),                 
                   '397sw':channelConfiguration(12, False, False, False, True),
                   '866sw':channelConfiguration(13, False, False, False, True),
                   #------------INTERNAL CHANNELS----------------------------------------#

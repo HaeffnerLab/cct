@@ -19,7 +19,8 @@ class ADV_DAC(Sequence):
         n = startIndex
         
         if p.reset: 
-            pulser.add_ttl_pulse('rst', sTime, dTime)
+            pulser.add_ttl_pulse('rst', sTime, 3 * dTime)
+            pulser.add_ttl_pulse('adv', sTime + dTime, dTime)
             return
         
         while n != stopIndex:
@@ -28,9 +29,10 @@ class ADV_DAC(Sequence):
                 n += 1
                 sTime += 2*dTime
             elif n == maxIndex:
-                pulser.add_ttl_pulse('rst', sTime, dTime)
+                pulser.add_ttl_pulse('rst', sTime, 3 * dTime)
+                pulser.add_ttl_pulse('adv', sTime + dTime, dTime)
                 n = 1
-                sTime += 2*dTime
+                sTime += 4*dTime
 
 if __name__ == '__main__':
     import labrad

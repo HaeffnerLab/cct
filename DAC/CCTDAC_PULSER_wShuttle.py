@@ -363,7 +363,7 @@ class CCTDACServer( LabradServer ):
                   'startIndex': self.startIndex,
                   'stopIndex': self.stopIndex,
                   'maxIndex': self.maxIndex,
-                  'duration': 10e-8,
+                  'duration': 10e-2,
                   'reset': self.reset
                  }
         seq.setVariables(**params)

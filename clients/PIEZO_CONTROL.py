@@ -46,7 +46,7 @@ class PC (QtGui.QWidget,):
             self.control[axis + 's'].setSingleStep (1)
             self.control[axis + 's'].setRange (1, 500)
             self.control[axis + 's'].setValue(50)
-            self.control[axis + 's'].setPrefix('steps: ')
+#            self.control[axis + 's'].setPrefix('steps: ')
             
             self.indicator[axis + 'v'] = QtGui.QDoubleSpinBox()
             self.indicator[axis + 'v'].setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
@@ -119,7 +119,7 @@ class PC (QtGui.QWidget,):
 		yield self.piezoserver.continuous(int(self.contAxis), self.contDirn)
 	    else:
 		yield self.piezoserver.stop(int(self.contAxis))
-		self.get(self.contAxis)
+#		self.get(self.contAxis)
 	elif self.voltageUpdated:
 	    yield self.piezoserver.svolt(int(self.voltAxis), int(self.indicator[self.voltAxis + 'v'].value()))
 	    self.voltageUpdated = False
@@ -132,7 +132,7 @@ class PC (QtGui.QWidget,):
 	    self.checkAxis = self.freqAxis
 	if self.checkNext:
 	    self.checkNext = False
-	    self.get(self.checkAxis)
+#	    self.get(self.checkAxis)
 	self.stepUpdated = False
 	self.continuousUpdated = False 
     
