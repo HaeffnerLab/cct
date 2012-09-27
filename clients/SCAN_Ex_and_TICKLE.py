@@ -8,14 +8,14 @@ import datetime
 import time as TIME
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-DminAmp = .1
-DmaxAmp = .2
+DminAmp = -0.1
+DmaxAmp = 0.1
 DsizeStepsAmp = .01
 DnumStepsAmp = (DmaxAmp - DminAmp)/DsizeStepsAmp
 Davg = 6
-DminTfrq = 45.4
-DmaxTfrq = 45.8
-DsizeStepsTfrq = .015
+DminTfrq = 40
+DmaxTfrq = 50
+DsizeStepsTfrq = .5
 DnumStepsTfrq = (DmaxTfrq - DminTfrq)/DsizeStepsTfrq
 
 class Ex(QtGui.QWidget):
@@ -26,57 +26,58 @@ class Ex(QtGui.QWidget):
 	self.makeGUI()
 	self.connect()
 	
-    #@inlineCallbacks
     def makeGUI(self):
-	layout = QtGui.QGridLayout()
-	groupBox = QtGui.QGroupBox('Scan Ex and Tickle')
-	groupBoxLayout = QtGui.QGridLayout()
-	self.controlLabels = ['minAmp', 'maxAmp', 'numStepsAmp', 'sizeStepsAmp', 'avg', 'minTfrq', 'maxTfrq', 'numStepsTfrq', 'sizeStepsTfrq' ]
-	self.control = {}
-	for label in self.controlLabels:
-	    self.control[label] = QtGui.QDoubleSpinBox()
-	    self.control[label].setDecimals(4)
-	self.label = {}
-	self.control['minAmp'].setValue(DminAmp)
-	self.control['minAmp'].setRange(-10,10)
-	self.label['minAmp'] = QtGui.QLabel('minimum Ex [V/m]:')
-	self.control['maxAmp'].setValue(DmaxAmp)
-	self.control['maxAmp'].setRange(-10, 10)
-	self.label['maxAmp'] = QtGui.QLabel('maximum Ex [V/m]:')
-	self.control['numStepsAmp'].setValue(DnumStepsAmp)
-	self.label['numStepsAmp'] = QtGui.QLabel('number of Ex steps:')
-	self.control['sizeStepsAmp'].setValue(DsizeStepsAmp)
-	self.label['sizeStepsAmp'] = QtGui.QLabel('Ex step size [V/m]:')
-	self.control['avg'].setValue(Davg)
-	self.control['avg'].setDecimals(0)
-	self.label['avg'] = QtGui.QLabel('number to average:')
-	self.control['minTfrq'].setValue(DminTfrq)
-	self.label['minTfrq'] = QtGui.QLabel('minimum tickle frq [MHz]:')
-	self.control['maxTfrq'].setValue(DmaxTfrq)
-	self.label['maxTfrq'] = QtGui.QLabel('maximum tickle frq [MHz]:')
-	self.control['numStepsTfrq'].setValue(DnumStepsTfrq)
-	self.label['numStepsTfrq'] = QtGui.QLabel('number of tickle steps:')
-	self.control['sizeStepsTfrq'].setValue(DsizeStepsTfrq)
-	self.label['sizeStepsTfrq'] = QtGui.QLabel('tickle step size:')
-	self.control['scan'] = QtGui.QPushButton('Scan')
-	self.control['stop'] = QtGui.QPushButton('Stop')
-	self.control['revAmp'] = QtGui.QCheckBox('reverse')
-	self.control['revT'] = QtGui.QCheckBox('reverse')
-	groupBox.setLayout(groupBoxLayout)
-	layout.addWidget(groupBox, 0, 0)
-	for i, l in enumerate(self.controlLabels):
-	    groupBoxLayout.addWidget(self.control[l], i, 1)
-	    groupBoxLayout.addWidget(self.label[l], i, 0)
-	groupBoxLayout.addWidget(self.control['scan'], len(self.controlLabels) + 1, 0, 1, 2)
-	groupBoxLayout.addWidget(self.control['stop'], len(self.controlLabels) + 2, 0, 1, 2)
-	groupBoxLayout.addWidget(self.control['revAmp'], 3, 2)
-	groupBoxLayout.addWidget(self.control['revT'], 8, 2)
-	self.setLayout(layout)
+        layout = QtGui.QGridLayout()
+        groupBox = QtGui.QGroupBox('Scan Ex and Tickle')
+        groupBoxLayout = QtGui.QGridLayout()
+        self.controlLabels = ['minAmp', 'maxAmp', 'numStepsAmp', 'sizeStepsAmp', 'avg', 'minTfrq', 'maxTfrq', 'numStepsTfrq', 'sizeStepsTfrq' ]
+        self.control = {}
+        for label in self.controlLabels:
+            self.control[label] = QtGui.QDoubleSpinBox()
+            self.control[label].setDecimals(4)
+        self.label = {}	
+        self.control['minAmp'].setRange(-10,10)
+        self.control['minAmp'].setValue(DminAmp)
+        self.label['minAmp'] = QtGui.QLabel('minimum Ex [V/m]:')
+        self.control['maxAmp'].setRange(-10, 10)
+        self.control['maxAmp'].setValue(DmaxAmp)
+        self.label['maxAmp'] = QtGui.QLabel('maximum Ex [V/m]:')
+        self.control['numStepsAmp'].setValue(DnumStepsAmp)
+        self.label['numStepsAmp'] = QtGui.QLabel('number of Ex steps:')
+        self.control['sizeStepsAmp'].setValue(DsizeStepsAmp)
+        self.label['sizeStepsAmp'] = QtGui.QLabel('Ex step size [V/m]:')
+        self.control['avg'].setValue(Davg)
+        self.control['avg'].setDecimals(0)
+        self.label['avg'] = QtGui.QLabel('number to average:')
+        self.control['minTfrq'].setValue(DminTfrq)
+        self.label['minTfrq'] = QtGui.QLabel('minimum tickle frq [MHz]:')
+        self.control['maxTfrq'].setValue(DmaxTfrq)
+        self.label['maxTfrq'] = QtGui.QLabel('maximum tickle frq [MHz]:')
+        self.control['numStepsTfrq'].setValue(DnumStepsTfrq)
+        self.label['numStepsTfrq'] = QtGui.QLabel('number of tickle steps:')
+        self.control['sizeStepsTfrq'].setValue(DsizeStepsTfrq)
+        self.label['sizeStepsTfrq'] = QtGui.QLabel('tickle step size:')
+        self.control['scan'] = QtGui.QPushButton('Scan')
+        self.control['stop'] = QtGui.QPushButton('Stop')
+        self.control['revAmp'] = QtGui.QCheckBox('reverse')
+        self.control['revT'] = QtGui.QCheckBox('reverse')
+        groupBox.setLayout(groupBoxLayout)
+        layout.addWidget(groupBox, 0, 0)
+        for i, l in enumerate(self.controlLabels):
+            groupBoxLayout.addWidget(self.control[l], i, 1)
+            groupBoxLayout.addWidget(self.label[l], i, 0)
+        groupBoxLayout.addWidget(self.control['scan'], len(self.controlLabels) + 1, 0, 1, 2)
+        groupBoxLayout.addWidget(self.control['stop'], len(self.controlLabels) + 2, 0, 1, 2)
+        groupBoxLayout.addWidget(self.control['revAmp'], 3, 2)
+        groupBoxLayout.addWidget(self.control['revT'], 8, 2)
+        self.setLayout(layout)
 	
     @inlineCallbacks
     def connect(self):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
+        from labrad import types as T
+        self.T = T
         self.cxn = yield connectAsync()
         self.cxncam = yield connectAsync('192.168.169.30')
         self.dv = yield self.cxn.data_vault
@@ -163,7 +164,7 @@ class Ex(QtGui.QWidget):
 		    yield self.ds.set_multipole_voltages([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 		    self.control['scan'].setText('Scan')
 		    return
-		self.rs.frequency(f)
+		self.rs.frequency(self.T.Value(f, 'MHz'))
 		TIME.sleep(.3)
 		pmtcount = yield self.pmt.get_next_counts('ON', int(self.control['avg'].value()), True)				
 		yield self.dv.add(f, pmtcount)

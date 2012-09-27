@@ -32,8 +32,7 @@ class PC (QtGui.QWidget,):
         self.step = {}
         self.groupBox = {}
         self.groupBoxLayout = {}
-        for axis in self.axes:
-    
+        for axis in self.axes:    
             self.groupBox[axis] = QtGui.QGroupBox(self.axisToName(axis))
             self.groupBoxLayout[axis] = QtGui.QGridLayout()
             self.control[axis + 'u'] = QtGui.QPushButton('step up')
@@ -50,33 +49,36 @@ class PC (QtGui.QWidget,):
             
             self.indicator[axis + 'v'] = QtGui.QDoubleSpinBox()
             self.indicator[axis + 'v'].setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
-            self.indicator[axis + 'v'].setPrefix('Voltage: ')
+#            self.indicator[axis + 'v'].setPrefix('Voltage: ')
             self.indicator[axis + 'v'].setSingleStep(1)
-            self.indicator[axis + 'v'].setSuffix(' V')
+#            self.indicator[axis + 'v'].setSuffix(' V')
             self.indicator[axis + 'v'].setMaximum(70)
             self.indicator[axis + 'v'].setMinimum(0)
             self.indicator[axis + 'v'].setDecimals(0)
             
             self.indicator[axis + 'f'] = QtGui.QDoubleSpinBox()
             self.indicator[axis + 'f'].setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
-            self.indicator[axis + 'f'].setPrefix('Frequency: ')
-            self.indicator[axis + 'f'].setSuffix(' Hz')
+#            self.indicator[axis + 'f'].setPrefix('Frequency: ')
+#            self.indicator[axis + 'f'].setSuffix(' Hz')
             self.indicator[axis + 'f'].setSingleStep(1)
             self.indicator[axis + 'f'].setMaximum(8000)
             self.indicator[axis + 'f'].setDecimals(0)
 	    
-	    self.step[axis + 'u'] = False
-	    self.step[axis + 'd'] = False
+            self.step[axis + 'u'] = False
+            self.step[axis + 'd'] = False
             self.moving[axis + 'U'] = False
             self.moving[axis + 'D'] = False
             
-            self.groupBoxLayout[axis].addWidget(self.control[axis + 'U'],0,1)
-            self.groupBoxLayout[axis].addWidget(self.control[axis + 'u'],0,0)
-            self.groupBoxLayout[axis].addWidget(self.control[axis + 's'],1,0)
-            self.groupBoxLayout[axis].addWidget(self.control[axis + 'd'],2,0)
-            self.groupBoxLayout[axis].addWidget(self.control[axis + 'D'],2,1)
-            self.groupBoxLayout[axis].addWidget(self.indicator[axis + 'v'], 3,0)
-            self.groupBoxLayout[axis].addWidget(self.indicator[axis + 'f'], 3,1)
+            self.groupBoxLayout[axis].addWidget(self.control[axis + 'U'], 0, 1)
+            self.groupBoxLayout[axis].addWidget(self.control[axis + 'u'], 0, 0)
+            self.groupBoxLayout[axis].addWidget(QtGui.QLabel('Steps: '), 1, 0)
+            self.groupBoxLayout[axis].addWidget(self.control[axis + 's'], 2, 0)
+            self.groupBoxLayout[axis].addWidget(self.control[axis + 'd'], 3, 0)
+            self.groupBoxLayout[axis].addWidget(self.control[axis + 'D'], 3, 1)
+            self.groupBoxLayout[axis].addWidget(QtGui.QLabel('Voltage [V]:'), 4, 0)
+            self.groupBoxLayout[axis].addWidget(self.indicator[axis + 'v'], 5, 0)
+            self.groupBoxLayout[axis].addWidget(QtGui.QLabel('Frequency [Hz]:'), 4, 1)
+            self.groupBoxLayout[axis].addWidget(self.indicator[axis + 'f'], 5, 1)
             self.groupBox[axis].setLayout(self.groupBoxLayout[axis])
 
             self.control[axis + 'U'].clicked.connect(self.continuousPressed(axis, 'U'))
@@ -102,39 +104,43 @@ class PC (QtGui.QWidget,):
         self.piezoserver = yield self.cxn.cctmain_piezo_server
         for axis in self.axes:
 	    yield self.piezoserver.stop(int(axis))
-	for axis in self.axes:  
+        for axis in self.axes:  
             self.get(axis)  
 
     @inlineCallbacks
     def Update(self):
-	if self.stepUpdated:
-	    if self.stepDirn == 'u':
-		yield self.piezoserver.step(int(self.stepAxis), self.control[self.stepAxis + 's'].value())
-	    if self.stepDirn == 'd':
-		yield self.piezoserver.step(int(self.stepAxis), -self.control[self.stepAxis + 's'].value())	
-	    self.checkNext = True	
-	    self.checkAxis = self.stepAxis
-	elif self.continuousUpdated:
-	    if self.moving[self.contAxis + self.contDirn]:
-		yield self.piezoserver.continuous(int(self.contAxis), self.contDirn)
-	    else:
-		yield self.piezoserver.stop(int(self.contAxis))
-#		self.get(self.contAxis)
-	elif self.voltageUpdated:
-	    yield self.piezoserver.svolt(int(self.voltAxis), int(self.indicator[self.voltAxis + 'v'].value()))
-	    self.voltageUpdated = False
-	    self.checkNext = True
-	    self.checkAxis = self.voltAxis
-	elif self.frequencyUpdated:
-	    yield self.piezoserver.sfreq(int(self.freqAxis), int(self.indicator[self.freqAxis + 'f'].value()))
-	    self.frequencyUpdated = False
-	    self.checkNext = True
-	    self.checkAxis = self.freqAxis
-	if self.checkNext:
-	    self.checkNext = False
-#	    self.get(self.checkAxis)
-	self.stepUpdated = False
-	self.continuousUpdated = False 
+        if self.stepUpdated:
+            self.stepUpdated = False
+            if self.stepDirn == 'u':
+                yield self.piezoserver.step(int(self.stepAxis), self.control[self.stepAxis + 's'].value())
+            if self.stepDirn == 'd':
+                yield self.piezoserver.step(int(self.stepAxis), -self.control[self.stepAxis + 's'].value())	
+            self.checkNext = True	
+            self.checkAxis = self.stepAxis
+            
+        elif self.continuousUpdated:
+            self.continuousUpdated = False
+            if self.moving[self.contAxis + self.contDirn]:
+                yield self.piezoserver.continuous(int(self.contAxis), self.contDirn)
+            else:
+                yield self.piezoserver.stop(int(self.contAxis))
+                
+        elif self.voltageUpdated:
+            self.voltageUpdated = False
+            yield self.piezoserver.svolt(int(self.voltAxis), int(self.indicator[self.voltAxis + 'v'].value()))            
+#            self.checkNext = True
+#            self.checkAxis = self.voltAxis
+
+        elif self.frequencyUpdated:
+            self.frequencyUpdated = False
+            yield self.piezoserver.sfreq(int(self.freqAxis), int(self.indicator[self.freqAxis + 'f'].value()))            
+#            self.checkNext = True
+#            self.checkAxis = self.freqAxis
+
+#        if self.checkNext:
+#            self.checkNext = False
+#            self.stepUpdated = False
+#            self.continuousUpdated = False 
     
     @inlineCallbacks
     def get(self, axis):
@@ -146,16 +152,16 @@ class PC (QtGui.QWidget,):
 	self.indicator[axis + 'v'].setValue(sv)
 
     def voltageEntered(self, axis):
-	def ve():
-	    self.voltageUpdated = True
-	    self.voltAxis = axis
-	return ve
+        def ve():
+            self.voltageUpdated = True
+            self.voltAxis = axis
+        return ve
 
     def frequencyEntered(self, axis):
-	def fe():
-	    self.frequencyUpdated = True
-	    self.freqAxis = axis
-	return fe
+        def fe():
+            self.frequencyUpdated = True
+            self.freqAxis = axis
+        return fe
 	
     def continuousPressed(self, axis, dirn):
         def cp():
@@ -166,27 +172,21 @@ class PC (QtGui.QWidget,):
         return cp
     
     def stepPressed(self, axis, dirn):
-	def sp():
-	    self.stepUpdated = True
-	    self.stepAxis = axis
-	    self.stepDirn = dirn
-	return sp
+        def sp():
+            self.stepUpdated = True
+            self.stepAxis = axis
+            self.stepDirn = dirn
+        return sp
 	
     def axisToName(self, axis):
-	if axis == '1':
-	    return 'up/down'
-	if axis == '2':
-	    return 'forward'
-	if axis == '3':
-	    return 'tilt'
-	if axis == '4':
-	    return 'sweep'
+        if axis == '1': return 'up/down'
+        if axis == '2': return 'forward'
+        if axis == '3': return 'tilt'
+        if axis == '4': return 'sweep'
     
     def op(self, dirn):
-	if dirn == 'U':
-	    return 'D'
-	if dirn == 'D':
-	    return 'U'
+        if dirn == 'U': return 'D'
+        if dirn == 'D': return 'U'
             
 class PIEZO_CONTROL(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
@@ -201,7 +201,6 @@ class PIEZO_CONTROL(QtGui.QMainWindow):
                 
     def closeEvent(self, x):
         self.reactor.stop() 
-
         
 if __name__ == "__main__":
     a = QtGui.QApplication( [] )

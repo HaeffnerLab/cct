@@ -51,7 +51,7 @@ class cctGUI(QtGui.QMainWindow):
         gridLayout.addWidget(DAC_Control(reactor), 0, 0)            
         rightPanel = QtGui.QGridLayout()
         rightPanel.addWidget(pmtWidget(reactor), 0, 0)
-        rightPanel.addWidget(pmtWidget2(reactor), 1, 0)        
+#        rightPanel.addWidget(pmtWidget2(reactor), 1, 0)        
         bottomPanel = QtGui.QGridLayout()
         bottomPanel.addWidget(Tickle_Control(reactor), 1, 1)      
         bottomPanel.addWidget(TD_CONTROL(reactor), 1, 0)

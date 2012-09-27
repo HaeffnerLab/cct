@@ -100,7 +100,7 @@ class CCTDACServer( LabradServer ):
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')
     numWells = 1
-    maxIndex = 1000
+    maxIndex = 126
     curPosition = 0
     startIndex = 1
     stopIndex = 2
@@ -144,12 +144,12 @@ class CCTDACServer( LabradServer ):
         
         yield self.advDACs()
         self.reset = 0
-        yield self.registry.cd(['', 'cctdac_pulser', 'Cfile'])
+        yield self.registry.cd(['', 'cctdac_pulser'])
         Cpath = yield self.registry.get('MostRecent')
-        yield self.setMultipoleControlFile(0, Cpath)       
-        yield self.registry.cd(['', 'cctdac_pulser', 'Multipoles'])
-        ms = yield self.registry.get('Multipole Set')
-        yield self.setMultipoleValues(0, ms)   
+        yield self.setMultipoleControlFile(0, Cpath)
+        ms = yield self.registry.get('MultipoleSet')
+        yield self.setMultipoleValues(0, ms)
+        self.curPosition = yield self.registry.get('IonPosition')   
 
     @inlineCallbacks
     def sendToPulser(self, c, voltage, setIndex = 1):
@@ -322,8 +322,8 @@ class CCTDACServer( LabradServer ):
         yield self.advDACs()
         self.startIndex = self.stopIndex
         
-        yield self.registry.cd(['', 'cctdac_pulser', 'Multipoles'])
-        yield self.registry.set('Multipole Set', ms)
+        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.set('MultipoleSet', ms)
     
     @setting( 9, "Get Multipole Voltages",returns='*(s,v)')
     def getMultipoleVolgates(self, c):
@@ -332,25 +332,45 @@ class CCTDACServer( LabradServer ):
         """
         return self.multipoleSet.items()
 
-    @setting( 12, "Shuttle Ion", position = 'i: position to move to', returns = 'v')
-    def shuttleIon(self, c, position):    
+    @setting( 12, "Shuttle Ion", position = 'i: position to move to')
+    def shuttleIon(self, c, position):            
         n = self.startIndex
         if position > self.curPosition:
             for i in range(self.curPosition, position):
                 yield self.setVoltages(c, i + 1, n)
-                if n == self.maxIndex: n = 1
-                else: n += 1                                
+                if n == 1:
+                    self.stopIndex = 1
+                    self.advDACs()
+                    self.startIndex = 1
+                if n == self.maxIndex: n = 1                    
+                else: n += 1                              
         elif position < self.curPosition:
             for i in range(position, self.curPosition)[::-1]:
                 yield self.setVoltages(c, i, n)
+                if n == 1:
+                    self.stopIndex = 1
+                    self.advDACs()
+                    self.startIndex = 1                
                 if n == self.maxIndex: n = 1
                 else: n += 1   
         self.stopIndex = n-1
         if self.stopIndex == 0: self.stopIndex = self.maxIndex
         yield self.advDACs()
         self.startIndex = self.stopIndex
-        p = self.pos[self.curPosition]
-        returnValue( p )
+        
+        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.set('IonPosition', self.curPosition)
+        
+#        if position > self.curPosition:
+#            for i in range(self.curPosition, position):
+#                yield self.setVoltages(c, i + 1, n)
+#                if n == self.maxIndex: n = 1
+#                else: n += 1                              
+#        elif position < self.curPosition:
+#            for i in range(position, self.curPosition)[::-1]:
+#                yield self.setVoltages(c, i, n)
+#                if n == self.maxIndex: n = 1
+#                else: n += 1           
         
         
     @inlineCallbacks
@@ -363,7 +383,7 @@ class CCTDACServer( LabradServer ):
                   'startIndex': self.startIndex,
                   'stopIndex': self.stopIndex,
                   'maxIndex': self.maxIndex,
-                  'duration': 10e-2,
+                  'duration': 10e-4,
                   'reset': self.reset
                  }
         seq.setVariables(**params)
@@ -385,7 +405,11 @@ class CCTDACServer( LabradServer ):
                 realVolts[i + 5] += self.spline[i][j][n] * self.multipoleSet[j] 
         yield self.setAnalogVoltages(c, realVolts, index)
         self.curIndex = index
-        self.curPosition = n      
+        self.curPosition = n
+        
+    @setting(16, "Return Ion Info", returns = 'iv')
+    def retIonIndex(self, c):
+        return [self.curPosition, self.pos[self.curPosition]]
         
     @setting(15, "do nothing")
     def doNone(self, c):

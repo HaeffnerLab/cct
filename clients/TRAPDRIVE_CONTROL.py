@@ -1,10 +1,12 @@
 import os
+
 from PyQt4 import QtGui
 from PyQt4 import QtCore,uic
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+
 MinPower = -36 #dbM
-MaxPower = 0
+MaxPower = 25
 DEFPower = -20
 MinFreq = 0 #Mhz
 MaxFreq = 100
@@ -15,7 +17,9 @@ class TD(QtGui.QWidget):
         super(TD,self).__init__(parent)
         self.reactor = reactor
         self.connect()
+        self.makeGUI()
         
+    def makeGUI(self):
         layout = QtGui.QGridLayout()
         subLayout = QtGui.QGridLayout()
         superLayout = QtGui.QGridLayout()
@@ -25,21 +29,21 @@ class TD(QtGui.QWidget):
         self.powerCtrl.setRange (MinPower,MaxPower)
         self.powerCtrl.setDecimals (2)
         self.powerCtrl.setSingleStep(.5)
-        self.powerCtrl.setSuffix(' dBm')
+#        self.powerCtrl.setSuffix(' dBm')
         self.frequencyCtrl = QtGui.QDoubleSpinBox()
         self.frequencyCtrl.setRange (MinFreq,MaxFreq)
         self.frequencyCtrl.setDecimals (5)
         self.frequencyCtrl.setSingleStep(.1)
-        self.frequencyCtrl.setSuffix(' MHz')
-        self.updateButton = QtGui.QPushButton('Update')
+#        self.frequencyCtrl.setSuffix(' MHz')
+        self.updateButton = QtGui.QPushButton('Get')
         self.stateButton = QtGui.QPushButton()
         
         superLayout.addLayout(layout,0,0)
         groupbox.setLayout(groupboxLayout)
         layout.addWidget(groupbox,0,0)
-        groupboxLayout.addWidget(QtGui.QLabel('Frequency'),1,0) 
+        groupboxLayout.addWidget(QtGui.QLabel('Frequency [MHz]'),1,0) 
         groupboxLayout.addWidget(self.frequencyCtrl,1,1)
-        groupboxLayout.addWidget(QtGui.QLabel('Power'),2,0) 
+        groupboxLayout.addWidget(QtGui.QLabel('Power [dBm]'),2,0) 
         groupboxLayout.addWidget(self.powerCtrl,2,1)
         groupboxLayout.addWidget(self.stateButton,0,0,1,1)
         groupboxLayout.addWidget(self.updateButton,0,1,1,1)
@@ -50,6 +54,8 @@ class TD(QtGui.QWidget):
     def connect(self):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
+        from labrad import types as T
+        self.T = T
         self.cxn = yield connectAsync('192.168.169.30')
         self.server = yield self.cxn.rohdeschwarz_server
         try:
@@ -57,20 +63,7 @@ class TD(QtGui.QWidget):
         except Error:
             self.setEnabled(False)
             return
-        #set initial values
-        initpower = yield self.server.amplitude()
-        initfreq = yield self.server.frequency()
-        initstate = yield self.server.output()
-        self.powerCtrl.setValue(initpower)
-        self.frequencyCtrl.setValue(initfreq)
-        self.stateButton.setChecked(initstate)
-        if initstate:
-            self.stateButton.setText('Rohde&Schwarz: ON')
-        else:
-            self.stateButton.setText('Rohde&Schwarz: OFF')
-            
-        self.state = initstate
-        #connect functions
+        self.update(0)
         self.powerCtrl.valueChanged.connect(self.onPowerChange)
         self.frequencyCtrl.valueChanged.connect(self.onFreqChange)
         self.stateButton.clicked.connect(self.onOutputChange)
@@ -102,12 +95,11 @@ class TD(QtGui.QWidget):
         
     @inlineCallbacks
     def onFreqChange(self, f):
-        yield self.server.frequency(self.frequencyCtrl.value())
+        yield self.server.frequency(self.T.Value(self.frequencyCtrl.value(), 'MHz'))
 
     @inlineCallbacks
     def onPowerChange(self, p):
-        yield self.server.amplitude(self.powerCtrl.value())
-
+        yield self.server.amplitude(self.T.Value(self.powerCtrl.value(), 'dBm'))
     
     def closeEvent(self, x):
         self.reactor.stop()

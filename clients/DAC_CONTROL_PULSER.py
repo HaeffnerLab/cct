@@ -317,8 +317,8 @@ class CHANNEL_MONITOR(QtGui.QWidget):
 	
         elecLayout.addWidget(QtGui.QLabel('CNT'), 12, 2)
         elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3)
-        elecLayout.addWidget(self.posDisplay, 1, 3)
-        elecLayout.addWidget(self.slider, 2, 3, 9, 1)
+        elecLayout.addWidget(self.posDisplay, 0, 3)
+        elecLayout.addWidget(self.slider, 4, 3, 7, 1)
         elecLayout.setColumnStretch(3, 1)
         
         self.slider.sliderReleased.connect(self.shuttle)
@@ -350,17 +350,21 @@ class CHANNEL_MONITOR(QtGui.QWidget):
                 self.electrodes[i].setAutoFillBackground(True)
             if math.fabs(v) < 40:
                 self.electrodes[i].setStyleSheet("QWidget {background-color:  }")
-                self.electrodes[i].setAutoFillBackground(False)     
+                self.electrodes[i].setAutoFillBackground(False)
+        self.slider.blockSignals(True)
+        ionInfo = yield self.dacserver.return_ion_info()
+        self.slider.setValue(ionInfo[0] / 5.)
+        self.posDisplay.setValue(ionInfo[1])
+        self.slider.blockSignals(False)
                 
     @inlineCallbacks
     def shuttle(self):
         #yield self.dacserver.do_nothing()
         self.posDisplay.setStyleSheet("QWidget {background-color:  yellow}")
         self.posDisplay.setAutoFillBackground(True) 
-        self.pos = yield self.dacserver.shuttle_ion(self.slider.value() * 5)
-        print self.pos
+        yield self.dacserver.shuttle_ion(self.slider.value() * 5)
         yield self.followSignal(0, 0)
-        self.posDisplay.setValue(self.pos)
+        
         self.posDisplay.setStyleSheet("QWidget {background-color:  }")
         self.posDisplay.setAutoFillBackground(False)
         
