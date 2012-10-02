@@ -293,36 +293,36 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.posDisplay.setDecimals(0)
         self.posDisplay.setValue(760)
         
-	smaBox = QtGui.QGroupBox('SMA Out')
-	smaLayout = QtGui.QGridLayout()
-	smaBox.setLayout(smaLayout)
+        smaBox = QtGui.QGroupBox('SMA Out')
+        smaLayout = QtGui.QGridLayout()
+        smaBox.setLayout(smaLayout)
 	
-	elecBox = QtGui.QGroupBox('Electrode Voltages')
-	elecLayout = QtGui.QGridLayout()
-	elecBox.setLayout(elecLayout)
-	layout.addWidget(smaBox, 0, 0)
-	layout.addWidget(elecBox, 0, 1)
+        elecBox = QtGui.QGroupBox('Electrode Voltages')
+        elecLayout = QtGui.QGridLayout()
+        elecBox.setLayout(elecLayout)
+        layout.addWidget(smaBox, 0, 0)
+        layout.addWidget(elecBox, 0, 1)
 	
         for j in range(5):
             smaLayout.addWidget(QtGui.QLabel(str(j+1)),j,0)
             smaLayout.addWidget(self.electrodes[j],j,1)
         for j in range(5, 16):
-	    elecLayout.addWidget(QtGui.QLabel(str(j-4)),16 - j,0)
-	    elecLayout.addWidget(self.electrodes[j],16 - j,1)
-	    elecLayout.setColumnStretch(1, 1)
-	for j in range(16, 27):
-	    elecLayout.addWidget(QtGui.QLabel(str(j-4)),27 - j,4)
-	    elecLayout.addWidget(self.electrodes[j],27 - j,5)
-	    elecLayout.setColumnStretch(5, 1)
+            elecLayout.addWidget(QtGui.QLabel(str(j-4)),16 - j,0)
+            elecLayout.addWidget(self.electrodes[j],16 - j,1)
+            elecLayout.setColumnStretch(1, 1)
+        for j in range(16, 27):
+            elecLayout.addWidget(QtGui.QLabel(str(j-4)),27 - j,4)
+            elecLayout.addWidget(self.electrodes[j],27 - j,5)
+            elecLayout.setColumnStretch(5, 1)
 	
         elecLayout.addWidget(QtGui.QLabel('CNT'), 12, 2)
         elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3)
+#        elecLayout.addWidget(QtGui.QLabel('Ion Pos.:'), 0, 2)
         elecLayout.addWidget(self.posDisplay, 0, 3)
         elecLayout.addWidget(self.slider, 4, 3, 7, 1)
         elecLayout.setColumnStretch(3, 1)
         
         self.slider.sliderReleased.connect(self.shuttle)
-
         self.setLayout(layout)  
                 
     @inlineCallbacks
@@ -359,12 +359,10 @@ class CHANNEL_MONITOR(QtGui.QWidget):
                 
     @inlineCallbacks
     def shuttle(self):
-        #yield self.dacserver.do_nothing()
         self.posDisplay.setStyleSheet("QWidget {background-color:  yellow}")
         self.posDisplay.setAutoFillBackground(True) 
         yield self.dacserver.shuttle_ion(self.slider.value() * 5)
         yield self.followSignal(0, 0)
-        
         self.posDisplay.setStyleSheet("QWidget {background-color:  }")
         self.posDisplay.setAutoFillBackground(False)
         

@@ -28,7 +28,7 @@ import sys
 sys.path.append('/home/cct/LabRAD/cct/PulseSequences')
 from advanceDACs import ADV_DAC
 
-SERVERNAME = 'CCTDAC_Pulser'
+SERVERNAME = 'CCTDAC Pulser'
 PREC_BITS = 16.
 SIGNALID = 270837
 NUMCHANNELS = 28
@@ -160,7 +160,7 @@ class CCTDACServer( LabradServer ):
             portNum = v.portNum
             p = self.portList[portNum - 1]
             codeInDec = int(p.digitalVoltage)
-	    stry = self.getHexRep(portNum, setIndex, codeInDec)
+	    stry = self.getHexRep(portNum, setIndex, codeInDec)    
         yield self.pulser.set_dac_voltage(stry)	    	
 #        yield self.pulser.set_dac_voltage('\x00\x00\x00\x00')
         self.notifyOtherListeners(c)
@@ -181,7 +181,7 @@ class CCTDACServer( LabradServer ):
         chan=[]
         for i in range(5):
             chan.append(None)
-        chan = self.f(channel, chan)
+        chan = self.f(self.DACBoxChannel(channel), chan)
         
         sety=[]
         for i in range(10):
@@ -195,6 +195,13 @@ class CCTDACServer( LabradServer ):
         
         big = val + chan + sety + [False]
         return self.g(big[8:16]) + self.g(big[:8]) + self.g(big[24:32]) + self.g(big[16:24])
+    
+    def DACBoxChannel(self, channel):
+        map = [(1, 9), (3, 15), (4, 21), (5, 22)]
+        for (i, n) in map:
+            if channel == i: channel = n
+            elif channel == n: channel = i        
+        return channel
         
     def f(self, num, listy): #binary representation of values in the form of a list
         for i in range(len(listy)):
@@ -410,6 +417,13 @@ class CCTDACServer( LabradServer ):
     @setting(16, "Return Ion Info", returns = 'iv')
     def retIonIndex(self, c):
         return [self.curPosition, self.pos[self.curPosition]]
+    
+    @setting(17, "Reset Index")
+    def rstIndex(self, c):
+        self.stopIndex = 1
+        self.startIndex = self.maxIndex-1
+        yield self.advDACs()
+        self.startIndex = 1
         
     @setting(15, "do nothing")
     def doNone(self, c):

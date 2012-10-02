@@ -20,11 +20,11 @@ DnumStepsTfrq = (DmaxTfrq - DminTfrq)/DsizeStepsTfrq
 
 class Ey(QtGui.QWidget):
     def __init__(self, reactor, parent=None):
-	super(Ey,self).__init__(parent)
-	self.running = False
-	self.reactor = reactor
-	self.makeGUI()
-	self.connect()
+        super(Ey,self).__init__(parent)
+        self.running = False
+        self.reactor = reactor
+        self.makeGUI()
+        self.connect()
 	
     #@inlineCallbacks
     def makeGUI(self):
@@ -77,6 +77,8 @@ class Ey(QtGui.QWidget):
     def connect(self):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
+        from labrad import types as T
+        self.T = T
         self.cxn = yield connectAsync()
         self.cxncam = yield connectAsync('192.168.169.30')
         self.dv = yield self.cxn.data_vault
