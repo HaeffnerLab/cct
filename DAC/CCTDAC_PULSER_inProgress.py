@@ -58,8 +58,12 @@ class Port():
     such that
     dv = c0 + c1*(av) + c2*(av)**2 + ... + cn*(av)**n
     """
-    def __init__(self, portNumber, calibrationCoeffs = None):
+    def __init__(self, portNumber, physicalChannel = None, calibrationCoeffs = None):
         self.portNumber = portNumber
+        if physicalChannel is not None:
+            self.physicalChannel = physicalChannel
+        else:
+            self.physicalChannel = portNumber
         self.analogVoltage = None
         self.digitalVoltage = None
         if not calibrationCoeffs:
@@ -141,7 +145,27 @@ class CCTDACServer( LabradServer ):
                 self.portList.append(Port(i)) # no preset calibration
         for p in self.portList:
             p.analogVoltage = 0
+
+        ''' See if there's a map between digital channels and analog channels.
         
+        cctdac.conf should be of the form:
+        (software channel) -> (hardware channel)
+        '''
+
+        try:
+            with open('cctdac.conf') as f:
+                mappedChannels = []
+                for c in f: # iterate line by line
+                    map = c.split('->')
+                    (softChan, hardChan) = ( int(map[0]), int(map[1]) )
+                    mappedChannels.append( (softChan, hardChan) )
+                
+                for (softChan, hardChan) in mappedChannels:
+                    self.portList[softChan].physicalChannel = hardChan
+
+        except IOError as e:
+            print "No port mapping found"
+
         yield self.advDACs()
         self.reset = 0
         yield self.registry.cd(['', 'cctdac_pulser', 'Cfile'])
@@ -157,7 +181,7 @@ class CCTDACServer( LabradServer ):
         self.pulser.reset_fifo_dac()
         for v in voltage:
             self.portList[v.portNum - 1].setVoltage(v)
-            portNum = v.portNum
+            portNum = self.portList[v.portNum - 1].physicalChannel
             p = self.portList[portNum - 1]
             codeInDec = int(p.digitalVoltage)
         stry = self.getHexRep(portNum, setIndex, codeInDec)
