@@ -278,13 +278,17 @@ class CCTDACServer( LabradServer ):
     def setMultipoleControlFile(self, c, file):                
         data = genfromtxt(file)
         numCols = data.size / (23 * 8)
+        print numCols
         numPositions = (numCols - 1) * 10.
+        #numPositions = 1
         sp = {}
         spline = {}
         x = []
         for i in range(numCols): x.append(i)                      
         p = arange(0, (numCols -1) * (1 + 1/numPositions), (numCols - 1)/numPositions)
-        
+        #p = arange(0, (numCols -1) * (1 + 1), (numCols - 1) +1)
+        #print p
+        #p = array([1])
         n = 0
         for i in range(23):
             sp[i] = {}
@@ -302,6 +306,8 @@ class CCTDACServer( LabradServer ):
         #fit = interp1d(x, y)
         fit = interpolate.interp1d(x, y, 'linear')
         self.pos = fit(p)        
+        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.set('MostRecent', file)
         #from matplotlib import pyplot as p
         #for i in range(23):        
             #p.plot(spline[i]['U2'])

@@ -162,6 +162,7 @@ class CCTDACServer( LabradServer ):
                 
                 for (softChan, hardChan) in mappedChannels:
                     self.portList[softChan].physicalChannel = hardChan
+                print mappedChannels
 
         except IOError as e:
             print "No port mapping found"
