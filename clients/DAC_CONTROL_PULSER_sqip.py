@@ -26,9 +26,9 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         self.controlLabels = ['Ex1','Ey1','Ez1','U1','U2','U3','U4','U5', 'Ex2', 'Ey2', 'Ez2', 'V1', 'V2', 'V3', 'V4', 'V5']
      
         self.controls = {}
-        self.controls['Ex1'] = QCustomSpinBox('Ex1', (-2.,2.))
-        self.controls['Ey1'] = QCustomSpinBox('Ey1', (-2.,2.))
-        self.controls['Ez1'] = QCustomSpinBox('Ez1', (-2.,2.))
+        self.controls['Ex1'] = QCustomSpinBox('Ex', (-2.,2.))
+        self.controls['Ey1'] = QCustomSpinBox('Ey', (-2.,2.))
+        self.controls['Ez1'] = QCustomSpinBox('Ez', (-2.,2.))
         self.controls['U1'] = QCustomSpinBox('U1', (-20.,20.))
         self.controls['U2'] = QCustomSpinBox('U2', (0.,20.))
         self.controls['U3'] = QCustomSpinBox('U3', (-10.,10.))
@@ -48,31 +48,31 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
             self.multipoleValues[k]=0.0
 
         if self.numWells == 1:
-	    self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
-	    self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
-	    self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
-	    self.ctrlLayout.addWidget(self.controls['U1'],0,1)
-	    self.ctrlLayout.addWidget(self.controls['U2'],1,1)
-	    self.ctrlLayout.addWidget(self.controls['U3'],2,1)
-	    self.ctrlLayout.addWidget(self.controls['U4'],3,1)
-	    self.ctrlLayout.addWidget(self.controls['U5'],4,1)
+            self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
+            self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
+            self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
+            self.ctrlLayout.addWidget(self.controls['U1'],0,1)
+            self.ctrlLayout.addWidget(self.controls['U2'],1,1)
+            self.ctrlLayout.addWidget(self.controls['U3'],2,1)
+            self.ctrlLayout.addWidget(self.controls['U4'],3,1)
+            self.ctrlLayout.addWidget(self.controls['U5'],4,1)
         else:
-	    self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
-	    self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
-	    self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
-	    self.ctrlLayout.addWidget(self.controls['U1'],0,1)
-	    self.ctrlLayout.addWidget(self.controls['U2'],1,1)
-	    self.ctrlLayout.addWidget(self.controls['U3'],2,1)
-	    self.ctrlLayout.addWidget(self.controls['U4'],3,1)
-	    self.ctrlLayout.addWidget(self.controls['U5'],4,1)
-	    self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
-	    self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
-	    self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
-	    self.ctrlLayout.addWidget(self.controls['V1'],0,3)
-	    self.ctrlLayout.addWidget(self.controls['V2'],1,3)
-	    self.ctrlLayout.addWidget(self.controls['V3'],2,3)
-	    self.ctrlLayout.addWidget(self.controls['V4'],3,3)
-	    self.ctrlLayout.addWidget(self.controls['V5'],4,3)	    	            
+            self.ctrlLayout.addWidget(self.controls['Ex1'],0,0)
+            self.ctrlLayout.addWidget(self.controls['Ey1'],1,0)
+            self.ctrlLayout.addWidget(self.controls['Ez1'],2,0)
+            self.ctrlLayout.addWidget(self.controls['U1'],0,1)
+            self.ctrlLayout.addWidget(self.controls['U2'],1,1)
+            self.ctrlLayout.addWidget(self.controls['U3'],2,1)
+            self.ctrlLayout.addWidget(self.controls['U4'],3,1)
+            self.ctrlLayout.addWidget(self.controls['U5'],4,1)
+            self.ctrlLayout.addWidget(self.controls['Ex2'],0,2)
+            self.ctrlLayout.addWidget(self.controls['Ey2'],1,2)
+            self.ctrlLayout.addWidget(self.controls['Ez2'],2,2)
+            self.ctrlLayout.addWidget(self.controls['V1'],0,3)
+            self.ctrlLayout.addWidget(self.controls['V2'],1,3)
+            self.ctrlLayout.addWidget(self.controls['V3'],2,3)
+            self.ctrlLayout.addWidget(self.controls['V4'],3,3)
+            self.ctrlLayout.addWidget(self.controls['V5'],4,3)	    	            
         self.multipoleFileSelectButton = QtGui.QPushButton('Set C File')
         self.ctrlLayout.addWidget(self.multipoleFileSelectButton,4,0)
 
@@ -122,7 +122,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac_pulser
+        self.dacserver = yield self.cxn.dacserver
         yield self.setupListeners()
         yield self.makeGUI()
         
@@ -133,14 +133,13 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         
     def sendToServer(self):
         if self.inputUpdated:
-            print self.multipoleValues.items()
-            self.dacserver.set_multipole_values(self.multipoleValues.items())
+            self.dacserver.set_multipole_voltages(self.multipoleValues.items())
             self.inputUpdated = False
     
     @inlineCallbacks        
     def selectCFile(self):
         fn = QtGui.QFileDialog().getOpenFileName()
-        yield self.dacserver.set_multipole_control_file(str(fn))
+        yield self.dacserver.set_multipole_control_file(1, str(fn))
         self.updateGUI()
         self.inputHasUpdated()
         
@@ -217,7 +216,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
        
         self.inputUpdated = False                
         self.timer = QtCore.QTimer(self)        
-        #self.timer.timeout.connect(self.sendToServer)
+        self.timer.timeout.connect(self.sendToServer)
         self.timer.start(UpdateTime)
         
         for k in self.controlLabels:
@@ -231,7 +230,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac_pulser
+        self.dacserver = yield self.cxn.dacserver
         yield self.setupListeners()
         yield self.followSignal(0, 0)
 
@@ -294,36 +293,36 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.posDisplay.setDecimals(0)
         self.posDisplay.setValue(760)
         
-        smaBox = QtGui.QGroupBox('SMA Out')
-        smaLayout = QtGui.QGridLayout()
-        smaBox.setLayout(smaLayout)
+	smaBox = QtGui.QGroupBox('SMA Out')
+	smaLayout = QtGui.QGridLayout()
+	smaBox.setLayout(smaLayout)
 	
-        elecBox = QtGui.QGroupBox('Electrode Voltages')
-        elecLayout = QtGui.QGridLayout()
-        elecBox.setLayout(elecLayout)
-        layout.addWidget(smaBox, 0, 0)
-        layout.addWidget(elecBox, 0, 1)
+	elecBox = QtGui.QGroupBox('Electrode Voltages')
+	elecLayout = QtGui.QGridLayout()
+	elecBox.setLayout(elecLayout)
+	layout.addWidget(smaBox, 0, 0)
+	layout.addWidget(elecBox, 0, 1)
 	
         for j in range(5):
             smaLayout.addWidget(QtGui.QLabel(str(j+1)),j,0)
             smaLayout.addWidget(self.electrodes[j],j,1)
         for j in range(5, 16):
-            elecLayout.addWidget(QtGui.QLabel(str(j-4)),16 - j,0)
-            elecLayout.addWidget(self.electrodes[j],16 - j,1)
-            elecLayout.setColumnStretch(1, 1)
-        for j in range(16, 27):
-            elecLayout.addWidget(QtGui.QLabel(str(j-4)),27 - j,4)
-            elecLayout.addWidget(self.electrodes[j],27 - j,5)
-            elecLayout.setColumnStretch(5, 1)
+	    elecLayout.addWidget(QtGui.QLabel(str(j-4)),16 - j,0)#+%
+	    elecLayout.addWidget(self.electrodes[j],16 - j,1)
+	    elecLayout.setColumnStretch(1, 1)
+	for j in range(16, 27):
+	    elecLayout.addWidget(QtGui.QLabel(str(j-4)),27 - j,4) #+%
+	    elecLayout.addWidget(self.electrodes[j],27 - j,5)
+	    elecLayout.setColumnStretch(5, 1)
 	
         elecLayout.addWidget(QtGui.QLabel('CNT'), 12, 2)
         elecLayout.addWidget(self.electrodes[Nelectrodes-1], 12, 3)
-#        elecLayout.addWidget(QtGui.QLabel('Ion Pos.:'), 0, 2)
-        elecLayout.addWidget(self.posDisplay, 0, 3)
-        elecLayout.addWidget(self.slider, 4, 3, 7, 1)
+        #elecLayout.addWidget(self.posDisplay, 1, 3)
+        #elecLayout.addWidget(self.slider, 2, 3, 9, 1)
         elecLayout.setColumnStretch(3, 1)
         
-        self.slider.sliderReleased.connect(self.shuttle)
+        #self.slider.sliderReleased.connect(self.shuttle)
+
         self.setLayout(layout)  
                 
     @inlineCallbacks
@@ -331,7 +330,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac_pulser
+        self.dacserver = yield self.cxn.dacserver
         yield self.setupListeners()
         yield self.followSignal(0, 0)        
         
@@ -351,19 +350,17 @@ class CHANNEL_MONITOR(QtGui.QWidget):
                 self.electrodes[i].setAutoFillBackground(True)
             if math.fabs(v) < 40:
                 self.electrodes[i].setStyleSheet("QWidget {background-color:  }")
-                self.electrodes[i].setAutoFillBackground(False)
-        self.slider.blockSignals(True)
-        ionInfo = yield self.dacserver.return_ion_info()
-        self.slider.setValue(ionInfo[0] / 5.)
-        self.posDisplay.setValue(ionInfo[1])
-        self.slider.blockSignals(False)
+                self.electrodes[i].setAutoFillBackground(False)     
                 
     @inlineCallbacks
     def shuttle(self):
+        #yield self.dacserver.do_nothing()
         self.posDisplay.setStyleSheet("QWidget {background-color:  yellow}")
         self.posDisplay.setAutoFillBackground(True) 
-        yield self.dacserver.shuttle_ion(self.slider.value() * 5)
+        self.pos = yield self.dacserver.shuttle_ion(self.slider.value() * 5)
+        print self.pos
         yield self.followSignal(0, 0)
+        self.posDisplay.setValue(self.pos)
         self.posDisplay.setStyleSheet("QWidget {background-color:  }")
         self.posDisplay.setAutoFillBackground(False)
         
@@ -380,11 +377,9 @@ class DAC_CONTROL(QtGui.QMainWindow):
 
         channelControlTab = self.buildChannelControlTab()        
         multipoleControlTab = self.buildMultipoleControlTab()
-        scanTab = self.buildScanTab()
         tab = QtGui.QTabWidget()
         tab.addTab(multipoleControlTab,'&Multipoles')
         tab.addTab(channelControlTab, '&Channels')
-        tab.addTab(scanTab, '&Scans')
         self.setCentralWidget(tab)
     
     def buildMultipoleControlTab(self):
@@ -402,16 +397,7 @@ class DAC_CONTROL(QtGui.QMainWindow):
         widget.setLayout(gridLayout)
         return widget
         
-    def buildScanTab(self):
-	from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
-	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
-	widget = QtGui.QWidget()
-	gridLayout = QtGui.QGridLayout()
-	#gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
-	#gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
-	widget.setLayout(gridLayout)
-	return widget
-    
+
     def closeEvent(self, x):
         self.reactor.stop()  
 

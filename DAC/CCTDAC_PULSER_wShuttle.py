@@ -65,7 +65,8 @@ class Port():
         if not calibrationCoeffs:
             self.coeffs = [2**(PREC_BITS - 1), float(2**(PREC_BITS))/(NOMINAL_VMAX - NOMINAL_VMIN) ]
         else:
-            self.coeffs = calibrationCoeffs
+            self.coeffs = [2**(PREC_BITS - 1), float(2**(PREC_BITS))/(NOMINAL_VMAX - NOMINAL_VMIN) ]
+            #self.coeffs = calibrationCoeffs
         
     def setVoltage(self, v):
         if v.type == 'analog':
@@ -142,7 +143,7 @@ class CCTDACServer( LabradServer ):
         for p in self.portList:
             p.analogVoltage = 0
         
-        yield self.advDACs()
+        #yield self.advDACs()
         self.reset = 0
         yield self.registry.cd(['', 'cctdac_pulser'])
         Cpath = yield self.registry.get('MostRecent')
@@ -197,11 +198,63 @@ class CCTDACServer( LabradServer ):
         return self.g(big[8:16]) + self.g(big[:8]) + self.g(big[24:32]) + self.g(big[16:24])
     
     def DACBoxChannel(self, channel):
-        map = [(1, 9), (3, 15), (4, 21), (5, 22)]
-        for (i, n) in map:
-            if channel == i: channel = n
-            elif channel == n: channel = i        
+        #map = [(1, 9), (3, 15), (4, 21), (5, 22)]
+        map = [(28, 1),
+               (27,2),
+               (24,3),
+               (5,4),
+               (20,5),
+               (18,6),
+               (16,7),
+               (13,8),
+               (11,9),
+               (1,10),
+               (6,11),
+               (7,12),
+               (8,13),
+               (26,14),
+               (25,15),
+               (23,16),
+               (4,17),
+               (19,18),
+               (17,19),
+               (3,20),
+               (14,21),
+               (12,22),
+               (10,13)
+               ]
+        #for (i, n) in map:
+        #    if channel == n: channel = i
+            #if channel == i: channel = n
+            #elif channel == n: channel = i        
         return channel
+    
+    def channelMap(self, electrode):
+        e = electrode - 5
+        if e == 1: return 28
+        elif e == 2: return 27
+        elif e == 3: return 24
+        elif e == 4: return 5
+        elif e == 5: return 20
+        elif e == 6: return 18
+        elif e == 7: return 16
+        elif e == 8: return 13
+        elif e == 9: return 11
+        elif e == 10: return 1
+        elif e == 11: return 6
+        elif e == 12: return 7
+        elif e == 13: return 8
+        elif e == 14: return 26
+        elif e == 15: return 25
+        elif e == 16: return 23
+        elif e == 17: return 4
+        elif e == 18: return 19
+        elif e == 19: return 17
+        elif e == 20: return 3
+        elif e == 21: return 14
+        elif e == 22: return 12
+        elif e == 23: return 10
+        else: return e
         
     def f(self, num, listy): #binary representation of values in the form of a list
         for i in range(len(listy)):
@@ -257,8 +310,10 @@ class CCTDACServer( LabradServer ):
 	    (portNum, newVolts)
 	    """
         print self.startIndex
-        for (num, av) in analogVoltages:	   
-            yield self.sendToPulser(c, [AnalogVoltage(num, av)], setIndex ) ###!!! setindex --> self.startIndex
+        
+        for (num, av) in analogVoltages:
+            yield self.sendToPulser(c, [AnalogVoltage(self.channelMap(num), av)])	   
+            #yield self.sendToPulser(c, [AnalogVoltage(num, av)], setIndex ) ###!!! setindex --> self.startIndex
 
     @setting( 4, "Get Digital Voltages", returns = '*v' )
     def getDigitalVoltages(self, c):
@@ -332,7 +387,7 @@ class CCTDACServer( LabradServer ):
         self.stopIndex = self.startIndex + 1
         if self.stopIndex > self.maxIndex: self.stopIndex = 1
         yield self.setVoltages(c, self.curPosition, self.stopIndex)
-        yield self.advDACs()
+        #yield self.advDACs()
         self.startIndex = self.stopIndex
         
         yield self.registry.cd(['', 'cctdac_pulser'])
@@ -416,7 +471,9 @@ class CCTDACServer( LabradServer ):
         for i in range(23): 
             for j in self.multipoles:                   
                 realVolts[i + 5] += self.spline[i][j][n] * self.multipoleSet[j] 
-        yield self.setAnalogVoltages(c, realVolts, index)
+        #yield self.setAnalogVoltages(c, realVolts, index)
+        print realVolts
+        yield self.setAnalogVoltages(c, realVolts, 1)
         self.curIndex = index
         self.curPosition = n
         
@@ -428,7 +485,7 @@ class CCTDACServer( LabradServer ):
     def rstIndex(self, c):
         self.stopIndex = 1
         self.startIndex = self.maxIndex-1
-        yield self.advDACs()
+        #yield self.advDACs()
         self.startIndex = 1
         
     @setting(15, "do nothing")
