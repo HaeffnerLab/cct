@@ -282,7 +282,7 @@ class CCTDACServer( LabradServer ):
         for (n, dv) in zip(range(1, NUMCHANNELS + 1), digitalVoltages):
             li.append((n, dv))
         self.setIndivDigVoltages(c, li)        
-
+22044604925031e
     @setting( 1 , "Set Analog Voltages", analogVoltages = '*v', setIndex = 'i', returns = '' )
     def setAnalogVoltages( self, c, analogVoltages, setIndex = startIndex):
         """

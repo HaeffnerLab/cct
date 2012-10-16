@@ -81,7 +81,7 @@ class Ex(QtGui.QWidget):
         self.cxn = yield connectAsync()
         self.cxncam = yield connectAsync('192.168.169.30')
         self.dv = yield self.cxn.data_vault
-        self.ds = yield self.cxn.cctdac
+        self.ds = yield self.cxn.cctdac_pulser
         self.pmt = self.cxn.normalpmtflow
         self.rs = self.cxncam.rohdeschwarz_server
         self.rs.select_device('GPIB Bus - USB0::0x0AAD::0x0054::104543')
@@ -157,11 +157,11 @@ class Ex(QtGui.QWidget):
 	    yield self.dv.add_parameter('Ex', Ex)
 	    yield self.dv.add_parameter('plotLive',True)
 	    print 'Saving {}'.format(name)
-	    yield self.ds.set_multipole_voltages([('Ex1', Ex), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+	    yield self.ds.set_multipole_values([('Ex1', Ex), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 	    for f in frequencies:
 		if self.running == False:
 		    yield self.rs.onoff(False)
-		    yield self.ds.set_multipole_voltages([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+		    yield self.ds.set_multipole_values([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 		    self.control['scan'].setText('Scan')
 		    return
 		self.rs.frequency(self.T.Value(f, 'MHz'))
@@ -169,7 +169,7 @@ class Ex(QtGui.QWidget):
 		pmtcount = yield self.pmt.get_next_counts('ON', int(self.control['avg'].value()), True)				
 		yield self.dv.add(f, pmtcount)
 	yield self.rs.onoff(False)
-	yield self.ds.set_multipole_voltages([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
+	yield self.ds.set_multipole_values([('Ex1', Exi), ('Ey1', Ey), ('Ez1', Ez), ('U1', U1), ('U2', U2), ('U3', U3), ('U4', U4), ('U5', U5)])
 	self.control['scan'].setText('Scan')
 	    
     def stopScan(self, c):
