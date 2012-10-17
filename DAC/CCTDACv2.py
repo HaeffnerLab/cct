@@ -1,10 +1,10 @@
 '''
 ### BEGIN NODE INFO
 [info]
-name = CCTDAC Pulser
+name = CCTDAC Pulser v2
 version = 1.0
 description = 
-instancename = CCTDAC Pulser
+instancename = CCTDAC Pulser v2
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -28,7 +28,7 @@ import sys
 sys.path.append('/home/cct/LabRAD/cct/PulseSequences')
 from advanceDACs import ADV_DAC
 
-SERVERNAME = 'CCTDAC Pulser'
+SERVERNAME = 'CCTDAC Pulser v2'
 PREC_BITS = 16.
 SIGNALID = 270837
 NUMCHANNELS = 28

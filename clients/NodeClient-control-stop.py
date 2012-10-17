@@ -8,7 +8,7 @@ try:
 except:
     print 'Please start LabRAD Manager'
 else:	
-    for node in ['node_resonatormain']:
+    for node in ['node_cctmain']:
 	#make sure all node servers are up
 	if not node in cxn.servers:'{} is not running'.format(node)
 	else:

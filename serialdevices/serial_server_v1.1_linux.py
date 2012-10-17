@@ -16,10 +16,10 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = Serial Server
+name = Serial Server 1.1
 version = 1.1
 description = 
-instancename = Serial Server
+instancename = Serial Server 1.1
 
 [startup]
 cmdline = %PYTHON% %FILE%

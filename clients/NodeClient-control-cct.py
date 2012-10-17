@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 nodeDict = {'node_cctmain':
-					['Serial Server','Data Vault', 'Pulser','NormalPMTFlow'],
+					['Serial Server','Data Vault', 'Pulser','NormalPMTFlow','CCTDAC Pulser v2', 'Piezo Server'],
 		}
 
 #connect to LabRAD

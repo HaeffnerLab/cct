@@ -101,7 +101,7 @@ class PC (QtGui.QWidget,):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.piezoserver = yield self.cxn.cctmain_piezo_server
+        self.piezoserver = yield self.cxn.piezo_server
         for axis in self.axes:
 	    yield self.piezoserver.stop(int(axis))
         for axis in self.axes:  

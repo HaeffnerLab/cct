@@ -82,7 +82,7 @@ class Ey(QtGui.QWidget):
         self.cxn = yield connectAsync()
         self.cxncam = yield connectAsync('192.168.169.30')
         self.dv = yield self.cxn.data_vault
-        self.ds = yield self.cxn.cctdac_pulser
+        self.ds = yield self.cxn.cctdac_pulser_v2
         self.pmt = self.cxn.normalpmtflow
         self.rs = self.cxncam.rohdeschwarz_server
         self.rs.select_device('GPIB Bus - USB0::0x0AAD::0x0054::104543')
