@@ -36,7 +36,7 @@ class cctGUI(QtGui.QMainWindow):
         return widget
         
     def makeVoltageWidget(self, reactor):        
-        from DAC_CONTROL import DAC_Control
+        from DAC_CONTROL_PULSER import DAC_Control
         from PMT_CONTROL import pmtWidget
         from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
@@ -44,8 +44,6 @@ class cctGUI(QtGui.QMainWindow):
         from SHUTTER_CONTROLv2 import SHUTTER
         from PIEZO_CONTROL import PIEZO_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
-        from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
-        from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()        
         gridLayout.addWidget(DAC_Control(reactor), 0, 0)            

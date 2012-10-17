@@ -133,7 +133,6 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         
     def sendToServer(self):
         if self.inputUpdated:
-            print self.multipoleValues.items()
             self.dacserver.set_multipole_values(self.multipoleValues.items())
             self.inputUpdated = False
     
@@ -217,7 +216,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
        
         self.inputUpdated = False                
         self.timer = QtCore.QTimer(self)        
-        #self.timer.timeout.connect(self.sendToServer)
+        self.timer.timeout.connect(self.sendToServer)
         self.timer.start(UpdateTime)
         
         for k in self.controlLabels:
@@ -246,7 +245,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
     def sendToServer(self):
         if self.inputUpdated:
             c = self.changedChannel
-            self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])])
+            self.dacserver.set_individual_analog_voltages([(self.labelToNumber[c], self.channelValues[c])], 1111)
             self.inputUpdated = False
             
     @inlineCallbacks    
@@ -274,7 +273,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.Nelectrodes = Nelectrodes
         self.electrodes = [QtGui.QLCDNumber() for i in range(self.Nelectrodes)]
         for i in range(self.Nelectrodes):
-	    self.electrodes[i].setNumDigits(6)
+	    self.electrodes[i].setNumDigits(5)
         
         layout = QtGui.QGridLayout()
         
@@ -373,9 +372,9 @@ class CHANNEL_MONITOR(QtGui.QWidget):
     def closeEvent(self, x):
         self.reactor.stop()
 
-class DAC_CONTROL(QtGui.QMainWindow):
+class DAC_Control(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
-        super(DAC_CONTROL, self).__init__(parent)
+        super(DAC_Control, self).__init__(parent)
         self.reactor = reactor
 
         channelControlTab = self.buildChannelControlTab()        
@@ -407,8 +406,8 @@ class DAC_CONTROL(QtGui.QMainWindow):
 	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
 	widget = QtGui.QWidget()
 	gridLayout = QtGui.QGridLayout()
-	#gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
-	#gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
+	gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
+	gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
 	widget.setLayout(gridLayout)
 	return widget
     
@@ -420,6 +419,6 @@ if __name__ == "__main__":
     import qt4reactor
     qt4reactor.install()
     from twisted.internet import reactor
-    DAC_CONTROL = DAC_CONTROL(reactor)
-    DAC_CONTROL.show()
+    DAC_Control = DAC_Control(reactor)
+    DAC_Control.show()
     reactor.run()
