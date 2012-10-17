@@ -4,7 +4,7 @@
 name = HP Server
 version = 1.0
 description = 
-instancename = %LABRADNODE% HP Server
+instancename = HP Server
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -28,7 +28,7 @@ SIGNALID1 = 209058
 class HPServer( SerialDeviceServer ):
     """Controls HP8648A Signal Generator"""
 
-    name = '%LABRADNODE% HP Server'
+    name = 'HP Server'
     regKey = 'sskey'
     port = None
     serNode = 'cctmain'

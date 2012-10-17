@@ -4,7 +4,7 @@
 name = Stage Server
 version = 1.0
 description = 
-instancename = %LABRADNODE% Stage Server
+instancename = Stage Server
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -26,7 +26,7 @@ import time
 SIGNALID = 209068
 
 class STS(SerialDeviceServer):
-    name = '%LABRADNODE% Stage Server'
+    name = 'Stage Server'
     regKey = 'sskey'
     port = None
     serNode = 'cctmain'

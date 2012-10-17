@@ -19,7 +19,7 @@
 name = Serial Server
 version = 1.1
 description = 
-instancename = %LABRADNODE% Serial Server
+instancename = Serial Server
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -54,7 +54,7 @@ class NoPortsAvailableError(Error):
 
 class SerialServer(LabradServer):
     """Provides access to a computer's serial (COM) ports."""
-    name = '%LABRADNODE% Serial Server'
+    name = 'Serial Server'
 
     def initServer(self):
         self.SerialPorts = []

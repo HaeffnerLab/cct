@@ -4,7 +4,7 @@
 name = Piezo Server
 version = 1.0
 description = 
-instancename = %LABRADNODE% Piezo Server
+instancename = Piezo Server
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -26,7 +26,7 @@ from twisted.internet.defer import returnValue
 SIGNALID = 209068
 
 class PS(SerialDeviceServer):
-    name = '%LABRADNODE% Piezo Server'
+    name = 'Piezo Server'
     regKey = 'piezokey'
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)')
