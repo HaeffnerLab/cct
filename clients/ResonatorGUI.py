@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 
 class ResonatorGUI(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
@@ -7,11 +8,31 @@ class ResonatorGUI(QtGui.QMainWindow):
 
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)      
-        tabWidget = QtGui.QTabWidget()
-        tabWidget.addTab(voltageControlTab,'&Trap Voltages')
-        tabWidget.addTab(lightControlTab,'&Laser Room')
-        self.setWindowTitle('CCTGUI')
-        self.setCentralWidget(tabWidget)
+        self.tabWidget = QtGui.QTabWidget()
+        self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
+        self.tabWidget.addTab(lightControlTab,'&Laser Room')
+        self.createGrapherTab()
+        self.setWindowTitle('Resonator GUI')
+        self.setCentralWidget(self.tabWidget)
+        
+    @inlineCallbacks
+    def createGrapherTab(self):
+        grapher = yield self.makeGrapherWidget(reactor)
+        self.tabWidget.addTab(grapher, '&Grapher')
+    
+    @inlineCallbacks
+    def makeGrapherWidget(self, reactor):
+        widget = QtGui.QWidget()
+        from pygrapherlive.connections import CONNECTIONS
+        vboxlayout = QtGui.QVBoxLayout()
+        Connections = CONNECTIONS(reactor)
+        @inlineCallbacks
+        def widgetReady():
+            window = yield Connections.introWindow
+            vboxlayout.addWidget(window)
+            widget.setLayout(vboxlayout)
+        yield Connections.communicate.connectionReady.connect(widgetReady)
+        returnValue(widget)
 
     def makeLightWidget(self, reactor):        
         from CAVITY_CONTROL import cavityWidget
