@@ -7,6 +7,8 @@ import labrad
 import numpy as np
 from PulseSequences.TimeResolvedRecord import TimeResolved
 from processFFT import processFFT
+import datetime
+import time as TIME
 
 class measureFFT():
     ''' Scripts for performing FFT measurements '''
@@ -24,7 +26,7 @@ class measureFFT():
     def getCenterFreq(self):
         #rffreq = float(self.trap_drive.frequency())*10.0**6 #in Hz
         #rffreq = float(43.81)*10.**6#MR: computer set
-        rffreq = 10*10**6
+        rffreq = 10
         return rffreq
 
     def defineServers(self, cxn):
@@ -72,7 +74,9 @@ class measureFFT():
         return pwr
         
     def saveData(self, pwr):
-        self.dv.cd(['','QuickMeasurements','FFT'],True)
+        now = datetime.datetime.now()
+        date = now.strftime("%Y%m%d")
+        self.dv.cd(['',date,'FFT'],True)
         name = self.dv.new('FFT',[('Freq', 'Hz')], [('Power','Arb','Arb')] )
         data = np.array(np.vstack((self.freqs,pwr)).transpose(), dtype = 'float')
         self.dv.add_parameter('plotLive',True)
@@ -81,9 +85,9 @@ class measureFFT():
 
 if  __name__ == '__main__':
     cxn = labrad.connect()
-    recordTime = 2.0 #seconds
+    recordTime =.0 #seconds
     average = 4
-    freqSpan = 100#Hz 
+    freqSpan = 3#Hz 
     #freqOffset = -1375 #Hz, the offset between the counter clock and the rf synthesizer clock
     freqOffset = 0
     fft = measureFFT(cxn, recordTime, average, freqSpan, freqOffset, savePlot = True)

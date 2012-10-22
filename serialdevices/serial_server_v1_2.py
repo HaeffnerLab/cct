@@ -16,10 +16,10 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = Serial Server
+name = cctmain Serial Server
 version = 1.2
 description = 
-instancename = Serial Server
+instancename = cctmain Serial Server
 
 [startup]
 cmdline = %PYTHON% %FILE%

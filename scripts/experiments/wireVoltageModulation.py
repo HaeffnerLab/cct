@@ -8,6 +8,7 @@ import labrad
 from labrad import types
 import numpy
 import time
+import datetime
 
 from fly_processing import Binner
 from PulseSequences.wireVoltageModulation import wireVoltage
@@ -43,7 +44,7 @@ class WireVoltageModulation():
         self.setupLogic()
         self.programPulser()
         
-        totalBinningTime = self.seqP.recordTime + self.seqP.recoolTime + self.seqP.darkTime
+        totalBinningTime = self.seqP.bufferTime + self.seqP.excitationTime
         self.Binner = Binner(totalBinningTime, self.expP.binTime)
 
     def setupLogic(self):
@@ -68,8 +69,12 @@ class WireVoltageModulation():
 
         sP = self.seqP
         xP = self.expP
+        
+        now = datetime.datetime.now()
+        date = now.strftime("%Y%m%d")
+        ti = now.strftime('%H%M%S')
 
-        self.dv.cd(['','Experiments', self.experimentName, self.topdirectory, self.dirappend], True)
+        self.dv.cd(['',date, self.experimentName, ti], True)
         self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
         self.dv.add_parameter('Window',['Binned Fluorescence'])
         self.dv.add_parameter('plotLive', True)        
@@ -101,7 +106,7 @@ class WireVoltageModulation():
 
 
     def finalize(self):
-        self.pulser.switch_auto('wireVoltage')
+        self.pulser.switch_manual('wireVoltage',False)
 
     def __del__(self):
         self.cxn.disconnect()
