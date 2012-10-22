@@ -402,12 +402,11 @@ class DAC_Control(QtGui.QMainWindow):
         return widget
         
     def buildScanTab(self):
-	from SCAN_Ex_and_TICKLE import Scan_Control_Ex_and_Tickle
-	from SCAN_Ey_and_TICKLE import Scan_Control_Ey_and_Tickle
+	from SCAN_CONTROL import Scan_Control_Tickle
 	widget = QtGui.QWidget()
 	gridLayout = QtGui.QGridLayout()
-	gridLayout.addWidget(Scan_Control_Ex_and_Tickle(self.reactor), 0, 0)
-	gridLayout.addWidget(Scan_Control_Ey_and_Tickle(self.reactor), 0, 1)
+#	gridLayout.addWidget(Scan_Control_Tickle(self.reactor, 'Ex1'), 0, 0)
+#	gridLayout.addWidget(Scan_Control_Tickle(self.reactor, 'Ey1'), 0, 1)
 	widget.setLayout(gridLayout)
 	return widget
     

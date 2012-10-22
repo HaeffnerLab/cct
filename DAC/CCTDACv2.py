@@ -321,9 +321,18 @@ class CCTDACServer( LabradServer ):
         """
         return self.multipoleSet.items()
 
+    @setting( 20, "Get Multipole Values",returns='*(s,v)')
+    def getMultipoleVolgates(self, c):
+        """
+        Return a list of multipole voltages
+        """
+        return self.multipoleSet.items()
+
     @setting( 9, "Shuttle Ion", position = 'i: position to move to')
     def shuttleIon(self, c, position):            
         n = self.startIndex
+#        if position > self.curPosition: ordering = range(self.curPosition, position)
+#        else: ordering = range(position, self.curPosition)[::-1]
         if position > self.curPosition:
             for i in range(self.curPosition, position):
                 yield self.setVoltages(c, i + 1, n)

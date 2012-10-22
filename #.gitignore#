@@ -1,0 +1,12 @@
+*.pyc
+Errors.log
+.progject
+.pydevproject
+*.pyc
+.settings
+.directory
+/data
+/datavault
+/clients/NodeClient-control-cct.py
+/cl
+*~

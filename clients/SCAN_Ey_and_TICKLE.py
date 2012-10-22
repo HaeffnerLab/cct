@@ -153,7 +153,7 @@ class Ey(QtGui.QWidget):
 	    if listy[i][0] == 'U5':
 		U5 = listy[i][1]
 	for Ey in amplitudes:
-	    yield self.dv.cd(['', date, 'QuickMeasurements','MMComp', time + '-Ey and Tickle'],True)
+	    yield self.dv.cd(['', date, 'MMComp', time + '-Ey and Tickle'],True)
 	    name = yield self.dv.new('Ey: ' + str(Ey),[('Frequency', 'Hz')], [('PMT Counts', 'PMT counts', 'PMT counts')])
 	    yield self.dv.add_parameter('Ey', Ey)
 	    yield self.dv.add_parameter('plotLive',True)
