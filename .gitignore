@@ -1,10 +1,13 @@
+.gitignore
 *.pyc
 Errors.log
-.progject
+.project
 .pydevproject
 *.pyc
+.recent.ini
+.DS_store
 .settings
 .directory
-/data
-/datavault
+/installs
 *~
+*.pid
