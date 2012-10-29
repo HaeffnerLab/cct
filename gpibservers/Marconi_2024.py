@@ -1,6 +1,6 @@
 # Ryan Blais
 # To Do: test, output status functionality
-
+# Questions: where to find docs on addCallback
 """
 ### BEGIN NODE INFO
 [info]
@@ -27,7 +27,7 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
     def initilize(self):
         self.frequency = yield self.getFrequency()
         self.amplitude = yield self.getAmplitude()
-#         self.output = yield self.getOutput()
+        self.output = yield self.getOutput()
     
     @inlineCallbacks
     def getFrequency(self):
@@ -36,7 +36,7 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
         Example:
         :CFRQ:VALUE 1000000000.0;INC 25000.0;MODE FIXED
         '''
-        msg = yield self.query('CFRQ?').addCallback(string)
+        msg = yield self.query('CFRQ?').addCallback(str) # not sure, want string not float
         frequency = float(msg.split(';')[0].split()[1])
         self.frequency = frequency
         returnValue(self.frequency)
@@ -48,7 +48,7 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
         Example:
         :RFLV:UNITS DBM;TYPE PD;VALUE -103.5;INC 2.0;ON
         '''
-        msg = yield self.query('RFLV?').addCallback(string)
+        msg = yield self.query('RFLV?').addCallback(str) # not sure, see above
         amplitude = float(msg.split(';')[2].split()[1])
         self.amplitude = amplitude
         returnValue(self.amplitude)
@@ -57,12 +57,13 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
     def getOutput(self):
         '''Format of output status message:
         :OUTPUT:<status>
-        Example:
+        Examples:
         :OUTPUT:ENABLE
+        :OUTPUT:DISABLE
         '''
         # This is not very elegant, if it does not work it's 
         # likely a problem with the formatting.
-        msg = yield self.query('OUTPUT?').addCallback(string)
+        msg = yield self.query('OUTPUT?').addCallback(str) # not sure, see above
         output = msg.split(':')[2]
         self.output = output
         returnValue(self.output)
@@ -79,6 +80,12 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
             yield self.write('RFLV:Value {}'.format(float(a)))
             self.amplitude = a
     
+    @inlineCallbacks
+    def setOutput(self, o):
+        if self.output != o:
+            yield self.write('OUTPUT:' + '{}'.format(o))
+            self.output = o
+
 
 class MarconiServer(GPIBManagedServer):
     """Provides basic CW control for Marconi 2024 RF Generators"""
@@ -102,25 +109,32 @@ class MarconiServer(GPIBManagedServer):
             yield dev.setAmplitude(a)
         returnValue(dev.amplitude)
 
-    @setting(12, 'Output', os=['b'], returns=['b'])
-    def output_state(self, c, os=None):
-        """Get or set the output status."""
-        dev = self.selectedDevice(c)
-        if os is not None:
-            yield dev.setFrequency(os)
-            yield dev.setAmplitude(os)
-        returnValue(dev.output)
+#     @setting(12, 'Output', os=['b'], returns=['b'])
+#     def output_state(self, c, os=None): 
+#         """Get or set the output status."""
+#         dev = self.selectedDevice(c)
+#         if os is not None:
+#             yield dev.setFrequency(os)
+#             yield dev.setAmplitude(os)
+#         returnValue(dev.output)
 
-    @setting(13, 'On Off', state = 'b', returns = 'b')
+    @setting(13, 'OnOff', state = 'b', returns = 'b')
     def on_off(self, c, state):
         dev = self.selectedDevice(c)
         if state is not None:
             yield dev.setOutput(state)
         returnValue(dev.output)
         
-__server__ = RohdeSchwarzServer()
+__server__ = MarconiServer()
 
 if __name__ == '__main__':
-    print 'Marconi server has not been tested'
-    #from labrad import util
-    #util.runServer(__server__)
+    test = 0
+    if ! test:
+        print 'Marconi server has not been tested'
+    else:        
+        from labrad import util
+        util.runServer(__server__)
+        s = __server__
+        print 'Frequency = ' + str(s.frequency)
+        print 'Amplitude = ' + str(s.amplitude)
+        print 'Output State = ' + s.output
