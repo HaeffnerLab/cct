@@ -90,7 +90,7 @@ class Marconi2024Wrapper(GPIBDeviceWrapper):
 class MarconiServer(GPIBManagedServer):
     """Provides basic CW control for Marconi 2024 RF Generators"""
     name = 'Marconi Server'
-    deviceName = 'Marconi 2024'
+    deviceName = 'IFR,2024,112236/043,44533/466/03.04'
     deviceWrapper = Marconi2024Wrapper
     
     @setting(10, 'Frequency', f=['v[MHz]'], returns=['v[MHz]'])
@@ -129,7 +129,7 @@ __server__ = MarconiServer()
 
 if __name__ == '__main__':
     test = 0
-    if ! test:
+    if not test:
         print 'Marconi server has not been tested'
     else:        
         from labrad import util
