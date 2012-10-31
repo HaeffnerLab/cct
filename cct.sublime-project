@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"path": "/home/cct/LabRAD/cct"
+		}
+	],
+	"build_systems":
+	[
+    	{
+    		"name": "Run Tests",
+    		"cmd": ["source", "/home/cct/.virtualenvs/newlabrad/bin/python"],
+    		"working_dir": "/home/cct/LabRAD/cct",
+    		"cmd": ["python", "manage.py", "test"]
+   		}
+	]
+}
