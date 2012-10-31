@@ -9,5 +9,6 @@ Errors.log
 .settings
 .directory
 /installs
+/data
 *~
 *.pid
