@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 nodeDict = {'node_resonatormain':
-					['GPIB Device Manager','Serial Server','Data Vault', 'CCTDAC Pulser v2', 'Pulser','RohdeSchwarz Server','Tektronix Server','NormalPMTFlow'],
+					['GPIB Device Manager','Data Vault','Pulser', 'CCTDAC Pulser v2','RohdeSchwarz Server','Tektronix Server','NormalPMTFlow'],
 		}
 
 #connect to LabRAD
