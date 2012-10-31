@@ -44,11 +44,11 @@ class WireVoltageModulation():
         self.setupLogic()
         self.programPulser()
         
-        totalBinningTime = self.seqP.bufferTime + self.seqP.excitationTime
+        totalBinningTime = 25e-3 + 2*self.seqP.bufferTime + 2*self.seqP.excitationTime
         self.Binner = Binner(totalBinningTime, self.expP.binTime)
 
     def setupLogic(self):
-        self.pulser.switch_auto('wireVoltage', True)
+        self.pulser.switch_auto('wireVoltage', False)
 
     def programPulser(self):
         seq = wireVoltage(self.pulser)
@@ -74,29 +74,36 @@ class WireVoltageModulation():
         date = now.strftime("%Y%m%d")
         ti = now.strftime('%H%M%S')
 
-        self.dv.cd(['',date, self.experimentName, ti], True)
-        self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
-        self.dv.add_parameter('Window',['Binned Fluorescence'])
-        self.dv.add_parameter('plotLive', True)        
+        timetag_context = self.dv.context()
+        self.dv.cd(['',date, self.experimentName, ti, 'binned'], True)
+        self.dv.cd(['',date, self.experimentName, ti, 'timetags'], True, context = timetag_context)
+        #self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
+        self.dv.new('timetags',[('Time', 'sec')], [('Iteration', 'Arb','Arb')] , context = timetag_context )
 
-        for iteration in range(xP.iterations):
-            self.pulser.reset_timetags()
-            self.pulser.start_single()
-            self.pulser.wait_sequence_done()
-            self.pulser.stop_sequence()
-
+        numUpdates = 1
+        self.pulser.reset_timetags()
+        for n in range(numUpdates):
+            for iteration in range(xP.iterations / numUpdates):
+                self.pulser.start_single()
+                self.pulser.wait_sequence_done()
+                self.pulser.stop_sequence()
+                print iteration
             timetags = self.pulser.get_timetags().asarray
-            #print len(timetags)
-            print len(timetags)
+            self.pulser.reset_timetags()
+            iterationUmber = (n*(xP.iterations/numUpdates) + iteration) * numpy.ones(len(timetags))
+            timetag_raw = numpy.vstack((iterationUmber,timetags)).transpose()
+            self.dv.add( timetag_raw, context=timetag_context)
+            #print n*(xP.iterations/numUpdates) + iteration
+            #print timetags
             self.Binner.add(timetags)
-
-        # Recording data
-
-        binX, binY = self.Binner.getBinned()
-        data = numpy.vstack((binX,binY)).transpose()
-        self.dv.add(data)
-        print sum(binY)
-
+            
+            self.dv.new('binned_timetags_' + str(n+1) + '_of_' + str(numUpdates),[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
+            self.dv.add_parameter('Window',['Binned Fluorescence'])
+            self.dv.add_parameter('plotLive', True)
+            binX, binY = self.Binner.getBinned()
+            data = numpy.vstack((binX,binY)).transpose()
+            self.dv.add(data)
+            
         measureList = ['cavity397', 'cavity866', 'multiplexer397', 'multiplexer866', 'pulser']
         measureDict = dvParameters.measureParameters(self.cxn, self.cxnlab, measureList)
 
@@ -113,13 +120,13 @@ class WireVoltageModulation():
 
 if __name__ == '__main__':
     params = {
-        'excitationTime':100e-3,
+        'excitationTime':10e-3,
         'bufferTime':1e-3
         }
 
     exprtParams = {
-        'iterations':100,
-        'binTime': 50.0*10**-6
+        'iterations':1000,
+        'binTime': 500e-6
         }
 
     exprt = WireVoltageModulation(params, exprtParams)

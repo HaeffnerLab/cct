@@ -1,4 +1,4 @@
-import sys;
+mport sys;
 sys.path.append('/home/cct/LabRAD/cct/scripts/simpleMeasurements/FFT')
 import os
 from PyQt4 import QtGui

@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 
 class cctGUI(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
@@ -7,11 +8,13 @@ class cctGUI(QtGui.QMainWindow):
 
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)
-        piezoControlTab = self.makePiezoWidget(reactor)        
+        piezoControlTab = self.makePiezoWidget(reactor)
         tabWidget = QtGui.QTabWidget()
         tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         tabWidget.addTab(lightControlTab,'&Laser Room')
         tabWidget.addTab(piezoControlTab, '&Piezo')
+        self.tabWidget = tabWidget
+        self.createGrapherTab()
         self.setWindowTitle('CCTGUI')
         self.setCentralWidget(tabWidget)
 
@@ -36,12 +39,12 @@ class cctGUI(QtGui.QMainWindow):
         return widget
         
     def makeVoltageWidget(self, reactor):        
-        from DAC_CONTROL_PULSER import DAC_Control
+        from DAC_CONTROL import DAC_Control
         from PMT_CONTROL import pmtWidget
         from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
         from TICKLE_CONTROL import Tickle_Control
-        from SHUTTER_CONTROLv2 import SHUTTER
+        from SHUTTER_CONTROL import SHUTTER
         from PIEZO_CONTROL import PIEZO_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         widget = QtGui.QWidget()
@@ -60,6 +63,25 @@ class cctGUI(QtGui.QMainWindow):
         rightPanel.setRowStretch(2, 1)            
         widget.setLayout(gridLayout)
         return widget
+    
+    @inlineCallbacks
+    def createGrapherTab(self):
+        grapherTab = yield self.makeGrapherWidget(reactor)
+        self.tabWidget.addTab(grapherTab, '&Grapher')
+
+    @inlineCallbacks
+    def makeGrapherWidget(self, reactor):
+        widget = QtGui.QWidget()
+        from pygrapherlive.connections import CONNECTIONS
+        vboxlayout = QtGui.QVBoxLayout()
+        Connections = CONNECTIONS(reactor)
+        @inlineCallbacks
+        def widgetReady():
+            window = yield Connections.introWindow
+            vboxlayout.addWidget(window)
+            widget.setLayout(vboxlayout)
+        yield Connections.communicate.connectionReady.connect(widgetReady)
+        returnValue(widget)        
 
     def closeEvent(self, x):
         self.reactor.stop()

@@ -1,16 +1,27 @@
 from sequence import Sequence
 import time
 import numpy as np
+from labrad import types as T
 
 class TimeResolved(Sequence):
     #dictionary of variable: (type, min, max, default)
     requiredVars = {
-                         'recordTime':(float, 10e-9, 5.0, 100e-3)
+                         'recordTime':(float, 10e-9, 100.0, 100e-3)
                     }
     
     def defineSequence(self):
         recordTime = self.vars['recordTime']       
         self.pulser.add_ttl_pulse('TimeResolvedCount', 0.0, recordTime) #record the whole time
+
+class sample_parameters(object):
+
+    parameters = {
+        'centerFreq':T.Value(100,'Hz'),
+        'recordTime':T.Value(2,'s'),
+        'freqOffset':T.Value(0,'Hz'),
+        'freqSpan':T.Value(20,'Hz'),
+        'numToAverage':4
+        }
 
 if __name__ == '__main__':
     import labrad
