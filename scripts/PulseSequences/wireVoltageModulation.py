@@ -6,7 +6,7 @@ class wireVoltage(Sequence):
 
     # dictionary of variable: (type, min, max, default)
     requiredVars = {
-        'excitationTime':(float, 1e-3, 10.0, 1e-3),
+        'excitationTime':(float, 1e-6, 10.0, 1e-3),
         'bufferTime':(float, 10e-9, 10.0, 1e-3)
         }
 
@@ -14,8 +14,7 @@ class wireVoltage(Sequence):
 
         excitationTime = self.vars['excitationTime']
         bufferTime = self.vars['bufferTime']
-        
+
         # add_ttl_pulse has form (channel, start time, duration)
-        self.pulser.add_ttl_pulse('TimeResolvedCount', 0, 25e-3 + 2*bufferTime + 2*excitationTime)
-        self.pulser.add_ttl_pulse('wireVoltage', 5e-3, excitationTime) # may need to invert
-        self.pulser.add_ttl_pulse('wireVoltage', 5e-3 + excitationTime + bufferTime, excitationTime)
+        self.pulser.add_ttl_pulse('TimeResolvedCount', 0.0,  2*bufferTime + excitationTime)
+        self.pulser.add_ttl_pulse('wireVoltage', bufferTime, excitationTime) # may need to invert

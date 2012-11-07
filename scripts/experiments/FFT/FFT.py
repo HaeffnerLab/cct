@@ -2,12 +2,12 @@ import sys;
 sys.path.append('/home/cct/LabRAD/cct/scripts')
 sys.path.append('/home/cct/LabRAD/cct/scripts/PulseSequences')
 import numpy as np
-from PulseSequences.TimeResolvedRecord import TimeResolved
+from scripts.PulseSequences.TimeResolvedRecord2 import TimeResolved
 from processFFT import processFFT
 import datetime
 import time as TIME
 from scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
-from scripts.PulseSequences.TimeResolvedRecord import sample_parameters
+from scripts.PulseSequences.TimeResolvedRecord2 import sample_parameters
 
 class simpleFFT(SemaphoreExperiment):
     ''' Experiment for a simple FFT measurement '''

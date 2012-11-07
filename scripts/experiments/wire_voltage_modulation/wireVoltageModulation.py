@@ -1,9 +1,6 @@
 # wire voltage modulation
 
 import sys
-sys.path.append('/home/cct/LabRAD/cct/scripts')
-sys.path.append('/home/cct/LabRAD/cct/scripts/PulseSequences')
-
 import labrad
 from labrad import types
 import numpy
@@ -11,7 +8,7 @@ import time
 import datetime
 
 from fly_processing import Binner
-from PulseSequences.wireVoltageModulation import wireVoltage
+from scripts.PulseSequences.wireVoltageMod import wireVoltage
 from scriptLibrary import dvParameters
 
 class Bunch:

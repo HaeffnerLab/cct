@@ -17,14 +17,14 @@ class ScriptControl(QtGui.QWidget):
      ('Test','Exp1'): ('clients.guiscriptcontrol.experiments.Test','Test'),
      ('Test','Exp2'):('clients.guiscriptcontrol.experiments.Test','Test2'),
      ('FFT','simpleFFT'): ('scripts.experiments.FFT.FFT','simpleFFT'),
-     ('Wire', 'WireVoltageModulation'): ('scripts.experiments.wire_voltage_modulation', 'wireVoltageModulation')
+     # ('Wire', 'WireVoltageModulation'): ('scripts.experiments.Wire.WireVoltageModulation', 'WireVoltageModulation')
      }
     #conflicting experiments, every experiment conflicts with itself
     conflictingExperiments = {
     ('Test','Exp1'):[('Test','Exp1'), ('Test','Exp2')],
     ('Test','Exp2'):[('Test', 'Exp1'), ('Test','Exp2')],
     ('FFT','simpleFFT'):[('FFT','simpleFFT')],
-    ('Wire','WireVoltageModulation'): [('Wire','WireVoltageModulation')]
+    # ('Wire','WireVoltageModulation'): [('Wire','WireVoltageModulation')]s
     }
     
     def __init__(self, reactor, parent):
@@ -188,9 +188,7 @@ class ScriptControl(QtGui.QWidget):
 #        parameterLimitsButton = QtGui.QPushButton("Parameter Limits", self)
 #        parameterLimitsButton.setGeometry(QtCore.QRect(0, 0, 30, 30))
 #        parameterLimitsButton.clicked.connect(self.parameterLimitsWindowEvent)
-#        self.miscLayout.addWidget(parameterLimitsButton)       
-
-        self.mainLayout.addLayout(self.widgetLayout)       
+#        self.miscLayout.addWidget(parameterLimitsButto
 #        self.mainLayout.addLayout(self.miscLayout)
         self.setLayout(self.mainLayout)
         self.show()
@@ -204,7 +202,7 @@ class ScriptControl(QtGui.QWidget):
         self.statusContext = yield self.cxn.context()
         self.schedulerContext = yield self.cxn.context()
         self.experimentParametersWidget.setContexts(self.experimentContext, self.globalContext)
-        self.setupStatusWidget(['Wire', 'WireVoltageModulation']) # the experiment to start with ####shouldn't be manually written
+        # self.setupStatusWidget(['Wire', 'WireVoltageModulation']) # the experiment to start with ####shouldn't be manually written
         self.schedulerWidget.setContext(self.schedulerContext)
 
     def setupStatusWidget(self, experiment):

@@ -50,12 +50,12 @@ def setupLogic(self):
 def programPulser(self):
         seq = HeatSeq(self.pulser)
         self.pulser.new_sequence()
-        seq.setVariables(**self.seqP.toDict())
-        seq.defineSequence()
-        self.pulser.program_sequence()
-        self.seqP['recordTime'] = seq.parameters.recordTime
-        self.seqP['startReadout'] = seq.parameters.startReadout
-        self.seqP['endReadout'] = seq.parameters.endReadout
+        # seq.setVariables(**self.seqP.toDict())
+        # seq.defineSequence()
+        # self.pulser.program_sequence()
+        # self.seqP['recordTime'] = seq.parameters.recordTime
+        # self.seqP['startReadout'] = seq.parameters.startReadout
+        # self.seqP['endReadout'] = seq.parameters.endReadout
         
 def run(self):
         self.initialize()
