@@ -1,0 +1,377 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"for",
+				"format"
+			],
+			[
+				"experiment",
+				"experimentPath"
+			],
+			[
+				"se",
+				"sequence_parameters"
+			],
+			[
+				"sa",
+				"sample_parameters"
+			],
+			[
+				"cl",
+				"clients"
+			],
+			[
+				"Wire",
+				"WireVoltageModulation"
+			],
+			[
+				"wire",
+				"WireVoltageModulation"
+			],
+			[
+				"seq",
+				"sequence_parameters"
+			],
+			[
+				"pro",
+				"program_sequence"
+			],
+			[
+				"setup",
+				"setup_sequence_parameters"
+			],
+			[
+				"Se",
+				"SemaphoreExperiment"
+			],
+			[
+				"experi",
+				"Experiments"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "dataservers/semaphore.py",
+			"settings":
+			{
+				"buffer_size": 8892,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "clients/SCRIPTCONTROL/scriptcontrol.py",
+			"settings":
+			{
+				"buffer_size": 13966,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "clients/SCRIPTCONTROL/experiments/WVM.py",
+			"settings":
+			{
+				"buffer_size": 10774,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "clients/SCRIPTCONTROL/launcher.py",
+			"settings":
+			{
+				"buffer_size": 664,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/WireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/wireVoltageMod.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/launcher.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/launcher.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Wire/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/globalgrid.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/parameterswidget.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/HeatingRate.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_rabi.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Wire/rabi.py",
+		"/home/cct/LabRAD/cct/sublimeCCT.sublime-project",
+		"/home/cct/LabRAD/cct/okfpgaservers/pulser/pulser_ok.py"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"self.dirappend",
+			"range",
+			"self.sequenceParameters",
+			"sample_parameters",
+			"sample",
+			"populate",
+			"Bunch",
+			"branching_ratio",
+			"BranchingRatio",
+			"createContexts",
+			"wire",
+			"written",
+			"wire",
+			"xP.iterations",
+			"bin",
+			"sP.",
+			"xP.",
+			"xP ",
+			"xP",
+			"setup_sequence_parameters",
+			"seqP",
+			"setup_sequence_parameters"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "dataservers/semaphore.py",
+					"settings":
+					{
+						"buffer_size": 8892,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7006,
+								7006
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3009.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "clients/SCRIPTCONTROL/scriptcontrol.py",
+					"settings":
+					{
+						"buffer_size": 13966,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1539,
+								1539
+							],
+							[
+								1546,
+								1546
+							],
+							[
+								1833,
+								1833
+							],
+							[
+								1850,
+								1850
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "clients/SCRIPTCONTROL/experiments/WVM.py",
+					"settings":
+					{
+						"buffer_size": 10774,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5189,
+								5189
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1479.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "clients/SCRIPTCONTROL/launcher.py",
+					"settings":
+					{
+						"buffer_size": 664,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								664,
+								664
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 112.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 240.0,
+	"status_bar_visible": true
+}
