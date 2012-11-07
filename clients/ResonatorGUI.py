@@ -47,18 +47,15 @@ class ResonatorGUI(QtGui.QMainWindow):
     def makeVoltageWidget(self, reactor):        
         from DAC_CONTROL_PULSER import DAC_Control
         from PMT_CONTROL import pmtWidget
-        from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
         from TICKLE_CONTROL import Tickle_Control
         from SHUTTER_CONTROLv2 import SHUTTER
-        from PIEZO_CONTROL import PIEZO_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()        
         gridLayout.addWidget(DAC_Control(reactor), 0, 0)            
         rightPanel = QtGui.QGridLayout()
         rightPanel.addWidget(pmtWidget(reactor), 0, 0)
-#        rightPanel.addWidget(pmtWidget2(reactor), 1, 0)        
         bottomPanel = QtGui.QGridLayout()
         bottomPanel.addWidget(Tickle_Control(reactor), 1, 1)      
         bottomPanel.addWidget(TD_CONTROL(reactor), 1, 0)
