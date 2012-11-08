@@ -1,19 +1,37 @@
 from PyQt4 import QtGui, QtCore
+from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 
 class cctGUI(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
         super(cctGUI, self).__init__(parent)
         self.reactor = reactor
-
+        self.tabWidget = QtGui.QTabWidget()
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)
-        piezoControlTab = self.makePiezoWidget(reactor)        
-        tabWidget = QtGui.QTabWidget()
-        tabWidget.addTab(voltageControlTab,'&Trap Voltages')
-        tabWidget.addTab(lightControlTab,'&Laser Room')
-        tabWidget.addTab(piezoControlTab, '&Piezo')
+        piezoControlTab = self.makePiezoWidget(reactor)
+        self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
+        self.tabWidget.addTab(lightControlTab,'&Laser Room')
+        self.tabWidget.addTab(piezoControlTab, '&Piezo')
+        self.createGrapherTab()
+        scriptControl = self.makeScriptControl(reactor)
+        
+        gridLayout = QtGui.QGridLayout()
+        gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
+        gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
+        centralWidget = QtGui.QWidget()
+        centralWidget.setLayout(gridLayout)
+        self.setCentralWidget(centralWidget)
         self.setWindowTitle('CCTGUI')
-        self.setCentralWidget(tabWidget)
+
+    def makeScriptControl(self, reactor):
+        from SCRIPT_CONTROL.scriptcontrol import ScriptControl
+        self.sc = ScriptControl(reactor, self)
+        self.sc, self.experimentParametersWidget = self.sc.getWidgets()
+        self.createExperimentParametersTab()
+        return self.sc
+
+    def createExperimentParametersTab(self):
+        self.tabWidget.addTab(self.experimentParametersWidget, '&Experiment Parameters')
 
     def makeLightWidget(self, reactor):        
         from CAVITY_CONTROL import cavityWidget
@@ -36,20 +54,19 @@ class cctGUI(QtGui.QMainWindow):
         return widget
         
     def makeVoltageWidget(self, reactor):        
-        from DAC_CONTROL_PULSER import DAC_Control
+        from DAC_CONTROL import DAC_Control
         from PMT_CONTROL import pmtWidget
         from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
         from TICKLE_CONTROL import Tickle_Control
-        from SHUTTER_CONTROLv2 import SHUTTER
+        from SHUTTER_CONTROL import SHUTTER
         from PIEZO_CONTROL import PIEZO_CONTROL
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()        
         gridLayout.addWidget(DAC_Control(reactor), 0, 0)            
         rightPanel = QtGui.QGridLayout()
-        rightPanel.addWidget(pmtWidget(reactor), 0, 0)
-#        rightPanel.addWidget(pmtWidget2(reactor), 1, 0)        
+        rightPanel.addWidget(pmtWidget(reactor), 0, 0)       
         bottomPanel = QtGui.QGridLayout()
         bottomPanel.addWidget(Tickle_Control(reactor), 1, 1)      
         bottomPanel.addWidget(TD_CONTROL(reactor), 1, 0)
@@ -60,6 +77,25 @@ class cctGUI(QtGui.QMainWindow):
         rightPanel.setRowStretch(2, 1)            
         widget.setLayout(gridLayout)
         return widget
+    
+    @inlineCallbacks
+    def createGrapherTab(self):
+        grapherTab = yield self.makeGrapherWidget(reactor)
+        self.tabWidget.addTab(grapherTab, '&Grapher')
+
+    @inlineCallbacks
+    def makeGrapherWidget(self, reactor):
+        widget = QtGui.QWidget()
+        from pygrapherlive.connections import CONNECTIONS
+        vboxlayout = QtGui.QVBoxLayout()
+        Connections = CONNECTIONS(reactor)
+        @inlineCallbacks
+        def widgetReady():
+            window = yield Connections.introWindow
+            vboxlayout.addWidget(window)
+            widget.setLayout(vboxlayout)
+        yield Connections.communicate.connectionReady.connect(widgetReady)
+        returnValue(widget)        
 
     def closeEvent(self, x):
         self.reactor.stop()

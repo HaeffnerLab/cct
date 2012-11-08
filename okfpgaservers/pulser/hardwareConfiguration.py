@@ -54,6 +54,7 @@ class hardwareConfiguration(object):
                   'wireVoltage':channelConfiguration(10, False, False, False, False),                 
                   '397sw':channelConfiguration(12, False, False, False, True),
                   '866sw':channelConfiguration(13, False, False, False, True),
+                  '2W oven':channelConfiguration(14, False, False, False, True),
                   #------------INTERNAL CHANNELS----------------------------------------#
                   'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
                   'TimeResolvedCount':channelConfiguration(17, False, False, False, False),

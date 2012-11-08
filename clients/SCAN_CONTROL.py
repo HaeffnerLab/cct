@@ -38,6 +38,7 @@ class SCAN(QtGui.QWidget):
             self.control[label] = QtGui.QDoubleSpinBox()
             self.control[label].setDecimals(4)
         self.label = {}	
+        self.button = {}
         self.control['minAmp'].setRange(-10,10)
         self.control['minAmp'].setValue(DminAmp)
         self.label['minAmp'] = QtGui.QLabel('minimum %s [V/m]:' % axis[:2])
@@ -59,19 +60,19 @@ class SCAN(QtGui.QWidget):
         self.label['numStepsTfrq'] = QtGui.QLabel('number of tickle steps:')
         self.control['sizeStepsTfrq'].setValue(DsizeStepsTfrq)
         self.label['sizeStepsTfrq'] = QtGui.QLabel('tickle step size:')
-        self.control['scan'] = QtGui.QPushButton('Scan')
-        self.control['stop'] = QtGui.QPushButton('Stop')
-        self.control['revAmp'] = QtGui.QCheckBox('reverse')
-        self.control['revT'] = QtGui.QCheckBox('reverse')
+        self.button['scan'] = QtGui.QPushButton('Scan')
+        self.button['stop'] = QtGui.QPushButton('Stop')
+        self.button['revAmp'] = QtGui.QCheckBox('reverse')
+        self.button['revT'] = QtGui.QCheckBox('reverse')
         groupBox.setLayout(groupBoxLayout)
         layout.addWidget(groupBox, 0, 0)
         for i, l in enumerate(self.controlLabels):
             groupBoxLayout.addWidget(self.control[l], i, 1)
             groupBoxLayout.addWidget(self.label[l], i, 0)
-        groupBoxLayout.addWidget(self.control['scan'], len(self.controlLabels) + 1, 0, 1, 2)
-        groupBoxLayout.addWidget(self.control['stop'], len(self.controlLabels) + 2, 0, 1, 2)
-        groupBoxLayout.addWidget(self.control['revAmp'], 3, 2)
-        groupBoxLayout.addWidget(self.control['revT'], 8, 2)
+        groupBoxLayout.addWidget(self.button['scan'], len(self.controlLabels) + 1, 0, 1, 2)
+        groupBoxLayout.addWidget(self.button['stop'], len(self.controlLabels) + 2, 0, 1, 2)
+        groupBoxLayout.addWidget(self.button['revAmp'], 3, 2)
+        groupBoxLayout.addWidget(self.button['revT'], 8, 2)
         self.setLayout(layout)
 
     @inlineCallbacks
@@ -82,6 +83,7 @@ class SCAN(QtGui.QWidget):
         self.T = T
         self.cxn = yield connectAsync()
         self.cxncam = yield connectAsync('192.168.169.30')
+        self.r = yield self.cxn.registry
         self.dv = yield self.cxn.data_vault
         self.ds = yield self.cxn.cctdac_pulser_v2
         self.pmt = self.cxn.normalpmtflow
@@ -91,8 +93,12 @@ class SCAN(QtGui.QWidget):
         self.control['sizeStepsAmp'].valueChanged.connect(self.sizeAStepsChanged)
         self.control['numStepsTfrq'].valueChanged.connect(self.numTStepsChanged)
         self.control['sizeStepsTfrq'].valueChanged.connect(self.sizeTStepsChanged)
-        self.control['scan'].clicked.connect(self.scan)
-        self.control['stop'].clicked.connect(self.stopScan)
+        self.button['scan'].clicked.connect(self.scan)
+        self.button['stop'].clicked.connect(self.stopScan)
+        self.r.cd('', 'Scan Control', self.axis[:2])
+        for k in self.control.keys():
+            last = yield self.r.get(k + self.axis[:2])
+            self.control[k].setValue(last)
         
     def numAStepsChanged(self):
         if self.control['numStepsAmp'].value() == 0:
@@ -121,15 +127,21 @@ class SCAN(QtGui.QWidget):
     @inlineCallbacks
     def scan(self, c):
         axis = self.axis
-        self.control['scan'].setText('Scan is running')
+        self.button['scan'].setText('Scan is running')
         self.running = True
         yield self.rs.onoff(True)
         now = datetime.datetime.now()
         date = now.strftime("%Y%m%d")
         time = now.strftime('%H%M%S')
 
+        # add values to registry
+        r = self.r
+        r.cd(['', 'Scan Control', axis[:2]], True)
+        for k in self.control.keys():
+            r.set(k + axis[:2], self.control[k].value())
+
         amplitudes = numpy.arange(self.control['minAmp'].value(), self.control['maxAmp'].value(), self.control['sizeStepsAmp'].value())
-        if self.control['revAmp'].isChecked():
+        if self.button['revAmp'].isChecked():
             amplitudes = amplitudes[::-1]
 
         mv = yield self.ds.get_multipole_values()
@@ -140,7 +152,7 @@ class SCAN(QtGui.QWidget):
         del D[axis]
         for A in amplitudes:
             dirName = time + '-%s and Tickle' % axis[:2]
-            yield self.dv.cd(['', date, 'QuickMeasurements','MMComp', dirName],True)
+            yield self.dv.cd(['', date,'MMComp', dirName],True)
             graphName = axis[:2] + ': ' + str(A)
             name = yield self.dv.new(graphName,[('Frequency', 'Hz')], [('PMT Counts', 'PMT counts', 'PMT counts')])
             yield self.dv.add_parameter(axis[:2], A)
@@ -148,13 +160,13 @@ class SCAN(QtGui.QWidget):
             print 'Saving {}'.format(name)
             yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, A)])
             frequencies = numpy.arange(self.control['minTfrq'].value(), self.control['maxTfrq'].value(), self.control['sizeStepsTfrq'].value())
-            if self.control['revT'].isChecked():	
+            if self.button['revT'].isChecked():	
                 frequencies = frequencies[::-1] # The ion asks that you kindly scan downwards, thanks
             for f in frequencies:
                 if self.running == False:
                     yield self.rs.onoff(False)
                     yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, initA)])
-                    self.control['scan'].setText('Scan')
+                    self.button['scan'].setText('Scan')
                     return
                 self.rs.frequency(self.T.Value(f, 'MHz'))
                 #TIME.sleep(.3)
@@ -162,7 +174,7 @@ class SCAN(QtGui.QWidget):
                 yield self.dv.add(f, pmtcount)
             yield self.rs.onoff(False)
             yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, initA)])
-            self.control['scan'].setText('Scan')
+            self.button['scan'].setText('Scan')
 
     def stopScan(self, c):
         self.running = False
