@@ -30,9 +30,9 @@ class MarconiServer(SerialDeviceServer):
     """Server for basic CW control of Marconi RF Generator"""
     
     name = 'Marconi Server'
-    regKey = 'sskey' # we need to set this in the registry?
+    regKey = 'sskey' # set sskey value in registry to COM port for the device
     port = None
-    serNode = 'cctmain' # this needs to change depending on user? 
+    serNode = 'cctmain' # this needs to change depending on user?
                         # set in registry instead?
     timeout = 1.0
     onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)') # what for?
@@ -226,8 +226,8 @@ class MarconiServer(SerialDeviceServer):
         '''String to set power (in dBm)'''
         return 'POW:AMPL ' +str(pwr) + 'DBM' + '\n'
         
-    def SetPowerUnitsStr(self, units='DMB'):
-        '''String to set power units (defaults to DMB'''
+    def SetPowerUnitsStr(self, units='DBM'):
+        '''String to set power units (defaults to dBM)'''
         return 'RFLV:UNITS ' + units
     
     # string to force read
