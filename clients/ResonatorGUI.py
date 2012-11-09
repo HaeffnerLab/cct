@@ -5,15 +5,33 @@ class ResonatorGUI(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
         super(ResonatorGUI, self).__init__(parent)
         self.reactor = reactor
-
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)      
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Laser Room')
         self.createGrapherTab()
+        
+        scriptControl = self.makeScriptControl(reactor)
+        gridLayout = QtGui.QGridLayout()
+        gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
+        gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
+        centralWidget = QtGui.QWidget()
+        centralWidget.setLayout(gridLayout)
+        self.setCentralWidget(centralWidget)
         self.setWindowTitle('Resonator GUI')
-        self.setCentralWidget(self.tabWidget)
+
+        
+    def makeScriptControl(self, reactor):
+        from SCRIPT_CONTROL.scriptcontrol import ScriptControl
+        self.sc = ScriptControl(reactor, self)
+        self.sc, self.experimentParametersWidget = self.sc.getWidgets()
+        self.createExperimentParametersTab()
+        return self.sc
+        
+    def createExperimentParametersTab(self):
+        self.tabWidget.addTab(self.experimentParametersWidget, '&Experiment Parameters')
+
         
     @inlineCallbacks
     def createGrapherTab(self):
@@ -49,7 +67,7 @@ class ResonatorGUI(QtGui.QMainWindow):
         from PMT_CONTROL import pmtWidget
         from TRAPDRIVE_CONTROL import TD_CONTROL
         from TICKLE_CONTROL import Tickle_Control
-        from SHUTTER_CONTROLv2 import SHUTTER
+        from SHUTTER_CONTROL import SHUTTER
         from multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()        
