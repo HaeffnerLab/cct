@@ -16,8 +16,8 @@ timeout = 5
 ### END NODE INFO
 """
 
-from serialdeviceserver import SerialDeviceServer, setting, inlineCallbacks,\
-                               SerialDeviceError, SerialConnectionError
+from serialdeviceserver_v1_2 import SerialDeviceServer, setting, inlineCallbacks,\
+                                    SerialDeviceError, SerialConnectionError
 from twisted.internet import reactor
 from twisted.internet.defer import returnValue
 from labrad.server import Signal
@@ -30,10 +30,10 @@ class MarconiServer(SerialDeviceServer):
     """Server for basic CW control of Marconi RF Generator"""
     
     name = 'Marconi Server'
-    regKey = 'sskey' # set sskey value in registry to COM port for the device
+    regKey = 'MarconiKey' # set MarconiKey in registry to /dev/ttyUSB# where # is the uSB port you are connected at
+                          # actually this does not seem to work
     port = None
-    serNode = 'cctmain' # this needs to change depending on user?
-                        # set in registry instead?
+    serNode = 'cctmain' # name of the serial server
     timeout = 1.0
     onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)') # what for?
     onStateUpdate = Signal(SIGNALID1, 'signal: state updated', 'b')
@@ -59,9 +59,9 @@ class MarconiServer(SerialDeviceServer):
             else: raise
             
 #         self.ser.write(self.SetAddrStr(self.gpibaddr)) # set gpib address
-        self.SetControllerWait(0) # turns off automatic listen after talk, necessary 
-                                  # to stop line unterminated errors
-        self.SetPowerUnits('DBM')
+#         self.SetControllerWait(0) # turns off automatic listen after talk, necessary 
+                                    # to stop line unterminated errors
+        self.SetPowerUnits(units='DBM')
         yield self.populateDict()
         self.listeners = set()
     
@@ -149,14 +149,14 @@ class MarconiServer(SerialDeviceServer):
         self.onNewUpdate(('power',level),notified)
     
     @setting(8, "PowerUnits", units = 's', returns = '')
-    def SetPowerUnits(self, c, units):
+    def SetPowerUnits(self, c=None, units='dBm'):
         '''Sets power units'''
         command = self.SetPowerUnitsStr(units)
         self.ser.write(command)
         self.marDict['PwrUnits'] = units
-        notified = self.getOtherListereners(c)
-        self.onNewUpdate(('power units'),units),notified)
-    
+        #notified = self.getOtherListereners(c)
+        #self.onNewUpdate(('power units',units),notified)
+
     # HIDDEN METHODS
     @inlineCallbacks
     def ForceRead(self):
