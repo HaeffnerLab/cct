@@ -25,7 +25,7 @@ class Bunch:
 class WireVoltageModulation(SemaphoreExperiment):
     experimentName = 'Wire_Voltage_Modulation'
 
-    def __init__(self, seqParams, exprmtParams):
+    def __init__(self, seqParams, exprtParams):
         self.cxn = labrad.connect()
         self.cxnlab = labrad.connect('192.168.169.49') # labwide network
         

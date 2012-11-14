@@ -93,8 +93,37 @@ class wireVoltageModulation(SemaphoreExperiment):
         #self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
         self.dv.new('timetags',[('Time', 'sec')], [('Iteration', 'Arb','Arb')] , context = timetag_context )
 
-        numUpdates = 1
+        # numUpdates = 1
+        # timetags = []
+        # for n in range(numUpdates):
+        #     for iteration in range(iterations / numUpdates):
 
+        #         self.pulser.reset_timetags()
+        #         self.pulser.start_single()
+        #         self.pulser.wait_sequence_done()
+        #         self.pulser.stop_sequence()
+        #         timetags = self.pulser.get_timetags().asarray
+        #         iterationUmber = (n*(iterations/numUpdates) + iteration) * numpy.ones(len(timetags))
+        #         timetag_raw = numpy.vstack((iterationUmber,timetags)).transpose()
+        #         self.dv.add( timetag_raw, context=timetag_context)
+        #         # print n*(iterations/numUpdates) + iteration
+        #         self.Binner.add(timetags, iterations)
+        #         self.percentDone = (n+1.)*(iteration + 1.) / (iterations * numUpdates) * 100
+        #         shouldContinue = self.sem.block_experiment(self.experimentPath, self.percentDone)
+        #         if not shouldContinue:
+        #             print 'Halting'
+        #             return
+            
+        #     self.dv.new('binned_timetags_' + str(n+1) + '_of_' + str(numUpdates),[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
+        #     self.dv.add_parameter('Window',['Binned Fluorescence'])
+        #     self.dv.add_parameter('plotLive', True)
+        #     binX, binY = self.Binner.getBinned()
+        #     data = numpy.vstack((binX,binY)).transpose()
+
+        #     self.dv.add(data)
+        # self.percentDone = 100.    
+        numUpdates = 1
+        timetags = []
         for n in range(numUpdates):
             for iteration in range(iterations / numUpdates):
 
@@ -102,23 +131,25 @@ class wireVoltageModulation(SemaphoreExperiment):
                 self.pulser.start_single()
                 self.pulser.wait_sequence_done()
                 self.pulser.stop_sequence()
-                timetags = self.pulser.get_timetags().asarray
+                timetags.extend(self.pulser.get_timetags().asarray)
                 iterationUmber = (n*(iterations/numUpdates) + iteration) * numpy.ones(len(timetags))
-                timetag_raw = numpy.vstack((iterationUmber,timetags)).transpose()
-                self.dv.add( timetag_raw, context=timetag_context)
-                # print n*(iterations/numUpdates) + iteration
-                self.Binner.add(timetags)
+
                 self.percentDone = (n+1.)*(iteration + 1.) / (iterations * numUpdates) * 100
                 shouldContinue = self.sem.block_experiment(self.experimentPath, self.percentDone)
                 if not shouldContinue:
                     print 'Halting'
                     return
+
+            timetag_raw = numpy.vstack((iterationUmber,timetags)).transpose()
+            self.dv.add( timetag_raw, context=timetag_context)
+            self.Binner.add(timetags, iterations)            
             
             self.dv.new('binned_timetags_' + str(n+1) + '_of_' + str(numUpdates),[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
             self.dv.add_parameter('Window',['Binned Fluorescence'])
             self.dv.add_parameter('plotLive', True)
             binX, binY = self.Binner.getBinned()
             data = numpy.vstack((binX,binY)).transpose()
+
             self.dv.add(data)
         self.percentDone = 100.    
 

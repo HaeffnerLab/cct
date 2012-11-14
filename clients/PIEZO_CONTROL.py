@@ -71,7 +71,7 @@ class PC (QtGui.QWidget,):
             self.groupBoxLayout[axis].addWidget(QtGui.QLabel('steps/um down'), 4, 0)
             self.groupBoxLayout[axis].addWidget(self.control[axis + 'spumd'], 5, 0)
             self.groupBoxLayout[axis].addWidget(self.control[axis + 'u'], 1, 1)
-            self.groupBoxLayout[axis].addWidget(QtGui.QLabel('Micron: '), 2, 1)
+            self.groupBoxLayout[axis].addWidget(QtGui.QLabel('step size [um]: '), 2, 1)
             self.groupBoxLayout[axis].addWidget(self.control[axis + 's'], 3, 1)
             self.groupBoxLayout[axis].addWidget(self.control[axis + 'd'], 5, 1)
             self.groupBoxLayout[axis].addWidget(QtGui.QLabel('Voltage [V]:'), 6, 0)

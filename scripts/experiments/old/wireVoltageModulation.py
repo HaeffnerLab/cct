@@ -75,10 +75,10 @@ class WireVoltageModulation():
         ti = now.strftime('%H%M%S')
         print ti
         timetag_context = self.dv.context()
-        self.dv.cd(['',date, self.experimentName, ti, 'binned'], True)
-        self.dv.cd(['',date, self.experimentName, ti, 'timetags'], True, context = timetag_context)
+        self.dv.cd(['',date, self.experimentName,'binned'], True)
+        self.dv.cd(['',date, self.experimentName, 'timetags'], True, context = timetag_context)
         #self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
-        self.dv.new('timetags',[('Time', 'sec')], [('Iteration', 'Arb','Arb')] , context = timetag_context )
+        self.dv.new(ti,[('Time', 'sec')], [('Iteration', 'Arb','Arb')] , context = timetag_context )
 
         timetags = []
         numUpdates = xP.iterations
@@ -97,7 +97,7 @@ class WireVoltageModulation():
         self.dv.add( timetag_raw, context=timetag_context )
         self.Binner.add(timetags, xP.iterations)
             
-        self.dv.new('binned_timetags',[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
+        self.dv.new(ti,[('Time', 'sec')],[('PMT counts','Arb','Arb')] )
         self.dv.add_parameter('Window',['Binned Fluorescence'])
         self.dv.add_parameter('plotLive', True)
         binX, binY = self.Binner.getBinned()
@@ -120,13 +120,13 @@ class WireVoltageModulation():
 
 if __name__ == '__main__':
     numCycles = 4.0
-    frequency = 200.0
+    frequency = 50.0
     excitationTime = numCycles/frequency
     binTime = excitationTime  / 153.0
     iterations = int(20* (frequency/10.0))
     bufferTime = 1.0/frequency
     print iterations
-
+    print frequency
     params = {
         'excitationTime':excitationTime,
         'bufferTime':bufferTime

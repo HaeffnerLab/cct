@@ -4,6 +4,38 @@
 		"selected_items":
 		[
 			[
+				"cl",
+				"client"
+			],
+			[
+				"La",
+				"LabRAD"
+			],
+			[
+				"num",
+				"numWells"
+			],
+			[
+				"add",
+				"addWidget"
+			],
+			[
+				"Wire",
+				"Wire"
+			],
+			[
+				"wire",
+				"wireVoltageModulation"
+			],
+			[
+				"value",
+				"value"
+			],
+			[
+				"sequ",
+				"sequence_parameters"
+			],
+			[
 				"for",
 				"format"
 			],
@@ -18,18 +50,6 @@
 			[
 				"sa",
 				"sample_parameters"
-			],
-			[
-				"cl",
-				"clients"
-			],
-			[
-				"Wire",
-				"WireVoltageModulation"
-			],
-			[
-				"wire",
-				"WireVoltageModulation"
 			],
 			[
 				"seq",
@@ -56,34 +76,34 @@
 	"buffers":
 	[
 		{
-			"file": "dataservers/semaphore.py",
+			"file": "clients/DAC_CONTROLw.py",
 			"settings":
 			{
-				"buffer_size": 8892,
+				"buffer_size": 15654,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "clients/SCRIPTCONTROL/scriptcontrol.py",
+			"file": "DAC/CCTDACw.py",
 			"settings":
 			{
-				"buffer_size": 13966,
+				"buffer_size": 16284,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "clients/SCRIPTCONTROL/experiments/WVM.py",
+			"file": "scripts/experiments/old/wireVoltageModulation.py",
 			"settings":
 			{
-				"buffer_size": 10774,
+				"buffer_size": 4563,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "clients/SCRIPTCONTROL/launcher.py",
+			"file": "clients/Cfiles/4multipoles.txt",
 			"settings":
 			{
-				"buffer_size": 664,
+				"buffer_size": 3485,
 				"line_ending": "Unix"
 			}
 		}
@@ -112,15 +132,29 @@
 	},
 	"file_history":
 	[
+		"/home/cct/LabRAD/cct/clients/Cfiles/4multipoles.txt",
+		"/home/cct/LabRAD/cct/clients/CCTGUI.py",
+		"/home/cct/LabRAD/cct/clients/Cfiles/A_trap_e8.txt",
+		"/home/cct/LabRAD/cct/clients/DAC_CONTROL.py",
+		"/home/cct/LabRAD/cct/clients/PIEZO_CONTROL.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/old/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/WireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/dataservers/semaphore.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/FFT/FFT.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPT_CONTROL/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/wire_voltage_modulation/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/Test.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/launcher.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/WVM.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/wireVoltageModulation.py",
 		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/WireVoltageModulation.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/wireVoltageMod.py",
-		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/scriptcontrol.py",
-		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/launcher.py",
 		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/launcher.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Wire/wireVoltageModulation.py",
 		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/globalgrid.py",
 		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/parameterswidget.py",
-		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/scriptcontrol.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/HeatingRate.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_rabi.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Wire/rabi.py",
@@ -143,6 +177,27 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"4",
+			"int",
+			"SERVERNAME",
+			"cctdac_pulser",
+			"multipoles",
+			"self.multipoles",
+			"serNode",
+			"8",
+			"print",
+			"stopp",
+			"stopping",
+			"self.ctrlLayout",
+			"self",
+			"test",
+			"tabWidget",
+			"TabWidget",
+			"tabWidget",
+			"plot",
+			".value",
+			"numCycles",
+			"print",
 			"self.dirappend",
 			"range",
 			"self.sequenceParameters",
@@ -187,18 +242,18 @@
 			[
 				{
 					"buffer": 0,
-					"file": "dataservers/semaphore.py",
+					"file": "clients/DAC_CONTROLw.py",
 					"settings":
 					{
-						"buffer_size": 8892,
+						"buffer_size": 15654,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7006,
-								7006
+								12229,
+								12229
 							]
 						],
 						"settings":
@@ -208,37 +263,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3009.0,
+						"translation.y": 4692.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "clients/SCRIPTCONTROL/scriptcontrol.py",
+					"file": "DAC/CCTDACw.py",
 					"settings":
 					{
-						"buffer_size": 13966,
+						"buffer_size": 16284,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1539,
-								1539
-							],
-							[
-								1546,
-								1546
-							],
-							[
-								1833,
-								1833
-							],
-							[
-								1850,
-								1850
+								12906,
+								12906
 							]
 						],
 						"settings":
@@ -248,25 +291,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 5345.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "clients/SCRIPTCONTROL/experiments/WVM.py",
+					"file": "scripts/experiments/old/wireVoltageModulation.py",
 					"settings":
 					{
-						"buffer_size": 10774,
+						"buffer_size": 4563,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5189,
-								5189
+								4104,
+								4104
 							]
 						],
 						"settings":
@@ -276,32 +319,30 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1479.0,
+						"translation.y": 1904.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "clients/SCRIPTCONTROL/launcher.py",
+					"file": "clients/Cfiles/4multipoles.txt",
 					"settings":
 					{
-						"buffer_size": 664,
+						"buffer_size": 3485,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								664,
-								664
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -318,7 +359,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 33.0
 	},
 	"layout":
 	{
@@ -372,6 +413,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 240.0,
+	"side_bar_width": 329.0,
 	"status_bar_visible": true
 }

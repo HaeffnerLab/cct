@@ -46,7 +46,7 @@ class PulseSequence(object):
 	def programSequence(self, pulser):
 		pulser.new_sequence()
 		pulser.add_ttl_pulses(self.ttl_pulses)
-		if len(self.dds_pulses) is not 0: pulser.add_dds_pulses(self.dds_pulses)
+		pulser.add_dds_pulses(self.dds_pulses)
 		pulser.program_sequence()
 		
 class Bunch:
