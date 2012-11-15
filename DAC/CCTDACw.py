@@ -1,10 +1,10 @@
 '''
 ### BEGIN NODE INFO
 [info]
-name = CCTDAC Pulser v2
+name = CCTDAC
 version = 1.0
 description = 
-instancename = CCTDAC Pulser v2
+instancename = CCTDAC
 
 [startup]
 cmdline = %PYTHON% %FILE%
@@ -25,9 +25,10 @@ from scipy.interpolate import UnivariateSpline as UniSpline
 from time import *
 from numpy import *
 import sys
-from scripts.PulseSequences.advanceDACs import ADV_DAC
+sys.path.append('/home/cct/LabRAD/cct/PulseSequences')
+from advanceDACs import ADV_DAC
 
-SERVERNAME = 'CCTDAC Pulser v2'
+SERVERNAME = 'CCTDAC'
 PREC_BITS = 16.
 SIGNALID = 270837
 NUMCHANNELS = 28
@@ -133,9 +134,9 @@ class CCTDACServer( LabradServer ):
     Used for controlling DC trap electrodes
     """
     name = SERVERNAME
-    serNode = 'cctmain'
+    # serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: ports updated', 's')
-    multipoles = ['Ex1', 'Ey1', 'Ez1', 'U1', 'U2', 'U3', 'U4', 'U5']
+    multipoles = ['Ex1', 'Ey1', 'Ez1', 'U1']
     maxDACIndex = 126    
     DACIndex = 1
     nextDACIndex = 2 
@@ -168,7 +169,7 @@ class CCTDACServer( LabradServer ):
             print "No port mapping found"    
                 
         degreeOfCalibration = 3 # 1st order fit. update this to auto-detect 
-        yield self.registry.cd(['', 'cctdac_pulser', 'Calibrations'])
+        yield self.registry.cd(['', SERVERNAME, 'Calibrations'], True)
         subs, keys = yield self.registry.dir()
         sbs = ''
         for s in subs:
@@ -177,7 +178,7 @@ class CCTDACServer( LabradServer ):
         for i in range(1, NUMCHANNELS + 1): # Port nums are indexed from 1
             c = [] # list of calibration coefficients in form [c0, c1, ..., cn]
             if str(i) in subs:
-                yield self.registry.cd(['', 'cctdac_pulser', 'Calibrations', str(mappedChannels[str(i)])])
+                yield self.registry.cd(['', SERVERNAME, 'Calibrations', str(mappedChannels[str(i)])])
                 for n in range( degreeOfCalibration + 1):
                     e = yield self.registry.get( 'c'+str(n) )                    
                     c.append(e)
@@ -187,7 +188,7 @@ class CCTDACServer( LabradServer ):
         for p in self.portList:
             p.analogVoltage = 0 
         self.ionInfo = {}                       
-        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.cd(['', SERVERNAME])
         self.positionIndex = yield self.registry.get('IonPosition')
         Cpath = yield self.registry.get('MostRecent')
         yield self.setMultipoleControlFile(0, Cpath)
@@ -269,7 +270,8 @@ class CCTDACServer( LabradServer ):
     @setting( 6, "Set Multipole Control File", file = 's')
     def setMultipoleControlFile(self, c, file):                
         data = genfromtxt(file)
-        numCols = data.size / (23 * 8)
+        # data = genfromtxt('/home/cct/LabRAD/cct/clients/Cfiles/4multipoles.txt')
+        numCols = data.size / (23 * len(self.multipoles))
         numPositions = (numCols - 1) * 10.
         sp = {}
         spline = {}
@@ -288,7 +290,7 @@ class CCTDACServer( LabradServer ):
         yield self.advDACs(1)
         
         # get ion position info
-        y = data[23 * 8]        
+        y = data[23 * len(self.multipoles)]        
         fit = interpolate.interp1d(x, y, 'linear')
         self.pos = fit(p)
 
@@ -296,7 +298,7 @@ class CCTDACServer( LabradServer ):
         self.ionInfo['position'] = self.pos[self.positionIndex]
         self.ionInfo['ionRange']  = list(y)
         
-        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.cd(['', SERVERNAME])
         yield self.registry.set('MostRecent', file)        
 
     @setting( 7, "Set Multipole Values", ms = '*(sv): dictionary of multipole values')
@@ -314,7 +316,7 @@ class CCTDACServer( LabradServer ):
 #        yield self.advDACs()
         self.DACIndex = self.nextDACIndex
         
-        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.cd(['', SERVERNAME])
         yield self.registry.set('MultipoleSet', ms)
     
     @setting( 8, "Get Multipole Voltages",returns='*(s,v)')
@@ -367,7 +369,7 @@ class CCTDACServer( LabradServer ):
         self.ionInfo['position'] = self.pos[position]
         self.ionInfo['positionIndex'] = position
 
-        yield self.registry.cd(['', 'cctdac_pulser'])
+        yield self.registry.cd(['', SERVERNAME])
         yield self.registry.set('IonPosition', self.positionIndex)  
                 
     @inlineCallbacks

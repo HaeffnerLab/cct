@@ -1,8 +1,8 @@
 import time
 
-class Test():
+class Test3():
     def __init__(self):
-        self.experimentPath = ['Test', 'Exp1']
+        self.experimentPath = ['Test', 'Exp3']
         print 'Initializing Test'
         self.iterations = 10
         self.progress = 0.0

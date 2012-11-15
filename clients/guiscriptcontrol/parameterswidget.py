@@ -38,8 +38,8 @@ class ParametersWidget(QtGui.QWidget):
         self.experimentContext = experimentContext
         self.globalContext = globalContext
         #MR should not be hard coded
-        self.setupExperimentGrid(['Wire', 'WireVoltageModulation'])
-        self.setupGlobalGrid(['Wire', 'WireVoltageModulation'])      
+        self.setupExperimentGrid(['Test', 'Exp1'])
+        self.setupGlobalGrid(['Test', 'Exp1'])      
 
     def setupExperimentGrid(self, experimentPath):
 #        try:

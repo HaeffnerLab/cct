@@ -47,19 +47,15 @@ class hardwareConfiguration(object):
     
     #name: (channelNumber, ismanual, manualstate,  manualinversion, autoinversion)
     channelDict = {
-		  '866':channelConfiguration(0, True, True, False, False),
                   'bluePI':channelConfiguration(1, False, True, False, False),
                   'adv':channelConfiguration(8, False, False, False, True),
                   'rst':channelConfiguration(9, False, False, False, True),
                   'wireVoltage':channelConfiguration(10, False, False, False, False),
-                  '397sw':channelConfiguration(12, False, False, False, True),
-                  '866sw':channelConfiguration(13, False, False, False, True),
-<<<<<<< HEAD
+                  '397DP':channelConfiguration(12, False, False, False, True),
+                  '866DP':channelConfiguration(13, False, False, False, True),
                   '2W oven':channelConfiguration(14, False, False, False, True),
-                  '854sw':channelConfiguration(15, False, False, False, False),
-=======
-                  '2W_oven':channelConfiguration(14, False, False, False, True),
->>>>>>> 5c2e272c4756243a45c82c446b47b7cbdb107402
+                  '854DP':channelConfiguration(15, False, False, False, False),
+
                   #------------INTERNAL CHANNELS----------------------------------------#
                   'DiffCountTrigger':channelConfiguration(16, False, False, False, False),
                   'TimeResolvedCount':channelConfiguration(17, False, False, False, False),

@@ -5,13 +5,26 @@ class cctGUI(QtGui.QMainWindow):
     def __init__(self, reactor, parent=None):
         super(cctGUI, self).__init__(parent)
         self.reactor = reactor
+        self.connect_labrad()
+
+    @inlineCallbacks
+    def connect_labrad(self):
+        from connection import connection
+        cxn = connection()
+        yield cxn.connect()
+        self.create_layout(cxn)
+
+    def create_layout(self, cxn):
         self.tabWidget = QtGui.QTabWidget()
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)
         piezoControlTab = self.makePiezoWidget(reactor)
+        contrl729Widget = self.makecontrol729Widget(reactor, cxn)
+
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Laser Room')
         self.tabWidget.addTab(piezoControlTab, '&Piezo')
+        self.tabWidget.addTab(control729, '&729 Control')
         self.createGrapherTab()
         scriptControl = self.makeScriptControl(reactor)
         
@@ -22,6 +35,7 @@ class cctGUI(QtGui.QMainWindow):
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
         self.setWindowTitle('CCTGUI')
+
 
     def makeScriptControl(self, reactor):
         from SCRIPT_CONTROL.scriptcontrol import ScriptControl
@@ -95,7 +109,13 @@ class cctGUI(QtGui.QMainWindow):
             vboxlayout.addWidget(window)
             widget.setLayout(vboxlayout)
         yield Connections.communicate.connectionReady.connect(widgetReady)
-        returnValue(widget)        
+        returnValue(widget)
+
+    def makecontrol729Widget(self, reactor, cxn):
+        from control_729.control_729 import control_729
+        widget = control_729(reactor, cxn)
+        return widget
+
 
     def closeEvent(self, x):
         self.reactor.stop()

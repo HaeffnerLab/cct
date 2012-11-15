@@ -8,8 +8,6 @@ class ParameterGrid(QtGui.QTableWidget):
         self.parent = parent
         self.context = context
         self.experimentPath = experimentPath
-        print "PRINTING EXPERIMENT PATH"
-        print experimentPath
         self.globalParams = globalParams
 #        self.parent.setWindowTitle(experimentPath[-1])
         self.setupParameterGrid(self.experimentPath)
