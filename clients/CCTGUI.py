@@ -19,14 +19,16 @@ class cctGUI(QtGui.QMainWindow):
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)
         piezoControlTab = self.makePiezoWidget(reactor)
-        contrl729Widget = self.makecontrol729Widget(reactor, cxn)
+        control729Widget = self.makecontrol729Widget(reactor, cxn)
 
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Laser Room')
         self.tabWidget.addTab(piezoControlTab, '&Piezo')
-        self.tabWidget.addTab(control729, '&729 Control')
-        self.createGrapherTab()
+        self.tabWidget.addTab(control729Widget, '&729 Control')
+        
         scriptControl = self.makeScriptControl(reactor)
+
+        self.createGrapherTab()
         
         gridLayout = QtGui.QGridLayout()
         gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
@@ -38,7 +40,7 @@ class cctGUI(QtGui.QMainWindow):
 
 
     def makeScriptControl(self, reactor):
-        from SCRIPT_CONTROL.scriptcontrol import ScriptControl
+        from guiscriptcontrol.scriptcontrol import ScriptControl
         self.sc = ScriptControl(reactor, self)
         self.sc, self.experimentParametersWidget = self.sc.getWidgets()
         self.createExperimentParametersTab()

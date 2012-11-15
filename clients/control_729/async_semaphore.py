@@ -44,7 +44,6 @@ class async_semaphore(object):
         yield self.cxn.servers['Semaphore'].addListener(listener = self.on_parameter_change, source = None, ID = self.semaphoreID, context = self.context)
         for path,param in self.d.iteritems():
             path = list(path)
-            print path
             init_val = yield self.cxn.servers['Semaphore'].get_parameter(path, context = self.context)
             self.set_value(param, init_val)
         self.subscribed = True

@@ -162,7 +162,7 @@ class ParameterGrid(QtGui.QTableWidget):
         from labrad import types as T
         # two types....tuples [(value, unit)] or tuples of strings and values [(string, (value, unit))]
         value = eval(str(self.sender().text()))
-#        print 'Value!: ', value
+        #print 'Value!: ', value
         typeFirstElement = type(value[0])
         typeSecondElement = type(value[0][1])
         # normal list of labrad values
