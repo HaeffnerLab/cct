@@ -1,4 +1,22 @@
-### Server for controlling VCO's
+"""
+### BEGIN NODE INFO
+[info]
+name = VCOServer
+version = 1.0
+description = 
+instancename = VCOServer
+
+[startup]
+cmdline = %PYTHON% %FILE%
+timeout = 20
+
+[shutdown]
+message = 987654321
+timeout = 20
+### END NODE INFO
+"""
+
+
 
 from labrad.server import LabradServer, setting, Signal
 from twisted.internet.defer import Deferred, returnValue, inlineCallbacks
@@ -7,6 +25,7 @@ SIGNALID = 331500
 
 class VCOServer( LabradServer ):
 
+    name = "VCOServer"
     registryDirectory = ['', 'Servers', 'VCO']
     
     @inlineCallbacks
@@ -24,7 +43,7 @@ class VCOServer( LabradServer ):
         self.inversionDict = {}
         self.dacChannelDict = {}
         self.calibDict = {}
-        for c in channels:
+        for c in self.channels:
             self.inversionDict[c] = yield self.lookupInversion(c)
             self.freqDict[c] = yield self.lookupFrequencyRange(c)
             self.dacChannelDict[c] = yield self.lookupDacChannel(c)
@@ -53,13 +72,13 @@ class VCOServer( LabradServer ):
         returnValue(dac_channel_number)
 
     @inlineCallbacks
-    def lookupFrequencyCalibration(self, channel)
+    def lookupFrequencyCalibration(self, channel):
         regDir = self.registryDirectory + [channel, 'calibration']
         yield self.client.registry.cd(regDir)
         calibration = yield self.client.registry.get('calib')
         returnValue(calibration)
 
-    @inlineCallbakcs
+    @inlineCallbacks
     def freqToVoltage(self, channel, freq):
         calib = self.calibDict[channel]
         voltage = sum([ calib[n] * v**n for n in range(len(calib)) ])
@@ -113,3 +132,7 @@ class VCOServer( LabradServer ):
     def setVCOFrequency(self, c, chan, freq):
         yield self.setFrequency(chan, freq)
         
+
+if __name__ == "__main__":
+    from labrad import util
+    util.runServer(VCOServer())
