@@ -53,7 +53,7 @@ class hardwareConfiguration(object):
                   '397DP':channelConfiguration(10, False, False, False, True),
                   '866DP':channelConfiguration(13, False, False, False, True),
                   '2W oven':channelConfiguration(14, False, False, False, True),
-                  '854DP':channelConfiguration(15, False, False, False, False),
+                  '854DP':channelConfiguration(12, False, False, False, False),
 
                   #------------INTERNAL CHANNELS----------------------------------------#
                   'DiffCountTrigger':channelConfiguration(16, False, False, False, False),

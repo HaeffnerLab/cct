@@ -10,3 +10,4 @@ Errors.log
 /clients/NodeClient-control-cct.py
 /cl
 *~
+*.sublime*

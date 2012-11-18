@@ -1,4 +1,4 @@
-# Copyright (C) 2007  Markus Ansmann
+# Copyright (C) 2007 Markus Ansmann
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -7,18 +7,18 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
 ### BEGIN NODE INFO
 [info]
 name = Serial Server 1.1
 version = 1.1
-description = 
+description =
 instancename = Serial Server 1.1
 
 [startup]
@@ -71,7 +71,7 @@ class SerialServer(LabradServer):
                 self.SerialPorts += ['/dev/ttyUSB%d' % a]
                 print '/dev/ttyUSB%d' %a
         if not len(self.SerialPorts):
-            print '  none'
+            print ' none'
 
 
     def expireContext(self, c):
@@ -90,9 +90,9 @@ class SerialServer(LabradServer):
     def list_serial_ports(self, c):
         """Retrieves a list of all serial ports.
 
-        NOTES:
-        This list contains all ports installed on the computer,
-        including ones that are already in use by other programs."""
+NOTES:
+This list contains all ports installed on the computer,
+including ones that are already in use by other programs."""
         return self.SerialPorts
 
 

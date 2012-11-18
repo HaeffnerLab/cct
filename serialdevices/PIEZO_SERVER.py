@@ -46,8 +46,9 @@ class PS(SerialDeviceServer):
         self.createCapDict()
         if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
         #port = yield self.getPortFromReg( self.regKey )
-        port = '/ttyUSB1'
+        port = '/dev/ttyUSB1'
         self.port = port
+        print  port
         try:
             serStr = yield self.findSerial(self.serNode)
             self.initSerial( serStr, port )

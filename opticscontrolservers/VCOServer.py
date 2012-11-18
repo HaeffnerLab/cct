@@ -36,7 +36,7 @@ class VCOServer( LabradServer ):
 
     @inlineCallbacks
     def setupDictionary(self):
-        self.channels = ['854DP', '397DP', '866DP']
+        self.channels = ['854DP']
 
         self.calibDict = {}
         self.freqDict = {}
@@ -75,22 +75,23 @@ class VCOServer( LabradServer ):
     def lookupFrequencyCalibration(self, channel):
         regDir = self.registryDirectory + [channel, 'calibration']
         yield self.client.registry.cd(regDir)
-        calibration = yield self.client.registry.get('calib')
+        c0 = yield self.client.registry.get('c0')
+        c1 = yield self.client.registry.get('c1')
+        calibration = [c0, c1]
         returnValue(calibration)
-
+    
     @inlineCallbacks
     def freqToVoltage(self, channel, freq):
+        yield None
         calib = self.calibDict[channel]
-        voltage = sum([ calib[n] * v**n for n in range(len(calib)) ])
+        voltage = sum ([ calib[n]*freq**n for n in range(len(calib)) ])
         returnValue(voltage)
 
     @inlineCallbacks
     def setFrequency(self, channel, freq):
-        voltage = yield freqToVoltage(freq).Value()
-        channelNum = dacChannelDict[channel].Value()
-
+        voltage = yield self.freqToVoltage(channel, freq)
+        channelNum = self.dacChannelDict[channel]
         yield self.client.cctdac.set_individual_analog_voltages( (channelNum, voltage) )
-        
 
     def initContext(self, c):
         """ Initialize a new context object """
@@ -125,13 +126,20 @@ class VCOServer( LabradServer ):
 
     @setting(2, "Switch off", chan = '*s', returns = '')
     def switchLaserOff(self, c, chan):
+        chan = ''.join(chan)
         light_on_val = self.inversionDict[chan]
         yield self.client.pulser.switch_manual( chan,  not light_on_val )
 
-    @setting(3, "Set frequency", chan='*s', freq = '*v', returns = '')
+    @setting(3, "Switch on", chan = '*s', returns = '')
+    def switchLaserOn(self, c, chan):
+        chan = ''.join(chan)
+        light_on_val = self.inversionDict[chan]
+        yield self.client.pulser.switch_manual( chan, light_on_val )
+
+    @setting(4, "Set frequency", chan='*s', freq = 'v[MHz]', returns = '')
     def setVCOFrequency(self, c, chan, freq):
-        yield self.setFrequency(chan, freq)
-        
+        chan = ''.join(chan)
+        yield self.setFrequency(chan, freq)        
 
 if __name__ == "__main__":
     from labrad import util
