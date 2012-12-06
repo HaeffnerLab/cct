@@ -1,4 +1,4 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
 from RepumpD import repump_d
 from DopplerCooling import doppler_cooling 
 

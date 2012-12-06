@@ -8,8 +8,8 @@ def measureParameters(cxn, cxnlab, specified = None):
     d = {}
     local = {
 #            'trapdrive':measure_trapdrive,
-            'endcaps':measure_endcaps,
-            'compensation':measure_compensation,
+            #'endcaps':measure_endcaps,
+            #'compensation':measure_compensation,
 #            'dcoffsetonrf':measure_dcoffsetonrf,
             }
     lab = {

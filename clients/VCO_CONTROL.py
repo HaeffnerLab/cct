@@ -65,15 +65,16 @@ class VCO_CONTROL(QtGui.QWidget):
 
     def createDict(self):
         self.d = {}
-        self.d['397'] = widgetWrapper( displayName = '397', dacChannel = 1, freqRange = (200, 240), voltRange = (0, 2.5) )
-        self.d['866'] = widgetWrapper( displayName = '866', dacChannel = 2, freqRange = (60, 100), voltRange = (0, 2.5) )
+        self.d['397'] = widgetWrapper( displayName = '397', dacChannel = 2, freqRange = (200, 240), voltRange = (0, 40) )
+        self.d['866'] = widgetWrapper( displayName = '866', dacChannel = 1, freqRange = (60, 100), voltRange = (0, 40) )
+        self.d['854'] = widgetWrapper( displayName = '854', dacChannel = 3, freqRange = (60, 100), voltRange = (0, 40) )
 
     @inlineCallbacks
     def connect(self):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.server = yield self.cxn.cctdac
+        self.server = yield self.cxn.cctdac_serial
         self.registry = yield self.cxn.registry
         yield self.loadDict()
         yield self.setupListeners()
@@ -104,7 +105,9 @@ class VCO_CONTROL(QtGui.QWidget):
             n = self.d[chanName].dacChannel
             v0 = voltageList[n]
             f0 = self.d[chanName].getFrequency( v0 )
+            print f0.value
             self.d[chanName].widget.spin.setValue( f0.value )
+            
 
         # lay out the widget
         layout = QtGui.QVBoxLayout()

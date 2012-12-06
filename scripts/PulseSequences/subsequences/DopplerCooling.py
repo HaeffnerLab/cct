@@ -1,4 +1,4 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
 
 class doppler_cooling(PulseSequence):
     
@@ -19,4 +19,5 @@ class doppler_cooling(PulseSequence):
         pulses = self.ttl_pulses
         repump_duration = self.p.doppler_cooling_duration + self.p.doppler_cooling_repump_additional
         pulses.append( ('866DP',self.start, repump_duration) )
+        pulses.append( ('397DP', self.start, self.p.doppler_cooling_duration))
         self.end = self.start + repump_duration

@@ -1,4 +1,4 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
 from OpticalPumpingContinuous import optical_pumping_continuous
 from OpticalPumpingPulsed import optical_pumping_pulsed
 

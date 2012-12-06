@@ -1,4 +1,4 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
 
 class empty_sequence(PulseSequence):
     

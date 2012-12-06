@@ -10,6 +10,7 @@ class common_methods_729(object):
         return the list of frequencies, amplitude, and excitation_duration
         '''
         try:
+            print info
             min_freq = info[0][1]['MHz']
             max_freq = info[1][1]['MHz']
             line_info = [line_info for line_info in info if line_info[0] == line_name ][0]

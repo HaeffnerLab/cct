@@ -27,6 +27,7 @@ class VCOServer( LabradServer ):
 
     name = "VCOServer"
     registryDirectory = ['', 'Servers', 'VCO']
+    onNewUpdate = Signal(SIGNALID, 'signal: vcos updated', 's')
     
     @inlineCallbacks
     def initServer(self):
@@ -36,7 +37,7 @@ class VCOServer( LabradServer ):
 
     @inlineCallbacks
     def setupDictionary(self):
-        self.channels = ['854DP']
+        self.channels = ['854DP', '866DP', '397DP']
 
         self.calibDict = {}
         self.freqDict = {}
@@ -73,11 +74,19 @@ class VCOServer( LabradServer ):
 
     @inlineCallbacks
     def lookupFrequencyCalibration(self, channel):
+        import labrad.types as T
         regDir = self.registryDirectory + [channel, 'calibration']
         yield self.client.registry.cd(regDir)
         c0 = yield self.client.registry.get('c0')
         c1 = yield self.client.registry.get('c1')
-        calibration = [c0, c1]
+        try:
+            c2 = yield self.client.registry.get('c2')
+            c3 = yield self.client.registry.get('c3')
+        except:
+            c2 = T.Value(0.0, '1/MHz^2')
+            c3 = T.Value(0.0, '1/MHz^3')
+        print c2
+        calibration = [c0, c1, c2, c3]
         returnValue(calibration)
     
     @inlineCallbacks
@@ -91,7 +100,8 @@ class VCOServer( LabradServer ):
     def setFrequency(self, channel, freq):
         voltage = yield self.freqToVoltage(channel, freq)
         channelNum = self.dacChannelDict[channel]
-        yield self.client.cctdac.set_individual_analog_voltages( (channelNum, voltage) )
+        print voltage
+        yield self.client.cctdac_serial.set_individual_digital_voltages( [(channelNum, voltage) ])
 
     def initContext(self, c):
         """ Initialize a new context object """
@@ -116,7 +126,7 @@ class VCOServer( LabradServer ):
 
         for chan in self.channels:
             light_on_val = self.inversionDict[chan]
-            yield self.client.pulser.switch_auto( chan,  not light_on_val )
+            yield self.client.pulser.switch_auto( chan,  light_on_val )
 
     @setting(1, "Switch all off", returns = '')
     def switchAllLasersOff(self, c):
@@ -139,6 +149,8 @@ class VCOServer( LabradServer ):
     @setting(4, "Set frequency", chan='*s', freq = 'v[MHz]', returns = '')
     def setVCOFrequency(self, c, chan, freq):
         chan = ''.join(chan)
+        notified = self.getOtherListeners(c)
+        self.onNewUpdate('VCOs updated', notified)
         yield self.setFrequency(chan, freq)        
 
 if __name__ == "__main__":

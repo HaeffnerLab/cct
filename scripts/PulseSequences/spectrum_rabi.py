@@ -1,10 +1,10 @@
 from PulseSequence import PulseSequence
-#from subsequences.RepumpDwithDoppler import doppler_cooling_after_repump_d
-#from subsequences.EmptySequence import empty_sequence
-#from subsequences.OpticalPumping import optical_pumping
-#from subsequences.RabiExcitation import rabi_excitation
-#from subsequences.StateReadout import state_readout
-#from subsequences.TurnOffAll import turn_off_all
+from subsequences.RepumpDwithDoppler import doppler_cooling_after_repump_d
+from subsequences.EmptySequence import empty_sequence
+from subsequences.OpticalPumping import optical_pumping
+from subsequences.RabiExcitation import rabi_excitation
+from subsequences.StateReadout import state_readout
+from subsequences.TurnOffAll import turn_off_all
 from labrad.units import WithUnit
 
 class spectrum_rabi(PulseSequence):
@@ -19,8 +19,8 @@ class spectrum_rabi(PulseSequence):
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         self.addSequence(doppler_cooling_after_repump_d)
-        if self.p.optical_pumping_enable:
-            self.addSequence(optical_pumping)
+        #if self.p.optical_pumping_enable:
+        #    self.addSequence(optical_pumping)
         self.addSequence(empty_sequence, **{'empty_sequence_duration':self.p.background_heating_time})
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
@@ -64,8 +64,8 @@ class sample_parameters(object):
               
               'rabi_excitation_frequency':WithUnit(220.0, 'MHz'),
               'rabi_excitation_amplitude':WithUnit(-8.0, 'dBm'),
-              'rabi_excitation_duration':WithUnit(40.0, 'us'),
-              
+              #'rabi_excitation_duration':WithUnit(40.0, 'us'),
+              'rabi_excitation_duration':WithUnit(1.0, 's'),
               'state_readout_frequency_397':WithUnit(110.0, 'MHz'),
               'state_readout_amplitude_397':WithUnit(-11.0, 'dBm'),
               'state_readout_frequency_866':WithUnit(80.0, 'MHz'),
@@ -82,8 +82,10 @@ if __name__ == '__main__':
     cs = spectrum_rabi(**params)
     cs.programSequence(cxn.pulser)
     print 'to program', time.time() - tinit
+    cxn.pulser.switch_auto('397DP')
     cxn.pulser.start_number(1)
     cxn.pulser.wait_sequence_done()
     cxn.pulser.stop_sequence()
     readout = cxn.pulser.get_readout_counts().asarray
     print readout
+    cxn.pulser.switch_manual('397DP', True)

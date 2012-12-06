@@ -1,7 +1,7 @@
 import labrad
 
-nodeDict = {'node_resonatormain':
-['Pulser'],
+nodeDict = {'cctmain':
+['Pulser', 'Semaphore'],
 }
 #connect to LabRAD
 errors = False

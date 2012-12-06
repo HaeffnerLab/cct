@@ -1,5 +1,5 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
-from lattice.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
 
 class state_readout(PulseSequence):
     

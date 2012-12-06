@@ -1,7 +1,7 @@
-from scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
-from scripts.PulseSequences.spectrum_blue_dephase import spectrum_blue_dephase as sequence
-from scripts.PulseSequences.spectrum_rabi import sample_parameters
-from scripts.scriptLibrary import dvParameters
+from cct.scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
+from cct.scripts.PulseSequences.spectrum_blue_dephase import spectrum_blue_dephase as sequence
+from cct.scripts.PulseSequences.spectrum_rabi import sample_parameters
+from cct.scripts.scriptLibrary import dvParameters
 import time
 import numpy
        

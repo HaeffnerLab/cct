@@ -1,4 +1,4 @@
-from lattice.scripts.PulseSequences.PulseSequence import PulseSequence
+from cct.scripts.PulseSequences.PulseSequence import PulseSequence
 
 class rabi_excitation(PulseSequence):
     
@@ -15,4 +15,6 @@ class rabi_excitation(PulseSequence):
         self.end = self.start + self.p.rabi_excitation_duration
         #from labrad import types as T
         #self.p.rabi_excitation_duration = T.Value(100,'s')
+        print self.p.rabi_excitation_duration
         self.dds_pulses.append(('729DP', self.start, self.p.rabi_excitation_duration, self.p.rabi_excitation_frequency, self.p.rabi_excitation_amplitude))
+        #self.ttl_pulses.append(('397DP', self.start, self.p.rabi_excitation_duration))

@@ -1,8 +1,8 @@
-from scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
-from scripts.PulseSequences.spectrum_rabi import spectrum_rabi as sequence
-from scripts.PulseSequences.spectrum_rabi import sample_parameters
-from scripts.scriptLibrary import dvParameters
-from scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
+from cct.scripts.PulseSequences.spectrum_rabi import spectrum_rabi as sequence
+from cct.scripts.PulseSequences.spectrum_rabi import sample_parameters
+from cct.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 import time
 import numpy
        
@@ -39,6 +39,7 @@ class rabi_flopping(SemaphoreExperiment):
         self.pulser = self.cxn.pulser
         self.sem = cxn.semaphore
         self.dv = cxn.data_vault
+        self.vcoserver = cxn.vcoserver
         self.p = self.populate_parameters(self.sem, self.experimentPath)
         
     def setup_data_vault(self):
@@ -56,9 +57,7 @@ class rabi_flopping(SemaphoreExperiment):
         self.dv.new('Readout {}'.format(self.datasetNameAppend),[('Freq', 'MHz')],[('Readout Counts','Arb','Arb')], context = self.readout_save_context )
     
     def setup_pulser(self):
-        self.pulser.switch_auto('866DP', True) #high TTL corresponds to light OFF
-        self.pulser.switch_auto('397DP', True)
-        self.pulser.switch_auto('854DP', True)
+        self.vcoserver.init_all_off()
         #switch off 729 at the beginning
         self.pulser.output('729DP', False)
     
@@ -73,6 +72,11 @@ class rabi_flopping(SemaphoreExperiment):
         sequence_parameters['optical_pumping_frequency_866'] = self.check_parameter(self.p.frequency_866)        
         sequence_parameters['optical_pumping_frequency_854'] = self.check_parameter(self.p.frequency_854)
         sequence_parameters['repump_d_frequency_854'] = self.check_parameter(self.p.frequency_854)
+
+        # preset the frequencies with VCO server
+        #self.vcoserver.set_frequency('866DP', self.p.frequency_866 )
+        #self.vcoserver.set_frequency('854DP', self.p.frequency_854 )
+        #self.vcoserver.set_frequency('397DP', self.p.doppler_cooling_frequency_397)
     
         sequence_parameters['rabi_excitation_amplitude'] = self.check_parameter(self.p.rabi_amplitude_729)
         return sequence_parameters

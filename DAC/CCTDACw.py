@@ -25,7 +25,7 @@ from scipy.interpolate import UnivariateSpline as UniSpline
 from time import *
 from numpy import *
 import sys
-sys.path.append('/home/cct/LabRAD/cct/PulseSequences')
+sys.path.append('/home/cct/LabRAD/cct/scripts/PulseSequences')
 from advanceDACs import ADV_DAC
 
 SERVERNAME = 'CCTDAC'

@@ -31,9 +31,9 @@ class OPTICS_CONTROL(QtGui.QWidget):
         
     def createDict(self):
         self.d = {}
-        self.d['397DP'] = widgetWrapper( displayName = '397DP', freqRange = (200, 240) )
-        self.d['866DP'] = widgetWrapper( displayName = '866DP', freqRange = (60, 100) )
-        self.d['854DP'] = widgetWrapper( displayName = '854DP', freqRange = (60, 100) )
+        self.d['397DP'] = widgetWrapper( displayName = '397DP', freqRange = (150, 300) )
+        self.d['866DP'] = widgetWrapper( displayName = '866DP', freqRange = (60, 150) )
+        self.d['854DP'] = widgetWrapper( displayName = '854DP', freqRange = (60, 150) )
         
     @inlineCallbacks
     def connect(self):
@@ -53,6 +53,7 @@ class OPTICS_CONTROL(QtGui.QWidget):
     
     @inlineCallbacks
     def setupListeners(self):
+        yield self.server.signal__vcos_updated
         yield self.server.addListener(listener = self.followSignal, source = None, ID = SIGNALID)
 
     def followSignal(self, x, (chanName, freq) ):

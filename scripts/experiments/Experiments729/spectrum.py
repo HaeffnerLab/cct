@@ -1,8 +1,8 @@
-from scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
-from scripts.PulseSequences.spectrum_rabi import spectrum_rabi as sequence
-from scripts.PulseSequences.spectrum_rabi import sample_parameters
-from scripts.scriptLibrary import dvParameters
-from scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.experiments.SemaphoreExperiment import SemaphoreExperiment
+from cct.scripts.PulseSequences.spectrum_rabi import spectrum_rabi as sequence
+from cct.scripts.PulseSequences.spectrum_rabi import sample_parameters
+from cct.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 import time
 import numpy
        
@@ -39,6 +39,7 @@ class spectrum(SemaphoreExperiment):
         self.pulser = self.cxn.pulser
         self.sem = cxn.semaphore
         self.dv = cxn.data_vault
+        self.vcoserver = cxn.vcoserver
         self.p = self.populate_parameters(self.sem, self.experimentPath)
         
     def setup_data_vault(self):
@@ -56,12 +57,10 @@ class spectrum(SemaphoreExperiment):
         self.dv.new('Readout {}'.format(self.datasetNameAppend),[('Freq', 'MHz')],[('Readout Counts','Arb','Arb')], context = self.readout_save_context )
     
     def setup_pulser(self):
-        self.pulser.switch_auto('866DP', True) #high TTL corresponds to light OFF
-        self.pulser.switch_auto('854DP', True)
-        self.pulser.switch_auto('397DP', True)
-
+        self.vcoserver.init_all_off()
         #switch off 729 at the beginning
         self.pulser.output('729DP', False)
+        self.pulser.switch_auto('397DP')
     
     def setup_sequence_parameters(self):
         #update the sequence parameters with our values
@@ -97,14 +96,19 @@ class spectrum(SemaphoreExperiment):
         seq.programSequence(self.pulser)
 
     def sequence(self):
+        import labrad.types as T
         if self.p.spectrum_use_saved_frequency:
             scan, ampl, duration = cm.saved_line_info_to_scan( self.p.saved_lines_729, self.p.spectrum_saved_frequency)
         else:
             scan = self.check_parameters(self.p.frequencies)
             ampl = None
             duration = None
+            # scan = []
+            # for j in range(1500, 2500, 1):
+            #     scan.append(T.Value(j/10, 'MHz'))
         repeatitions = int(self.check_parameter(self.p.repeat_each_measurement, keep_units = False))
         threshold = int(self.check_parameter(self.p.readout_threshold, keep_units = False))
+        print "done with reps and thresholds"
         for index, freq in enumerate(scan):
             print 'Frequency {}'.format(freq)
             self.percentDone = 100.0 * index / len(scan)
@@ -147,6 +151,7 @@ class spectrum(SemaphoreExperiment):
         self.save_parameters()
         self.sem.finish_experiment(self.experimentPath, self.percentDone)
         self.pulser.clear_dds_lock()
+        self.pulser.switch_manual('397DP', True)
         self.cxn.disconnect()
         self.cxnlab.disconnect()
         print 'Finished: {0}, {1}'.format(self.experimentPath, self.dirappend)        

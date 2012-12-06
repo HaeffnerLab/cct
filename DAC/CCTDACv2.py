@@ -25,7 +25,7 @@ from scipy.interpolate import UnivariateSpline as UniSpline
 from time import *
 from numpy import *
 import sys
-from scripts.PulseSequences.advanceDACs import ADV_DAC
+from cct.scripts.PulseSequences.advanceDACs import ADV_DAC
 
 SERVERNAME = 'CCTDAC Pulser v2'
 PREC_BITS = 16.
@@ -285,7 +285,7 @@ class CCTDACServer( LabradServer ):
                 spline[i][j] = sp[i][j](p)                                
                 n += 23                           
         self.spline = spline
-        yield self.advDACs(1)
+        yield self.advDACs(1) #!!!!!should not be commented?
         
         # get ion position info
         y = data[23 * 8]        
@@ -308,10 +308,11 @@ class CCTDACServer( LabradServer ):
         for (k,v) in ms:
             self.multipoleSet[k] = v
             
-        self.nextDACIndex = self.DACIndex # self.nextDACIndex = self.DACIndex + 1
+        self.nextDACIndex = self.DACIndex # self.nex0
+        tDACIndex = self.DACIndex + 1
         if self.nextDACIndex > self.maxDACIndex: self.nextDACIndex = 1
         yield self.setVoltages(c, self.positionIndex, self.nextDACIndex)
-#        yield self.advDACs()
+        #yield self.advDACs()
         self.DACIndex = self.nextDACIndex
         
         yield self.registry.cd(['', 'cctdac_pulser'])
@@ -373,6 +374,7 @@ class CCTDACServer( LabradServer ):
     @inlineCallbacks
     def advDACs(self, reset = 0):        
         """Pulse Sequence"""
+        import labrad.types as T
         pulser = yield self.pulser
         seq = ADV_DAC(pulser)        
         pulser.new_sequence()
@@ -380,7 +382,7 @@ class CCTDACServer( LabradServer ):
                   'startIndex': self.DACIndex,
                   'stopIndex': self.nextDACIndex,
                   'maxIndex': self.maxDACIndex,
-                  'duration': 10e-4,
+                  'duration': 10.0e-4,
                   'reset': reset
                  }
         seq.setVariables(**params)

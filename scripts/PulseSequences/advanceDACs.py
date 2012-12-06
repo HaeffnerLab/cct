@@ -1,4 +1,5 @@
 from sequence import Sequence
+import labrad.types as T
 class ADV_DAC(Sequence):
     requiredVars = {
                          'startIndex':(int, 1, 1000, 1),
@@ -11,10 +12,9 @@ class ADV_DAC(Sequence):
         pulser = self.pulser
         p = self.parameters
         n = p.startIndex
-        dTime = p.duration
-        sTime = 0
-        
-        
+        dTime = T.Value(p.duration, 's')
+        sTime = T.Value(0., 's')
+
         if p.reset:
             pulser.add_ttl_pulse('rst', sTime, 3 * dTime)
             pulser.add_ttl_pulse('adv', sTime + dTime, dTime)
