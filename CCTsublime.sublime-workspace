@@ -1,0 +1,378 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ta",
+				"tableopticsTab"
+			],
+			[
+				"fre",
+				"freqRange"
+			],
+			[
+				"set",
+				"set_individual_digital_voltages"
+			],
+			[
+				"read",
+				"readline"
+			],
+			[
+				"cl",
+				"client"
+			],
+			[
+				"La",
+				"LabRAD"
+			],
+			[
+				"num",
+				"numWells"
+			],
+			[
+				"add",
+				"addWidget"
+			],
+			[
+				"Wire",
+				"Wire"
+			],
+			[
+				"wire",
+				"wireVoltageModulation"
+			],
+			[
+				"value",
+				"value"
+			],
+			[
+				"sequ",
+				"sequence_parameters"
+			],
+			[
+				"for",
+				"format"
+			],
+			[
+				"experiment",
+				"experimentPath"
+			],
+			[
+				"se",
+				"sequence_parameters"
+			],
+			[
+				"sa",
+				"sample_parameters"
+			],
+			[
+				"seq",
+				"sequence_parameters"
+			],
+			[
+				"pro",
+				"program_sequence"
+			],
+			[
+				"setup",
+				"setup_sequence_parameters"
+			],
+			[
+				"Se",
+				"SemaphoreExperiment"
+			],
+			[
+				"experi",
+				"Experiments"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/cct/LabRAD/cct/DAC/CCTDACv2.py",
+		"/home/cct/LabRAD/cct/DAC/CCTDACw.py",
+		"/home/cct/LabRAD/common/clients/guiscriptcontrol/configuration.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/redo dephasing.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
+		"/home/cct/LabRAD/cct/clients/NodeClient-control-restart.py",
+		"/home/cct/LabRAD/cct/clients/CCTGUI.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/PlotSequence.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_rabi.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/ADV_DAC.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/DopplerCooling.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/EmptySequence.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumping.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumpingContinuous.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumpingPulsed.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RabiExcitation.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RecordTimeTags.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpD.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpDwithDoppler.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/StateReadout.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/TurnOffAll.py",
+		"/home/cct/LabRAD/cct/scripts/scriptLibrary/common_methods_729.py",
+		"/home/cct/LabRAD/cct/clients/VCO_CONTROL.py",
+		"/home/cct/LabRAD/common/serialdevices/serial_server_v1_2.py",
+		"/home/cct/LabRAD/common/serialdevices/keithly_6487.py",
+		"/home/cct/LabRAD/common/serialdevices/U3751_SERVER.py",
+		"/home/cct/LabRAD/common/serialdevices/TektronixTPS.py",
+		"/home/cct/LabRAD/common/serialdevices/HP8648A_SERVER.py",
+		"/home/cct/LabRAD/common/DAC/CCTDACv2.py",
+		"/home/cct/LabRAD/cct/serialdevices/CCTDAC_SERIAL.py",
+		"/home/cct/LabRAD/cct/opticscontrolservers/VCOServer.py",
+		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/PulseSequence.py",
+		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py.sample",
+		"/home/cct/LabRAD/cct/clients/control_729/control_729.py",
+		"/home/cct/LabRAD/cct/clients/tableopticscontrol.py",
+		"/home/cct/LabRAD/cct/scripts/scriptLibrary/dvParameters.py",
+		"/home/cct/LabRAD/cct/serialdevices/ADVANTEST_SERVER.py",
+		"/home/cct/LabRAD/cct/okfpgaservers/pulser/hardwareConfiguration.py",
+		"/home/cct/LabRAD/cct/serialdevices/SERIAL_SERVER_LINUX.py",
+		"/home/cct/LabRAD/cct/serialdevices/PIEZO_SERVER.py",
+		"/home/cct/LabRAD/cct/clients/DAC_CALIBRATOR.py",
+		"/home/cct/LabRAD/cct/clients/DAC_CONTROL.py",
+		"/home/cct/LabRAD/cct/clients/NodeClient-control-cct.py",
+		"/home/cct/LabRAD/cct/serialdevices/serial_server_v1.1_linux.py",
+		"/home/cct/LabRAD/common/okfpgaservers/pulser/pulser_ok.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/spectrum.py",
+		"/home/cct/LabRAD/cct/dataservers/semaphore.py",
+		"/home/cct/LabRAD/cct/serialdevices/serialdeviceserver.py",
+		"/home/cct/LabRAD/common/serialdevices/serial_server_v1.1_linux.py",
+		"/home/cct/LabRAD/cct/okfpgaservers/pulser/api.py",
+		"/home/cct/LabRAD/cct/okfpgaservers/pulser/pulser_ok.py",
+		"/home/cct/LabRAD/cct/clients/control_729/async_semaphore.py",
+		"/home/cct/LabRAD/cct/clients/control_729/state_readout_parameters.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACs.py",
+		"/home/cct/LabRAD/cct/clients/SHUTTER_CONTROL.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/parametergrid.py",
+		"/home/cct/LabRAD/cct/clients/DAC_CONTROLw.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/old/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/Cfiles/4multipoles.txt",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/blue_heating_rabi_flopping.py",
+		"/home/cct/LabRAD/cct/clients/Cfiles/A_trap_e8.txt",
+		"/home/cct/LabRAD/cct/clients/PIEZO_CONTROL.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/WireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/FFT/FFT.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPT_CONTROL/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/wire_voltage_modulation/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/scriptcontrol.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/Test.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/launcher.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/WVM.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/experiments/WireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/wireVoltageMod.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/launcher.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Wire/wireVoltageModulation.py",
+		"/home/cct/LabRAD/cct/clients/SCRIPTCONTROL/globalgrid.py",
+		"/home/cct/LabRAD/cct/clients/guiscriptcontrol/parameterswidget.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/HeatingRate.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Wire/rabi.py",
+		"/home/cct/LabRAD/cct/sublimeCCT.sublime-project"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"advD",
+			"adv",
+			"c2",
+			"0.001",
+			"setVoltages",
+			"lattice",
+			"nn",
+			"asdf",
+			"f",
+			"fl",
+			"floa",
+			"float",
+			"Normal",
+			"self.channels",
+			"dacChannelDict",
+			"reg",
+			"1",
+			"onNew",
+			"notify",
+			"onNewUpdate",
+			"signal",
+			"tty",
+			"                  '",
+			"please",
+			"pleaase",
+			"Serial Server",
+			"ser",
+			"Serial Server",
+			"Serial Serial Server",
+			"chan",
+			"cxn",
+			"createGrapherTab",
+			"4",
+			"int",
+			"SERVERNAME",
+			"cctdac_pulser",
+			"multipoles",
+			"self.multipoles",
+			"serNode",
+			"8",
+			"print",
+			"stopp",
+			"stopping",
+			"self.ctrlLayout",
+			"self",
+			"test",
+			"tabWidget",
+			"TabWidget",
+			"tabWidget",
+			"plot",
+			".value",
+			"numCycles",
+			"print",
+			"self.dirappend",
+			"range",
+			"self.sequenceParameters",
+			"sample_parameters",
+			"sample",
+			"populate",
+			"Bunch",
+			"branching_ratio",
+			"BranchingRatio",
+			"createContexts",
+			"wire",
+			"written",
+			"wire",
+			"xP.iterations",
+			"bin",
+			"sP.",
+			"xP.",
+			"xP ",
+			"xP",
+			"setup_sequence_parameters",
+			"seqP",
+			"setup_sequence_parameters"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"cct"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 112.0
+	},
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 329.0,
+	"status_bar_visible": true
+}
