@@ -4,6 +4,7 @@ from cct.scripts.PulseSequences.spectrum_rabi import sample_parameters
 from cct.scripts.scriptLibrary import dvParameters
 from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 import time
+import datetime
 import numpy
        
 class spectrum(SemaphoreExperiment):
@@ -44,9 +45,12 @@ class spectrum(SemaphoreExperiment):
         
     def setup_data_vault(self):
         localtime = time.localtime()
+        now = datetime.datetime.now()
+        date = now.strftime("%Y-%m-%d")
+        timey = now.strftime('%H%M%S')
         self.datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
-        self.dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
-        directory = ['','Experiments']
+        self.dirappend = [ time.strftime("%H%M_%S", localtime)]
+        directory = ['',date]
         directory.extend(self.experimentPath)
         directory.extend(self.dirappend)
         self.dv.cd(directory ,True )
@@ -61,6 +65,8 @@ class spectrum(SemaphoreExperiment):
         #switch off 729 at the beginning
         self.pulser.output('729DP', False)
         self.pulser.switch_auto('397DP')
+        self.pulser.switch_auto('866DP')
+        self.pulser.switch_auto('854DP')
     
     def setup_sequence_parameters(self):
         #update the sequence parameters with our values
@@ -90,10 +96,12 @@ class spectrum(SemaphoreExperiment):
             self.sequence_parameters['optical_pumping_frequency_729'] = cm.saved_line_info_to_frequency(info, line_name)
         else:
             self.sequence_parameters['optical_pumping_frequency_729'] = self.check_parameter(self.p.optical_pumping_user_selected_frequency_729)
-#        filled = [key for key,value in self.sequence_parameters.iteritems() if value is not None]; print filled
-#        unfilled = [key for key,value in self.sequence_parameters.iteritems() if value is None]; print unfilled
+
         seq = sequence(**self.sequence_parameters)
         seq.programSequence(self.pulser)
+#        filled = [key for key,value in self.sequence_parameters.iteritems() if value is not None]; print filled
+#        unfilled = [key for key,value in self.sequence_parameters.iteritems() if value is None]; print unfilled
+
 
     def sequence(self):
         import labrad.types as T
@@ -115,9 +123,15 @@ class spectrum(SemaphoreExperiment):
             should_continue = self.sem.block_experiment(self.experimentPath, self.percentDone)
             if not should_continue:
                 print 'Not Continuing'
+                self.pulser.switch_manual('397DP', True)
+                self.pulser.switch_manual('866DP', True)
+                self.pulser.switch_manual('854DP', True)
                 return
             else:
                 #program pulser, run sequence, and get readouts
+                self.pulser.switch_auto('866DP')
+                self.pulser.switch_auto('397DP')
+                self.pulser.switch_auto('854DP')
                 self.program_pulser(freq, ampl, duration)
                 self.pulser.start_number(repeatitions)
                 self.pulser.wait_sequence_done()
@@ -136,6 +150,10 @@ class spectrum(SemaphoreExperiment):
     def save_histogram(self, force = False):
         if (len(self.total_readouts) >= 500) or force:
             hist, bins = numpy.histogram(self.total_readouts, 50)
+            now = datetime.datetime.now()
+            date = now.strftime("%Y-%m-%d")
+            directory = ['',date, 'Histograms']
+            self.dv.cd(directory, True, context = self.histogram_save_context)
             self.dv.new('Histogram {}'.format(self.datasetNameAppend),[('Counts', 'Arb')],[('Occurence','Arb','Arb')], context = self.histogram_save_context )
             self.dv.add(numpy.vstack((bins[0:-1],hist)).transpose(), context = self.histogram_save_context )
             self.dv.add_parameter('Histogram729', True, context = self.histogram_save_context )
@@ -152,6 +170,9 @@ class spectrum(SemaphoreExperiment):
         self.sem.finish_experiment(self.experimentPath, self.percentDone)
         self.pulser.clear_dds_lock()
         self.pulser.switch_manual('397DP', True)
+        self.pulser.switch_manual('866DP', True)
+        self.pulser.switch_manual('854DP', True)
+
         self.cxn.disconnect()
         self.cxnlab.disconnect()
         print 'Finished: {0}, {1}'.format(self.experimentPath, self.dirappend)        

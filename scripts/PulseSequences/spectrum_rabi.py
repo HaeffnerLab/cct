@@ -16,11 +16,12 @@ class spectrum_rabi(PulseSequence):
         return config
     
     def sequence(self):
+        print self.p.optical_pumping_enable
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         self.addSequence(doppler_cooling_after_repump_d)
-        #if self.p.optical_pumping_enable:
-        #    self.addSequence(optical_pumping)
+        if self.p.optical_pumping_enable:
+            self.addSequence(optical_pumping)
         self.addSequence(empty_sequence, **{'empty_sequence_duration':self.p.background_heating_time})
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
@@ -36,13 +37,13 @@ class sample_parameters(object):
               'doppler_cooling_amplitude_397':WithUnit(-11.0, 'dBm'),
               'doppler_cooling_frequency_866':WithUnit(80.0, 'MHz'),
               'doppler_cooling_amplitude_866':WithUnit(-11.0, 'dBm'),
-              'doppler_cooling_repump_additional':WithUnit(100, 'us'),
-              'doppler_cooling_duration':WithUnit(1.0,'ms'),
+              'doppler_cooling_repump_additional':WithUnit(1000, 'us'),
+              'doppler_cooling_duration':WithUnit(5.0,'ms'),
               
               
               'optical_pumping_enable':True,
               
-              'optical_pumping_continuous_duration':WithUnit(1, 'ms'),
+              'optical_pumping_continuous_duration':WithUnit(10, 'ms'),
               'optical_pumping_continuous_repump_additional':WithUnit(200, 'us'),
               'optical_pumping_frequency_729':WithUnit(220.0, 'MHz'),
               'optical_pumping_frequency_854':WithUnit(80.0, 'MHz'),
@@ -57,20 +58,20 @@ class sample_parameters(object):
               'optical_pumping_pulsed_duration_additional_866':WithUnit(20, 'us'),
               'optical_pumping_pulsed_duration_between_pulses':WithUnit(5, 'us'),
               
-              'optical_pumping_continuous':False,
-              'optical_pumping_pulsed':True,
+              'optical_pumping_continuous':True,
+              'optical_pumping_pulsed':False,
               
               'background_heating_time':WithUnit(0.0, 'ms'),
               
               'rabi_excitation_frequency':WithUnit(220.0, 'MHz'),
               'rabi_excitation_amplitude':WithUnit(-8.0, 'dBm'),
-              #'rabi_excitation_duration':WithUnit(40.0, 'us'),
-              'rabi_excitation_duration':WithUnit(1.0, 's'),
+              'rabi_excitation_duration':WithUnit(24.0, 'us'),
+              #'rabi_excitation_duration':WithUnit(1.0, 's'),
               'state_readout_frequency_397':WithUnit(110.0, 'MHz'),
               'state_readout_amplitude_397':WithUnit(-11.0, 'dBm'),
               'state_readout_frequency_866':WithUnit(80.0, 'MHz'),
               'state_readout_amplitude_866':WithUnit(-11.0, 'dBm'),
-              'state_readout_duration':WithUnit(3.0,'ms'),
+              'state_readout_duration':WithUnit(5.0,'ms'),
               }
 
 if __name__ == '__main__':

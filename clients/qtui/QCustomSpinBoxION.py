@@ -12,7 +12,7 @@ class QCustomSpinBoxION(QtGui.QWidget):
         uic.loadUi(path,self)
         self.levelRange = levelRange
         self.spinLevel.setRange(*levelRange)
-        self.spinLevel.setDecimals(0)
+        self.spinLevel.setDecimals(1)
         self.level = 0
         self.label.setText('pos. [um]')
         self.spinLevel.valueChanged.connect(self.spinLevelChanged)

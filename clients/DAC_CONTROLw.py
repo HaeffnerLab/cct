@@ -294,7 +294,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.dacserver = yield self.cxn.cctdac
         yield self.setupListeners()
         yield self.followSignal(0, 0)     
-        self.slider.setValue(self.ionInfo['ionRange'][int(self.ionInfo['positionIndex'] / 10)] * 2)   
+        self.slider.setValue(self.ionInfo['ionRange'][int(self.ionInfo['positionIndex'] / 5)])   
         
     @inlineCallbacks    
     def setupListeners(self):
@@ -320,14 +320,15 @@ class CHANNEL_MONITOR(QtGui.QWidget):
             self.ionInfo[label] = value
         print self.ionInfo.items()
         self.slider.setRange(0, 2*len(self.ionInfo['ionRange']) - 2)
-        self.slider.setTickInterval(2)
-        
-        self.posDisplay.setValueNoSignal(self.ionInfo['ionRange'][int(self.ionInfo['positionIndex'] / 10)])
+
+        self.posDisplay.setValueNoSignal(self.ionInfo['position'])
         self.slider.blockSignals(False)
         self.posDisplay.blockSignals(False)
                 
     @inlineCallbacks
     def shuttle(self):
+        if self.slider.value() * 5 == self.ionInfo['positionIndex']:
+            return
         self.posDisplay.spinLevel.setStyleSheet("QWidget {background-color:  yellow}")
         self.posDisplay.spinLevel.setAutoFillBackground(True) 
         print "sending", self.slider.value() * 5
@@ -337,9 +338,8 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.posDisplay.spinLevel.setAutoFillBackground(False)
 
     def sliderChanged(self):
-        self.posDisplay.blockSignals(True)
-        self.posDisplay.spinLevel.setValue(self.ionInfo['ionRange'][self.slider.value()/2])
-        self.posDisplay.blockSignals(False)
+        self.posDisplay.disconnectAll()
+        self.posDisplay.connectAll()
         self.shuttle()
 
     def posChanged(self):
