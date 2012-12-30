@@ -4,6 +4,22 @@
 		"selected_items":
 		[
 			[
+				"optica",
+				"optical_pumping_enable"
+			],
+			[
+				"hi",
+				"histogram_save_context"
+			],
+			[
+				"pos",
+				"positionIndex"
+			],
+			[
+				"ion",
+				"ionInfo"
+			],
+			[
 				"rabi_e",
 				"rabi_excitation_duration"
 			],
@@ -96,42 +112,82 @@
 	"buffers":
 	[
 		{
+			"file": "scripts/experiments/Experiments729/spectrum.py",
+			"settings":
+			{
+				"buffer_size": 8863,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/experiments/Experiments729/rabi_flopping.py",
+			"settings":
+			{
+				"buffer_size": 8775,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/PulseSequences/subsequences/OpticalPumping.py",
+			"settings":
+			{
+				"buffer_size": 2518,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "scripts/PulseSequences/spectrum_rabi.py",
 			"settings":
 			{
-				"buffer_size": 4077,
+				"buffer_size": 4121,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/cct/LabRAD/common/clients/DDS_CONTROL_config.py",
+			"file": "/home/cct/LabRAD/common/clients/control_729/scans.py",
 			"settings":
 			{
-				"buffer_size": 87,
+				"buffer_size": 9356,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "clients/CCTGUI.py",
+			"file": "scripts/PulseSequences/subsequences/DopplerCooling.py",
 			"settings":
 			{
-				"buffer_size": 5920,
+				"buffer_size": 865,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/cct/LabRAD/common/clients/DDS_CONTROL.py",
+			"file": "scripts/PulseSequences/subsequences/OpticalPumpingContinuous.py",
 			"settings":
 			{
-				"buffer_size": 6728,
+				"buffer_size": 1877,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+			"file": "clients/DAC_CALIBRATOR.py",
 			"settings":
 			{
-				"buffer_size": 4467,
+				"buffer_size": 4378,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "clients/NodeClient-control.py",
+			"settings":
+			{
+				"buffer_size": 1147,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "serialdevices/PIEZO_SERVER.py",
+			"settings":
+			{
+				"buffer_size": 5749,
 				"line_ending": "Unix"
 			}
 		}
@@ -160,13 +216,34 @@
 	},
 	"file_history":
 	[
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/TurnOffAll.py",
-		"/home/cct/LabRAD/cct/clients/DAC_CONTROLw.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RabiExcitation.py",
-		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+		"/home/cct/LabRAD/common/clients/control_729/configuration.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_rabi.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/StateReadout.py",
+		"/home/cct/LabRAD/common/clients/guiscriptcontrol/activeexperimentslist.py",
+		"/home/cct/LabRAD/cct/scripts/simpleMeasurements/micromotioncomp/scanExandTickle.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/PlotSequence.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumping.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumpingContinuous.py",
+		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+		"/home/cct/LabRAD/cct/scripts/simpleMeasurements/micromotioncomp/scanEx.py",
+		"/home/cct/LabRAD/cct/scripts/simpleMeasurements/micromotioncomp/FFT.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/PlotSequence.py.old",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/DopplerCooling.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_blue_dephase.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RabiExcitation.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpD.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/PulseSequence.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpDwithDoppler.py",
+		"/home/cct/LabRAD/cct/clients/CCTGUI.py",
+		"/home/cct/LabRAD/common/clients/DDS_CONTROL_config.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
+		"/home/cct/LabRAD/common/clients/DDS_CONTROL.py",
+		"/home/cct/LabRAD/common/abstractdevices/CCTDACw.py",
+		"/home/cct/LabRAD/cct/clients/DAC_CONTROLw.py",
+		"/home/cct/LabRAD/cct/clients/qtui/QCustomSpinBoxION.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/spectrum.py",
+		"/home/cct/LabRAD/cct/serialdevices/CCTDAC_SERIAL.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/TurnOffAll.py",
 		"/home/cct/LabRAD/common/clients/control_729/scans.py",
 		"/home/cct/LabRAD/common/clients/guiscriptcontrol/configuration.py",
 		"/home/cct/LabRAD/cct/DAC/CCTDACw.py",
@@ -179,18 +256,10 @@
 		"/home/cct/LabRAD/cct/CCTsublime.sublime-workspace",
 		"/home/cct/LabRAD/cct/sublimeCCT.sublime-project",
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/redo dephasing.py",
-		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
 		"/home/cct/LabRAD/cct/clients/NodeClient-control-restart.py",
-		"/home/cct/LabRAD/cct/clients/CCTGUI.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/PlotSequence.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/spectrum_rabi.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/ADV_DAC.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumping.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumpingContinuous.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/OpticalPumpingPulsed.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RecordTimeTags.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpD.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/RepumpDwithDoppler.py",
 		"/home/cct/LabRAD/cct/scripts/scriptLibrary/common_methods_729.py",
 		"/home/cct/LabRAD/cct/clients/VCO_CONTROL.py",
 		"/home/cct/LabRAD/common/serialdevices/serial_server_v1_2.py",
@@ -199,8 +268,6 @@
 		"/home/cct/LabRAD/common/serialdevices/TektronixTPS.py",
 		"/home/cct/LabRAD/common/serialdevices/HP8648A_SERVER.py",
 		"/home/cct/LabRAD/common/DAC/CCTDACv2.py",
-		"/home/cct/LabRAD/cct/serialdevices/CCTDAC_SERIAL.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/PulseSequence.py",
 		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py.sample",
 		"/home/cct/LabRAD/cct/clients/control_729/control_729.py",
 		"/home/cct/LabRAD/cct/clients/tableopticscontrol.py",
@@ -262,6 +329,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"stepsize",
+			"optical",
+			"self.dirappend",
+			"Experiments",
+			"self",
+			"dds",
+			"4",
+			"if",
+			"        #",
+			"Excitation",
+			"maxDACINdex",
+			"setValue",
+			"set",
+			"pmt",
 			"['",
 			"dur",
 			"advD",
@@ -357,77 +438,23 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 9,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "scripts/PulseSequences/spectrum_rabi.py",
+					"file": "scripts/experiments/Experiments729/spectrum.py",
 					"settings":
 					{
-						"buffer_size": 4077,
+						"buffer_size": 8863,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3104,
-								3104
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 306.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "/home/cct/LabRAD/common/clients/DDS_CONTROL_config.py",
-					"settings":
-					{
-						"buffer_size": 87,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								87,
-								87
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "clients/CCTGUI.py",
-					"settings":
-					{
-						"buffer_size": 5920,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3676,
-								3676
+								1053,
+								1053
 							]
 						],
 						"settings":
@@ -437,17 +464,129 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 918.0,
+						"translation.y": 1428.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "scripts/experiments/Experiments729/rabi_flopping.py",
+					"settings":
+					{
+						"buffer_size": 8775,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5222,
+								5222
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "scripts/PulseSequences/subsequences/OpticalPumping.py",
+					"settings":
+					{
+						"buffer_size": 2518,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								771,
+								771
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "/home/cct/LabRAD/common/clients/DDS_CONTROL.py",
+					"file": "scripts/PulseSequences/spectrum_rabi.py",
 					"settings":
 					{
-						"buffer_size": 6728,
+						"buffer_size": 4121,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								372,
+								372
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/home/cct/LabRAD/common/clients/control_729/scans.py",
+					"settings":
+					{
+						"buffer_size": 9356,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1255,
+								1255
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1175.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "scripts/PulseSequences/subsequences/DopplerCooling.py",
+					"settings":
+					{
+						"buffer_size": 865,
 						"regions":
 						{
 						},
@@ -465,25 +604,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1071.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+					"buffer": 6,
+					"file": "scripts/PulseSequences/subsequences/OpticalPumpingContinuous.py",
 					"settings":
 					{
-						"buffer_size": 4467,
+						"buffer_size": 1877,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2734,
-								2734
+								1101,
+								1101
 							]
 						],
 						"settings":
@@ -494,6 +633,89 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "clients/DAC_CALIBRATOR.py",
+					"settings":
+					{
+						"buffer_size": 4378,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1101,
+								1101
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 357.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "clients/NodeClient-control.py",
+					"settings":
+					{
+						"buffer_size": 1147,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								46,
+								46
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "serialdevices/PIEZO_SERVER.py",
+					"settings":
+					{
+						"buffer_size": 5749,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1202,
+								1202
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 357.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -561,6 +783,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 329.0,
+	"side_bar_width": 330.0,
 	"status_bar_visible": true
 }

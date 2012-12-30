@@ -26,7 +26,7 @@ class DAC_CALIBRATOR(QDACCalibrator):
         now = datetime.datetime.now()
         date = now.strftime("%Y%m%d")
         TIME = now.strftime('%H%M%S')      
-        
+
         self.datavault.cd(['', date, 'Calibrations',str(self.channelToCalib) + TIME], True)
         self.datavault.new(str(self.channelToCalib) + TIME,[('digital', '')], [('Analog', 'Volts', 'Volts')])
         self.datavault.add_parameter('plotLive',True)
@@ -34,7 +34,8 @@ class DAC_CALIBRATOR(QDACCalibrator):
         
         #stepsize = 0b101010101
 
-        stepsize = 1000
+        #stepsize = 1000
+        stepsize = 500
         self.numSteps = (61000-5000)/stepsize        
         self.digVoltages = [ 5000 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
         self.compareVolts = [ 5000 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
@@ -93,13 +94,13 @@ class DAC_CALIBRATOR(QDACCalibrator):
         uncalDiffs = idealVals - self.anaVoltages
         
         print "MAX DEVIATION: ", max(abs(diffs)), " bits, or ~", m*max(abs(diffs))*1000., " mV"
-#        plt.figure(2)
-#        plt.plot(self.digVoltages, 1000*(diffs))
-#        plt.title('Actual deviation from fit (mV)')
-#        plt.figure(3)
-#        plt.plot(self.digVoltages, 1000*(uncalDiffs) )
-#        plt.title('Deviation from nominal settings (mV)')
-#        plt.show()
+        plt.figure(2)
+        plt.plot(self.digVoltages, 1000*(diffs))
+        plt.title('Actual deviation from fit (mV)')
+        plt.figure(3)
+        plt.plot(self.digVoltages, 1000*(uncalDiffs) )
+        plt.title('Deviation from nominal settings (mV)')
+        plt.show()
         
 #        print "MAX DEV FROM NOMINAL: ", max(abs(uncalDiffs)), " bits"
 

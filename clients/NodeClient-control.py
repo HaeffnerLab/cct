@@ -7,6 +7,7 @@ nodeDict = {'node_cctmain':
 					'CCTDAC Serial', 'VCOServer'],
 		}
 
+
 #connect to LabRAD
 errors = False
 try:

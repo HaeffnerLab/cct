@@ -131,7 +131,7 @@ class SCAN(QtGui.QWidget):
         self.running = True
         yield self.rs.onoff(True)
         now = datetime.datetime.now()
-        date = now.strftime("%Y%m%d")
+        date = now.strftime("%Y-%m-%d")
         time = now.strftime('%H%M%S')
 
         # add values to registry
@@ -159,6 +159,7 @@ class SCAN(QtGui.QWidget):
             yield self.dv.add_parameter('plotLive',True)
             print 'Saving {}'.format(name)
             yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, A)])
+            print "Set multipole values"
             frequencies = numpy.arange(self.control['minTfrq'].value(), self.control['maxTfrq'].value(), self.control['sizeStepsTfrq'].value())
             if self.button['revT'].isChecked():	
                 frequencies = frequencies[::-1] # The ion asks that you kindly scan downwards, thanks
@@ -169,8 +170,10 @@ class SCAN(QtGui.QWidget):
                     self.button['scan'].setText('Scan')
                     return
                 self.rs.frequency(self.T.Value(f, 'MHz'))
+                print "set the frequency"
                 #TIME.sleep(.3)
                 pmtcount = yield self.pmt.get_next_counts('ON', int(self.control['avg'].value()), True)	
+                print pmtcount
                 yield self.dv.add(f, pmtcount)
             yield self.rs.onoff(False)
             yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, initA)])
