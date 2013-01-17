@@ -216,4 +216,4 @@ if __name__=="__main__":
     from twisted.internet import reactor
     Scan_Control_Tickle = Scan_Control_Tickle(reactor, 'Ex1')
     Scan_Control_Tickle.show()
-    reactor.run() 
+    reactor.run()
