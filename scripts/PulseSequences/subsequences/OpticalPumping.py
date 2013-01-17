@@ -18,8 +18,6 @@ class optical_pumping(PulseSequence):
         return config
     
     def sequence(self):
-        print "printing"
-        print self.p.optical_pumping_continuous
         if (self.p.optical_pumping_continuous == self.p.optical_pumping_pulsed):
             raise Exception("Incorrectly Selected Optical Pumping Type") 
         if self.p.optical_pumping_continuous:

@@ -40,7 +40,6 @@ class rabi_flopping(SemaphoreExperiment):
         self.pulser = self.cxn.pulser
         self.sem = cxn.semaphore
         self.dv = cxn.data_vault
-        self.vcoserver = cxn.vcoserver
         self.p = self.populate_parameters(self.sem, self.experimentPath)
         
     def setup_data_vault(self):
@@ -61,8 +60,6 @@ class rabi_flopping(SemaphoreExperiment):
         self.dv.new('Readout {}'.format(self.datasetNameAppend),[('Freq', 'MHz')],[('Readout Counts','Arb','Arb')], context = self.readout_save_context )
     
     def setup_pulser(self):
-        #self.vcoserver.init_all_off()
-        #switch off 729 at the beginning
         self.pulser.output('729DP', False)
     
     def setup_sequence_parameters(self):
@@ -76,11 +73,6 @@ class rabi_flopping(SemaphoreExperiment):
         sequence_parameters['optical_pumping_frequency_866'] = self.check_parameter(self.p.frequency_866)        
         sequence_parameters['optical_pumping_frequency_854'] = self.check_parameter(self.p.frequency_854)
         sequence_parameters['repump_d_frequency_854'] = self.check_parameter(self.p.frequency_854)
-
-        # preset the frequencies with VCO server
-        #self.vcoserver.set_frequency('866DP', self.p.frequency_866 )
-        #self.vcoserver.set_frequency('854DP', self.p.frequency_854 )
-        #self.vcoserver.set_frequency('397DP', self.p.doppler_cooling_frequency_397)
     
         sequence_parameters['rabi_excitation_amplitude'] = self.check_parameter(self.p.rabi_amplitude_729)
         return sequence_parameters
@@ -115,14 +107,8 @@ class rabi_flopping(SemaphoreExperiment):
             should_continue = self.sem.block_experiment(self.experimentPath, self.percentDone)
             if not should_continue:
                 print 'Not Continuing'
-                self.pulser.switch_manual('397DP', True)
-                self.pulser.switch_manual('866DP', True)
-                self.pulser.switch_manual('854DP', True)
                 return
             else:
-                self.pulser.switch_auto('866DP')
-                self.pulser.switch_auto('397DP')
-                self.pulser.switch_auto('854DP')
                 #program pulser, run sequence, and get readouts
                 self.program_pulser(duration)
                 self.pulser.start_number(repeatitions)
@@ -157,9 +143,6 @@ class rabi_flopping(SemaphoreExperiment):
         dvParameters.saveParameters(self.dv, self.p.toDict())
     
     def finalize(self):
-        self.pulser.switch_manual('397DP', True)
-        self.pulser.switch_manual('866DP', True)
-        self.pulser.switch_manual('854DP', True)
         self.save_parameters()
         self.sem.finish_experiment(self.experimentPath, self.percentDone)
         self.pulser.clear_dds_lock()

@@ -40,7 +40,6 @@ class spectrum(SemaphoreExperiment):
         self.pulser = self.cxn.pulser
         self.sem = cxn.semaphore
         self.dv = cxn.data_vault
-        self.vcoserver = cxn.vcoserver
         self.p = self.populate_parameters(self.sem, self.experimentPath)
         
     def setup_data_vault(self):
@@ -61,12 +60,8 @@ class spectrum(SemaphoreExperiment):
         self.dv.new('Readout {}'.format(self.datasetNameAppend),[('Freq', 'MHz')],[('Readout Counts','Arb','Arb')], context = self.readout_save_context )
     
     def setup_pulser(self):
-        self.vcoserver.init_all_off()
         #switch off 729 at the beginning
         self.pulser.output('729DP', False)
-        self.pulser.switch_auto('397DP')
-        self.pulser.switch_auto('866DP')
-        self.pulser.switch_auto('854DP')
     
     def setup_sequence_parameters(self):
         #update the sequence parameters with our values
@@ -123,15 +118,9 @@ class spectrum(SemaphoreExperiment):
             should_continue = self.sem.block_experiment(self.experimentPath, self.percentDone)
             if not should_continue:
                 print 'Not Continuing'
-                self.pulser.switch_manual('397DP', True)
-                self.pulser.switch_manual('866DP', True)
-                self.pulser.switch_manual('854DP', True)
                 return
             else:
                 #program pulser, run sequence, and get readouts
-                self.pulser.switch_auto('866DP')
-                self.pulser.switch_auto('397DP')
-                self.pulser.switch_auto('854DP')
                 self.program_pulser(freq, ampl, duration)
                 self.pulser.start_number(repeatitions)
                 self.pulser.wait_sequence_done()
@@ -169,9 +158,6 @@ class spectrum(SemaphoreExperiment):
         self.save_parameters()
         self.sem.finish_experiment(self.experimentPath, self.percentDone)
         self.pulser.clear_dds_lock()
-        self.pulser.switch_manual('397DP', True)
-        self.pulser.switch_manual('866DP', True)
-        self.pulser.switch_manual('854DP', True)
 
         self.cxn.disconnect()
         self.cxnlab.disconnect()

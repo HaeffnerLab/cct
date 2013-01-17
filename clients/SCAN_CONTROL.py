@@ -88,7 +88,7 @@ class SCAN(QtGui.QWidget):
         self.ds = yield self.cxn.cctdac_pulser_v2
         self.pmt = self.cxn.normalpmtflow
         self.rs = self.cxncam.rohdeschwarz_server
-        self.rs.select_device('GPIB Bus - USB0::0x0AAD::0x0054::104543')
+        self.rs.select_device('cct_camera GPIB Bus - USB0::0x0AAD::0x0054::104543')
         self.control['numStepsAmp'].valueChanged.connect(self.numAStepsChanged)
         self.control['sizeStepsAmp'].valueChanged.connect(self.sizeAStepsChanged)
         self.control['numStepsTfrq'].valueChanged.connect(self.numTStepsChanged)
@@ -129,7 +129,7 @@ class SCAN(QtGui.QWidget):
         axis = self.axis
         self.button['scan'].setText('Scan is running')
         self.running = True
-        yield self.rs.onoff(True)
+        yield self.rs.output(True)
         now = datetime.datetime.now()
         date = now.strftime("%Y-%m-%d")
         time = now.strftime('%H%M%S')
@@ -151,6 +151,7 @@ class SCAN(QtGui.QWidget):
         initA = D[axis]
         del D[axis]
         for A in amplitudes:
+            yield self.rs.output(True)
             dirName = time + '-%s and Tickle' % axis[:2]
             yield self.dv.cd(['', date,'MMComp', dirName],True)
             graphName = axis[:2] + ': ' + str(A)
@@ -165,7 +166,7 @@ class SCAN(QtGui.QWidget):
                 frequencies = frequencies[::-1] # The ion asks that you kindly scan downwards, thanks
             for f in frequencies:
                 if self.running == False:
-                    yield self.rs.onoff(False)
+                    yield self.rs.output(False)
                     yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, initA)])
                     self.button['scan'].setText('Scan')
                     return
@@ -175,7 +176,7 @@ class SCAN(QtGui.QWidget):
                 pmtcount = yield self.pmt.get_next_counts('ON', int(self.control['avg'].value()), True)	
                 print pmtcount
                 yield self.dv.add(f, pmtcount)
-            yield self.rs.onoff(False)
+            yield self.rs.output(False)
             yield self.ds.set_multipole_values([(v, D[v]) for v in D.keys()] + [(axis, initA)])
             self.button['scan'].setText('Scan')
 

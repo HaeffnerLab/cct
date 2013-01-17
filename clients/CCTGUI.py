@@ -75,15 +75,11 @@ class cctGUI(QtGui.QMainWindow):
 
     def makeTableOpticsWidget(self, reactor):
         widget = QtGui.QWidget()
-        from tableopticscontrol import OPTICS_CONTROL
         from common.clients.DDS_CONTROL import DDS_CONTROL
-        from SHUTTER_CONTROL import SHUTTER
         gridLayout = QtGui.QGridLayout()
-        gridLayout.addWidget(OPTICS_CONTROL(reactor), 0, 0)
-        gridLayout.addWidget(DDS_CONTROL(reactor), 0, 1)
-        gridLayout.addWidget(SHUTTER(reactor),1, 0)
-        gridLayout.setRowStretch(1,1)
-        gridLayout.setColumnStretch(1,1)
+        gridLayout.addWidget(DDS_CONTROL(reactor), 0, 0)
+        #gridLayout.setRowStretch(1,1)
+        #gridLayout.setColumnStretch(1,1)
         widget.setLayout(gridLayout)
         return widget
 
@@ -104,7 +100,7 @@ class cctGUI(QtGui.QMainWindow):
         bottomPanel = QtGui.QGridLayout()
         bottomPanel.addWidget(Tickle_Control(reactor), 1, 1)      
         bottomPanel.addWidget(TD_CONTROL(reactor), 1, 0)
-        bottomPanel.addWidget(SHUTTER(reactor), 1, 2) 
+        #bottomPanel.addWidget(SHUTTER(reactor), 1, 2) 
         #gridLayout.addLayout(rightPanel, 0, 1, 2, 1)          
         gridLayout.addLayout(bottomPanel, 1, 0)
         gridLayout.setRowStretch(0, 1)

@@ -4,7 +4,7 @@ from PyQt4 import QtCore,uic
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 MinPower = -100 #dbM
-MaxPower = 0
+MaxPower = 20
 MinFreq = 0 #Mhz
 MaxFreq = 100
 
@@ -53,7 +53,7 @@ class T(QtGui.QWidget):
         self.cxn = yield connectAsync('192.168.169.30')
         self.server = yield self.cxn.rohdeschwarz_server
         try:
-            yield self.server.select_device('GPIB Bus - USB0::0x0AAD::0x0054::104543')
+            yield self.server.select_device('cct_camera GPIB Bus - USB0::0x0AAD::0x0054::104543')
         except Error:
             self.setEnabled(False)
             return
@@ -67,10 +67,10 @@ class T(QtGui.QWidget):
     def onOutputChange(self, state):
         if self.state:
             self.stateButton.setText('Rohde&Schwarz: OFF')
-            yield self.server.onoff(False)
+            yield self.server.output(False)
         if not self.state:
             self.stateButton.setText('Rohde&Schwarz: ON')
-            yield self.server.onoff(True)
+            yield self.server.output(True)
         self.state = not self.state
 
         
@@ -78,7 +78,7 @@ class T(QtGui.QWidget):
     def update(self, c):
         currentpower = yield self.server.amplitude()
         currentfreq = yield self.server.frequency()
-        currentstate = yield self.server.onoff()
+        currentstate = yield self.server.output()
         self.powerCtrl.setValue(currentpower)
         self.frequencyCtrl.setValue(currentfreq)
         if currentstate: self.stateButton.setText('Rohde&Schwarz: ON')
