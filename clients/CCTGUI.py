@@ -16,6 +16,7 @@ class cctGUI(QtGui.QMainWindow):
 
     def create_layout(self, cxn):
         from PMT_CONTROL import pmtWidget
+        from common.clients.LINETRIGGER_CONTROL import linetriggerWidget as lineTrig
         self.tabWidget = QtGui.QTabWidget()
         lightControlTab = self.makeLightWidget(reactor)
         voltageControlTab = self.makeVoltageWidget(reactor)
@@ -36,7 +37,10 @@ class cctGUI(QtGui.QMainWindow):
         gridLayout = QtGui.QGridLayout()
         gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
         gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
-        gridLayout.addWidget(pmtWidget(reactor), 0, 4, 1, 1)
+        rightPanel = QtGui.QGridLayout()
+        rightPanel.addWidget(pmtWidget(reactor), 0, 0) 
+        rightPanel.addWidget(lineTrig(reactor), 1, 0)
+        gridLayout.addLayout(rightPanel, 0, 4)
         centralWidget = QtGui.QWidget()
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
@@ -100,7 +104,7 @@ class cctGUI(QtGui.QMainWindow):
         bottomPanel = QtGui.QGridLayout()
         bottomPanel.addWidget(Tickle_Control(reactor), 1, 1)      
         bottomPanel.addWidget(TD_CONTROL(reactor), 1, 0)
-        #bottomPanel.addWidget(SHUTTER(reactor), 1, 2) 
+        bottomPanel.addWidget(SHUTTER(reactor), 1, 2) 
         #gridLayout.addLayout(rightPanel, 0, 1, 2, 1)          
         gridLayout.addLayout(bottomPanel, 1, 0)
         gridLayout.setRowStretch(0, 1)

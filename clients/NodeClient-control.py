@@ -3,7 +3,8 @@ import numpy as np
 import time
 
 nodeDict = {'node_cctmain':
-					['cctmain Serial Server','Data Vault','Pulser', 'NormalPMTFlow','CCTDAC Pulser v2', 'Piezo Server', 'Semaphore'],
+					['Serial Server','Data Vault','Pulser', 'NormalPMTFlow','CCTDAC', 'Piezo Server', 'Semaphore', 'SD Tracker'],
+					# ['Serial Server','Data Vault','Pulser', 'NormalPMTFlow','CCTDAC', 'Piezo Server', 'Semaphore']
 		}
 
 

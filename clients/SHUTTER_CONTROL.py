@@ -10,7 +10,7 @@ class SHUTTER (QtGui.QWidget):
         super(SHUTTER, self).__init__(parent)
         print 'here'
         self.reactor = reactor
-        self.channels = ['bluePI', '397DP', '866DP', '854DP']        
+        self.channels = ['375sw']        
         self.makeGUI()
         self.connect()
         
@@ -61,10 +61,7 @@ class SHUTTER (QtGui.QWidget):
         return fn
 
     def name(self, channel):
-        if channel == 'bluePI': return 'Blue PI'
-        if channel == '397sw': return '397'
-        if channel == '866sw': return '866'
-        if channel == '2W oven' : return '2W_oven'
+        if channel == '375sw': return '375sw'
         else: return channel
         
 class SHUTTER_CONTROL(QtGui.QMainWindow):

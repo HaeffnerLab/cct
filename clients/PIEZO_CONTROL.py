@@ -135,11 +135,9 @@ class PC (QtGui.QWidget,):
     
     @inlineCallbacks
     def get(self, axis):
-        yield self.piezoserver.gfreq(int(axis))
-        sf = yield self.piezoserver.rfreq(int(axis))
+        sf = yield self.piezoserver.gfreq(int(axis))
         self.indicator[axis + 'f'].setValue(sf)
-        yield self.piezoserver.gvolt(int(axis))
-        sv = yield self.piezoserver.rvolt(int(axis))
+        sv = yield self.piezoserver.gvolt(int(axis))
         self.indicator[axis + 'v'].setValue(sv)
         r = self.registry
         r.cd('', 'Piezo Control')

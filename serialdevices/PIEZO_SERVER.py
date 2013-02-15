@@ -41,49 +41,7 @@ class PS(SerialDeviceServer):
     
     @inlineCallbacks
     def initServer(self):
-        self.createVoltDict()
-        self.createFreqDict()
-        self.createCapDict()
-        if not self.regKey or not self.serNode: raise SerialDeviceError( 'Must define regKey and serNode attributes' )
-        #port = yield self.getPortFromReg( self.regKey )
-        port = 'ttyUSB2'
-        self.port = port
-        print  port
-        try:
-            serStr = yield self.findSerial(self.serNode)
-            self.initSerial( serStr, port )
-        except SerialConnectionError, e:
-            self.ser = None
-            if e.code == 0:
-                print 'Could not find serial server for node: %s' % self.serNode
-                print 'Please start correct serial server'
-            elif e.code == 1:
-                print 'Error opening serial connection'
-                print 'Check set up and restart serial server'
-            else: raise          
-	#for i in range(100):
-	    #self.ser.readline()
-            
-    def createFreqDict(self):
-        f = {}
-        f['1'] = 0
-        f['2']= 0
-        f['3'] = 0
-        self.freqDict = f
-
-    def createVoltDict(self):
-        v = {}
-        v['1'] = 0
-        v['2']= 0
-        v['3'] = 0
-        self.voltDict = v
-        
-    def createCapDict(self):
-        c = {}
-        c['1'] = 0
-        c['2']= 0
-        c['3'] = 0
-        self.capDict = c
+        yield self.doSerial(self.serNode, 'ver\r\n', 'attocube')
                         
     @setting(1, "step", axis = 'i', numSteps = 'i', returns = '')
     def step(self, c, axis, numSteps):
@@ -115,55 +73,34 @@ class PS(SerialDeviceServer):
         self.ser.write('setv ' + str(axis) + ' ' + str(volt) + '\r\n')
         yield self.getAns(c, 'done')
 
-    @setting(6, "gFreq", axis = 'i', returns = '')
+    @setting(6, "gFreq", axis = 'i', returns = 'i')
     def gFreq(self, c, axis):
         self.ser.write('getf ' + str(axis) + '\r\n')
         yield self.getAns(c, 'f')
-        freq = int(self.ret)
-        self.freqDict[str(axis)] = freq
-	
-    @setting(7, "gVolt", axis = 'i', returns = '')
+        returnValue(self.ret)
+
+    @setting(7, "gVolt", axis = 'i', returns = 'i')
     def gVolt(self, c, axis):
         self.ser.write('getv ' + str(axis) + '\r\n')
         yield self.getAns(c, 'v')
-        volt = int(self.ret)
-        self.voltDict[str(axis)] = volt
+        returnValue(self.ret)
 	
-    @setting(8, "gCap", axis = 'i', returns = '')
+    @setting(8, "gCap", axis = 'i', returns = 'i')
     def gCap(self, c, axis):
         self.ser.write('setm ' + str(axis) + ' cap' + '\r\n')
         self.ser.write('getc ' + str(axis) + '\r\n')
         yield self.getAns(c, 'c')
-        cap = int(self.ret)
-        self.capDict[str(axis)] = cap
-	
-    @setting(9, "rFreq", axis = 'i', returns = 'i')
-    def rFreq(self, c, axis):
-        val = self.freqDict[str(axis)]
-        yield val
-        returnValue(val)
-	
-    @setting(10, "rVolt", axis = 'i', returns = 'i')
-    def rVolt(self, c, axis):
-        val = self.voltDict[str(axis)]
-        yield val
-        returnValue(val)
-
-    @setting(11, "rCap", axis = 'i', returns = 'i')
-    def rCap(self, c, axis):
-        val = self.capDict[str(axis)]
-        yield val
-        returnValue(val)
+        returnValue(self.ret)
 	
     @setting(12, "gAns", prop = 's', returns = '')
     def getAns(self, c, prop):
         listy = []
-        ans = '1'
+        ans = 'X'
         ret = 'ERROR'
         while ans != '':
             ans = yield self.ser.readline()
             listy.append(ans)
-        print listy
+        # print listy
         for num, r in enumerate(listy):
             if r[:9] == 'frequency' and prop == 'f':
                 ret = listy[num][12:-3]
@@ -172,7 +109,7 @@ class PS(SerialDeviceServer):
             if r[:8] == 'capacity' and prop == 'c':
                 ret = listy[num][11:-3]
         if ret != 'ERROR':
-            self.ret = ret
+            self.ret = int(ret)
         else:
             self.ret = 0
 	  
@@ -182,7 +119,6 @@ class PS(SerialDeviceServer):
         elif numSteps < 0:
             return 'stepd ' + str(axis)+ ' ' + str(-numSteps) +  '\r\n'
 	  
-
 if __name__ == "__main__":
     from labrad import util
     util.runServer(PS())
