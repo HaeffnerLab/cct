@@ -53,7 +53,8 @@ class T(QtGui.QWidget):
         self.cxn = yield connectAsync('192.168.169.30')
         self.server = yield self.cxn.rohdeschwarz_server
         try:
-            yield self.server.select_device('cct_camera GPIB Bus - USB0::0x0AAD::0x0054::104543')
+            # yield self.server.select_device('cct_camera GPIB Bus - USB0::0x0AAD::0x0054::104543')
+            yield self.server.select_device('GPIB Bus - USB0::0x0AAD::0x0054::104543')
         except Error:
             self.setEnabled(False)
             return
