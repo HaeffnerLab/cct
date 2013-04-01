@@ -1,13 +1,9 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 
-class record_timetags(PulseSequence):
-
-    def configuration(self):
-        config = [
-                  'record_timetags_duration',
-                  ]
-        return config
+class record_timetags(pulse_sequence):
+    
+    required_parameters = [('RecordTimetags','record_timetags_duration')]
     
     def sequence(self):
-        self.end = self.start + self.p.record_timetags_duration
-        self.ttl_pulses.append(('TimeResolvedCount', self.start, self.p.record_timetags_duration))
+        self.end = self.start + self.parameters.RecordTimetags.record_timetags_duration
+        self.addTTL('TimeResolvedCount', self.start, self.parameters.RecordTimetags.record_timetags_duration)

@@ -1,26 +1,28 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from cct.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
+from treedict import TreeDict
 
-class state_readout(PulseSequence):
+class state_readout(pulse_sequence):
     
-    def configuration(self):
-        config = [
-                'state_readout_frequency_397', 
-                'state_readout_amplitude_397', 
-                'state_readout_frequency_866', 
-                'state_readout_amplitude_866', 
-                'state_readout_duration',
+    
+    required_parameters = [
+                ('StateReadout','state_readout_frequency_397'), 
+                ('StateReadout','state_readout_amplitude_397'), 
+                ('StateReadout','state_readout_frequency_866'), 
+                ('StateReadout','state_readout_amplitude_866'), 
+                ('StateReadout','state_readout_duration'),
                 ]
-        return config
+
+    required_subsequences = [doppler_cooling]
     
     def sequence(self):
-        
+        st = self.parameters.StateReadout
         replace = {
-                   'doppler_cooling_frequency_397':self.p.state_readout_frequency_397,
-                   'doppler_cooling_amplitude_397':self.p.state_readout_amplitude_397,
-                   'doppler_cooling_frequency_866':self.p.state_readout_frequency_866,
-                   'doppler_cooling_amplitude_866':self.p.state_readout_amplitude_866,
-                   'doppler_cooling_duration':self.p.state_readout_duration,
+                   'DopplerCooling.doppler_cooling_frequency_397':st.state_readout_frequency_397,
+                   'DopplerCooling.doppler_cooling_amplitude_397':st.state_readout_amplitude_397,
+                   'DopplerCooling.doppler_cooling_frequency_866':st.state_readout_frequency_866,
+                   'DopplerCooling.doppler_cooling_amplitude_866':st.state_readout_amplitude_866,
+                   'DopplerCooling.doppler_cooling_duration':st.state_readout_duration,
                    }
-        self.addSequence(doppler_cooling, **replace)
-        self.ttl_pulses.append(('ReadoutCount', self.start, self.p.state_readout_duration))
+        self.addSequence(doppler_cooling, TreeDict.fromdict(replace))
+        self.addTTL('ReadoutCount', self.start, st.state_readout_duration)

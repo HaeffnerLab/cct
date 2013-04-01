@@ -1,22 +1,19 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
-
-class doppler_cooling(PulseSequence):
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
+class doppler_cooling(pulse_sequence):
     
-    def configuration(self):
-        
-        config = [
-                'doppler_cooling_frequency_397', 
-                'doppler_cooling_amplitude_397', 
-                'doppler_cooling_frequency_866', 
-                'doppler_cooling_amplitude_866', 
-                'doppler_cooling_duration',
-                'doppler_cooling_repump_additional'
-                ]
-        return config
+    
+    required_parameters = [
+                           ('DopplerCooling','doppler_cooling_frequency_397'), 
+                           ('DopplerCooling','doppler_cooling_amplitude_397'), 
+                           ('DopplerCooling','doppler_cooling_frequency_866'), 
+                           ('DopplerCooling','doppler_cooling_amplitude_866'), 
+                           ('DopplerCooling','doppler_cooling_duration'),
+                           ('DopplerCooling','doppler_cooling_repump_additional')
+                           ]
     
     def sequence(self):
-        pulses = self.dds_pulses
-        repump_duration = self.p.doppler_cooling_duration + self.p.doppler_cooling_repump_additional
-        pulses.append( ('397DP',self.start, self.p.doppler_cooling_duration, self.p.doppler_cooling_frequency_397, self.p.doppler_cooling_amplitude_397) )
-        pulses.append( ('866DP',self.start, repump_duration, self.p.doppler_cooling_frequency_866, self.p.doppler_cooling_amplitude_866) )
+        p = self.parameters.DopplerCooling
+        repump_duration = p.doppler_cooling_duration + p.doppler_cooling_repump_additional
+        self.addDDS ('397',self.start, p.doppler_cooling_duration, p.doppler_cooling_frequency_397, p.doppler_cooling_amplitude_397)
+        self.addDDS ('866',self.start, repump_duration, p.doppler_cooling_frequency_866, p.doppler_cooling_amplitude_866)
         self.end = self.start + repump_duration

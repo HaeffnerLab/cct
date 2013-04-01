@@ -151,46 +151,6 @@ Sets server's ser attribute if successful.
             self.ser = None
             raise SerialConnectionError( 1 )
 
-
-    @inlineCallbacks
-    def doSerial( self, serNode, toWrite, response, **kwargs ):
-        "specify prompt and proper response instead of port"
-        from labrad.wrappers import connectAsync
-        cxn = yield connectAsync()
-        self.server = cxn.cctmain_serial_server
-        portList = yield self.server.list_serial_ports()
-        serStr = yield self.findSerial(self.serNode)
-        for port in portList:
-            if not self.deviceFound: 
-                try:
-                    print 'Checking {} for device'.format(str(port))
-                    yield self.initSerial( serStr, port, **kwargs )
-                    yield self.ser.write(toWrite) 
-                    yield self.getAnswer(response)
-                    if self.deviceFound:
-                        print 'Device found!'
-                    else:
-                        print 'Device not found\n'
-                except SerialConnectionError, e:
-                    self.ser = None
-                    if e.code == 0:
-                        print 'Could not find serial server for node: %s' % self.serNode
-                        print 'Please start correct serial server'
-                    elif e.code == 1:
-                        print 'Device not found'
-                    else: raise  
-
-    @inlineCallbacks
-    def getAnswer( self, response ):
-        listy = []
-        ans = 'X'
-        while ans != '':
-            ans = yield self.ser.readline()
-            listy.append(ans)
-        for r in listy:
-            if r[:len(response)] == response:
-                self.deviceFound = True
-
     @inlineCallbacks
     def getPortFromReg( self, regKey = None ):
         """

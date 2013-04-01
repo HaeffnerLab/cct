@@ -1,42 +1,50 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from OpticalPumpingContinuous import optical_pumping_continuous
 from OpticalPumpingPulsed import optical_pumping_pulsed
+from treedict import TreeDict
 
-class optical_pumping(PulseSequence):
+class optical_pumping(pulse_sequence):
     
-    def configuration(self):
-        config = [
-                  'optical_pumping_continuous',
-                  'optical_pumping_pulsed',
-                  'optical_pumping_frequency_729',
-                  'optical_pumping_frequency_854',
-                  'optical_pumping_frequency_866',
-                  'optical_pumping_amplitude_729',
-                  'optical_pumping_amplitude_854',
-                  'optical_pumping_amplitude_866'
+    
+    required_parameters = [
+                  ('OpticalPumping','optical_pumping_type'),
+                  ('OpticalPumping','optical_pumping_frequency_729'),
+                  ('OpticalPumping','optical_pumping_frequency_854'),
+                  ('OpticalPumping','optical_pumping_frequency_866'),
+                  ('OpticalPumping','optical_pumping_amplitude_729'),
+                  ('OpticalPumping','optical_pumping_amplitude_854'),
+                  ('OpticalPumping','optical_pumping_amplitude_866')
                   ]
-        return config
+    
+    required_subsequences = [optical_pumping_continuous, optical_pumping_pulsed]
     
     def sequence(self):
-        if (self.p.optical_pumping_continuous == self.p.optical_pumping_pulsed):
-            raise Exception("Incorrectly Selected Optical Pumping Type") 
-        if self.p.optical_pumping_continuous:
+        op = self.parameters.OpticalPumping
+        
+        if op.optical_pumping_type == 'continuous':
+            continuous = True
+        elif op.optical_pumping_type == 'pulsed':
+            continuous = False
+        else:
+            raise Exception ('Incorrect optical pumping type {0}'.format(op.optical_pumping_type))
+        if continuous:
             replace = {
-                       'optical_pumping_continuous_frequency_854':self.p.optical_pumping_frequency_854,
-                       'optical_pumping_continuous_amplitude_854':self.p.optical_pumping_amplitude_854,
-                       'optical_pumping_continuous_frequency_729':self.p.optical_pumping_frequency_729,
-                       'optical_pumping_continuous_amplitude_729':self.p.optical_pumping_amplitude_729,
-                       'optical_pumping_continuous_frequency_866':self.p.optical_pumping_frequency_866,
-                       'optical_pumping_continuous_amplitude_866':self.p.optical_pumping_amplitude_866,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_frequency_854':op.optical_pumping_frequency_854,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_854':op.optical_pumping_amplitude_854,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_frequency_729':op.optical_pumping_frequency_729,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_729':op.optical_pumping_amplitude_729,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_frequency_866':op.optical_pumping_frequency_866,
+                       'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':op.optical_pumping_amplitude_866,
                        }
-            self.addSequence(optical_pumping_continuous, **replace)
-        elif self.p.optical_pumping_pulsed:
+            self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
+        else:
+            #pulsed
             replace = {
-                       'optical_pumping_pulsed_frequency_854':self.p.optical_pumping_frequency_854,
-                       'optical_pumping_pulsed_amplitude_854':self.p.optical_pumping_amplitude_854,
-                       'optical_pumping_pulsed_frequency_729':self.p.optical_pumping_frequency_729,
-                       'optical_pumping_pulsed_amplitude_729':self.p.optical_pumping_amplitude_729,
-                       'optical_pumping_pulsed_frequency_866':self.p.optical_pumping_frequency_866,
-                       'optical_pumping_pulsed_amplitude_866':self.p.optical_pumping_amplitude_866,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_frequency_854':op.optical_pumping_frequency_854,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_amplitude_854':op.optical_pumping_amplitude_854,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_frequency_729':op.optical_pumping_frequency_729,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_amplitude_729':op.optical_pumping_amplitude_729,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_frequency_866':op.optical_pumping_frequency_866,
+                       'OpticalPumpingPulsed.optical_pumping_pulsed_amplitude_866':op.optical_pumping_amplitude_866,
                        }
-            self.addSequence(optical_pumping_pulsed, **replace)
+            self.addSequence(optical_pumping_pulsed, TreeDict.fromdict(replace))

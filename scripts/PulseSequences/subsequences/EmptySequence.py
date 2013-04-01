@@ -1,12 +1,9 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 
-class empty_sequence(PulseSequence):
+class empty_sequence(pulse_sequence):
     
-    def configuration(self):
-        config = [
-                  'empty_sequence_duration'
-                  ]
-        return config
-        
+    
+    required_parameters =  [('EmptySequence','empty_sequence_duration')]
+
     def sequence(self):
-        self.end = self.start + self.p.empty_sequence_duration
+        self.end = self.start + self.parameters.EmptySequence.empty_sequence_duration

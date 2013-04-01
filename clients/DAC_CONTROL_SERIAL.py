@@ -169,7 +169,6 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         fn = QtGui.QFileDialog().getOpenFileName()
         yield self.dacserver.set_multipole_control_file(str(fn))
         self.updateGUI()
-        self.inputHasUpdated()
         
     @inlineCallbacks        
     def selectNextCFile(self):

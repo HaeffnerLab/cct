@@ -30,7 +30,7 @@ class PS(SerialDeviceServer):
     regKey = 'piezokey'
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)')
-    port = None
+    port = 'attocube'
     ret = None
     
     timeout = T.Value(.01, 's')
@@ -41,8 +41,20 @@ class PS(SerialDeviceServer):
     
     @inlineCallbacks
     def initServer(self):
-        yield self.doSerial(self.serNode, 'ver\r\n', 'attocube')
-                        
+        port = self.port
+        try:
+            serStr = yield self.findSerial(self.serNode)
+            self.initSerial( serStr, port )
+        except SerialConnectionError, e:
+            self.ser = None
+            if e.code == 0:
+                print 'Could not find serial server for node: %s' % self.serNode
+                print 'Please start correct serial server'
+            elif e.code == 1:
+                print 'Error opening serial connection'
+                print 'Check set up and restart serial server'
+            else: raise
+                                    
     @setting(1, "step", axis = 'i', numSteps = 'i', returns = '')
     def step(self, c, axis, numSteps):
         self.ser.write('setm ' + str(axis) + ' stp' + '\r\n')

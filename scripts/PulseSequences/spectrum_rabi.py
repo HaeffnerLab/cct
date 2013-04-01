@@ -1,92 +1,98 @@
-from PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from subsequences.RepumpDwithDoppler import doppler_cooling_after_repump_d
 from subsequences.EmptySequence import empty_sequence
 from subsequences.OpticalPumping import optical_pumping
 from subsequences.RabiExcitation import rabi_excitation
+from subsequences.Tomography import tomography_readout
 from subsequences.StateReadout import state_readout
 from subsequences.TurnOffAll import turn_off_all
+from subsequences.SidebandCooling import sideband_cooling
 from labrad.units import WithUnit
+from treedict import TreeDict
 
-class spectrum_rabi(PulseSequence):
+class spectrum_rabi(pulse_sequence):
     
-    def configuration(self):
-        config = [
-                  'background_heating_time','optical_pumping_enable'
-                  ]
-        return config
+    required_parameters =  [
+                            ('Heating', 'background_heating_time'),
+                            ('OpticalPumping','optical_pumping_enable'), 
+                            ('SidebandCooling','sideband_cooling_enable'),
+                            
+                            ('RepumpD_5_2','repump_d_duration'),
+                            ('RepumpD_5_2','repump_d_frequency_854'),
+                            ('RepumpD_5_2','repump_d_amplitude_854'),
+                            ('DopplerCooling', 'doppler_cooling_frequency_397'),
+                            ('DopplerCooling', 'doppler_cooling_amplitude_397'),
+                            ('DopplerCooling', 'doppler_cooling_frequency_866'),
+                            ('DopplerCooling', 'doppler_cooling_amplitude_866'),
+                            ('DopplerCooling', 'doppler_cooling_repump_additional'),
+                            ('DopplerCooling', 'doppler_cooling_duration'),
+                          
+                            ('OpticalPumping','optical_pumping_frequency_729'),
+                            ('OpticalPumping','optical_pumping_frequency_854'),
+                            ('OpticalPumping','optical_pumping_frequency_866'),
+                            ('OpticalPumping','optical_pumping_amplitude_729'),
+                            ('OpticalPumping','optical_pumping_amplitude_854'),
+                            ('OpticalPumping','optical_pumping_amplitude_866'),
+                            ('OpticalPumping','optical_pumping_type'),
+                          
+                            ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
+                            ('OpticalPumpingContinuous','optical_pumping_continuous_repump_additional'),
+                          
+                            ('OpticalPumpingPulsed','optical_pumping_pulsed_cycles'),
+                            ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_729'),
+                            ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_repumps'),
+                            ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_additional_866'),
+                            ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_between_pulses'),
+            
+                            ('SidebandCooling','sideband_cooling_cycles'),
+                            ('SidebandCooling','sideband_cooling_type'),
+                            ('SidebandCooling','sideband_cooling_duration_729_increment_per_cycle'),
+                            ('SidebandCooling','sideband_cooling_frequency_854'),
+                            ('SidebandCooling','sideband_cooling_amplitude_854'),
+                            ('SidebandCooling','sideband_cooling_frequency_866'),
+                            ('SidebandCooling','sideband_cooling_amplitude_866'),
+                            ('SidebandCooling','sideband_cooling_frequency_729'),
+                            ('SidebandCooling','sideband_cooling_amplitude_729'),
+                            ('SidebandCooling','sideband_cooling_optical_pumping_duration'),
+                            
+                            ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
+                          
+                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_729'),
+                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_cycles'),
+                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_repumps'),
+                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_additional_866'),
+                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_between_pulses'),
+                          
+                            ('Excitation_729','rabi_excitation_frequency'),
+                            ('Excitation_729','rabi_excitation_amplitude'),
+                            ('Excitation_729','rabi_excitation_duration'),
+                            ('Excitation_729','rabi_excitation_phase'),
+
+                            ('StateReadout','state_readout_frequency_397'),
+                            ('StateReadout','state_readout_amplitude_397'),
+                            ('StateReadout','state_readout_frequency_866'),
+                            ('StateReadout','state_readout_amplitude_866'),
+                            ('StateReadout','state_readout_duration'),
+                            
+                            #('Tomography', 'rabi_pi_time'),
+                            #('Tomography', 'iteration'),
+                            #('Tomography', 'tomography_excitation_frequency'),
+                            #('Tomography', 'tomography_excitation_amplitude'),
+                            ]
     
+    
+    required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
+                             rabi_excitation, state_readout, turn_off_all, sideband_cooling]
+
     def sequence(self):
-        print self.p.optical_pumping_enable
+        p = self.parameters
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         self.addSequence(doppler_cooling_after_repump_d)
-        if self.p.optical_pumping_enable:
+        if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
-        self.addSequence(empty_sequence, **{'empty_sequence_duration':self.p.background_heating_time})
+        if p.SidebandCooling.sideband_cooling_enable:
+            self.addSequence(sideband_cooling)
+        self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
-
-class sample_parameters(object):
-    
-    parameters = {
-              'repump_d_duration':WithUnit(200, 'us'),
-              'repump_d_frequency_854':WithUnit(80.0, 'MHz'),
-              'repump_d_amplitude_854':WithUnit(-11.0, 'dBm'),
-              
-              'doppler_cooling_frequency_397':WithUnit(110.0, 'MHz'),
-              'doppler_cooling_amplitude_397':WithUnit(-11.0, 'dBm'),
-              'doppler_cooling_frequency_866':WithUnit(80.0, 'MHz'),
-              'doppler_cooling_amplitude_866':WithUnit(-11.0, 'dBm'),
-              'doppler_cooling_repump_additional':WithUnit(1000, 'us'),
-              'doppler_cooling_duration':WithUnit(5.0,'ms'),
-              
-              
-              'optical_pumping_enable':True,
-              
-              'optical_pumping_continuous_duration':WithUnit(10, 'ms'),
-              'optical_pumping_continuous_repump_additional':WithUnit(200, 'us'),
-              'optical_pumping_frequency_729':WithUnit(220.0, 'MHz'),
-              'optical_pumping_frequency_854':WithUnit(80.0, 'MHz'),
-              'optical_pumping_frequency_866':WithUnit(80.0, 'MHz'),
-              'optical_pumping_amplitude_729':WithUnit(-10.0, 'dBm'),
-              'optical_pumping_amplitude_854':WithUnit(-3.0, 'dBm'),
-              'optical_pumping_amplitude_866':WithUnit(-11.0, 'dBm'),
-              
-              'optical_pumping_pulsed_cycles':2.0,
-              'optical_pumping_pulsed_duration_729':WithUnit(20, 'us'),
-              'optical_pumping_pulsed_duration_repumps':WithUnit(20, 'us'),
-              'optical_pumping_pulsed_duration_additional_866':WithUnit(20, 'us'),
-              'optical_pumping_pulsed_duration_between_pulses':WithUnit(5, 'us'),
-              
-              'optical_pumping_continuous':True,
-              'optical_pumping_pulsed':False,
-              
-              'background_heating_time':WithUnit(0.0, 'ms'),
-              
-              'rabi_excitation_frequency':WithUnit(220.0, 'MHz'),
-              'rabi_excitation_amplitude':WithUnit(-8.0, 'dBm'),
-              'rabi_excitation_duration':WithUnit(24.0, 'us'),
-              #'rabi_excitation_duration':WithUnit(1.0, 's'),
-              'state_readout_frequency_397':WithUnit(110.0, 'MHz'),
-              'state_readout_amplitude_397':WithUnit(-11.0, 'dBm'),
-              'state_readout_frequency_866':WithUnit(80.0, 'MHz'),
-              'state_readout_amplitude_866':WithUnit(-11.0, 'dBm'),
-              'state_readout_duration':WithUnit(5.0,'ms'),
-              }
-
-if __name__ == '__main__':
-    import labrad
-    import time
-    cxn = labrad.connect()
-    params = sample_parameters.parameters
-    tinit = time.time()
-    cs = spectrum_rabi(**params)
-    cs.programSequence(cxn.pulser)
-    print 'to program', time.time() - tinit
-    cxn.pulser.switch_auto('397DP')
-    cxn.pulser.start_number(1)
-    cxn.pulser.wait_sequence_done()
-    cxn.pulser.stop_sequence()
-    readout = cxn.pulser.get_readout_counts().asarray
-    print readout
-    cxn.pulser.switch_manual('397DP', True)

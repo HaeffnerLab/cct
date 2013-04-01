@@ -1,16 +1,15 @@
 from PyQt4 import QtGui, QtCore, uic
 from numpy import *
-from qtui.QCustomSpinBoxION import QCustomSpinBoxION
+# from qtui.QCustomSpinBoxION import QCustomSpinBoxION
 from qtui.QCustomSpinBox import QCustomSpinBox
 from twisted.internet.defer import inlineCallbacks, returnValue
 import sys
-sys.path.append('/home/cct/LabRAD/common/abstractdevices')
-from DacConfiguration import hardwareConfiguration as hc
+# sys.path.append('/home/cct/LabRAD/common/abstractdevices')
+from common.abstractdevices.DacConfiguration import hardwareConfiguration as hc
 
 UpdateTime = 100 # ms
 SIGNALID = 270836
 SIGNALID2 = 270835
-NumDACs = 28
 
 class MULTIPOLE_CONTROL(QtGui.QWidget):
     def __init__(self, reactor, parent=None):
@@ -21,7 +20,9 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
     @inlineCallbacks    
     def makeGUI(self):
         self.controls = {k: QCustomSpinBox(k, (-2.,2.)) for k in hc.multipoles}
+        self.controls['U1'] = QCustomSpinBox('U1', (-2., 2.))
         self.controls['U2'] = QCustomSpinBox('U2', (0., 20.))
+        self.controls['U3'] = QCustomSpinBox('U3', (-2., 2.))
         self.multipoleValues = {k: 0.0 for k in hc.multipoles}
         self.ctrlLayout = QtGui.QVBoxLayout()
         for k in hc.multipoles:
@@ -45,7 +46,7 @@ class MULTIPOLE_CONTROL(QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac
+        self.dacserver = yield self.cxn.dac_server
         yield self.setupListeners()
         yield self.makeGUI()
         
@@ -89,7 +90,8 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         self.connect()
      
     def makeGUI(self):
-        self.controls = {k: QCustomSpinBox(k, hc.DACDict[k].allowedVoltageRange) for k in hc.DACDict.keys()}
+        self.dacDict = dict(hc.elecDict.items() + hc.smaDict.items())
+        self.controls = {k: QCustomSpinBox(k, self.dacDict[k].allowedVoltageRange) for k in self.dacDict.keys()}
         layout = QtGui.QGridLayout()
         smaBox = QtGui.QGroupBox('SMA Out')
         smaLayout = QtGui.QVBoxLayout()
@@ -100,24 +102,27 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         layout.addWidget(smaBox, 0, 0)
         layout.addWidget(elecBox, 0, 1)
 
-        for k in hc.DACDict:
-            if hc.DACDict[k].smaOutNumber:
-                smaLayout.addWidget(self.controls[k])
-            else:
-                if int(k) <= hc.numElectrodes/2:
-                    elecLayout.addWidget(self.controls[k], hc.numElectrodes/2 - int(k), 0)
-                elif (int(k) == hc.numElectrodes) & (hc.numElectrodes%2):
-                    self.controls[k].title.setText('CNT')
-                    elecLayout.addWidget(self.controls[k], hc.numElectrodes/2, 1)
-                elif int(k) > hc.numElectrodes/2:
-                    elecLayout.addWidget(self.controls[k], hc.numElectrodes - 1 - int(k), 2)      
-        
+        for s in hc.smaDict:
+            smaLayout.addWidget(self.controls[s], alignment = QtCore.Qt.AlignRight)
+        elecList = hc.elecDict.keys()
+        elecList.sort()
+        elecList.pop(hc.centerElectrode-1)
+        for i,e in enumerate(elecList):
+            if int(e) <= len(elecList)/2:
+                elecLayout.addWidget(self.controls[e], len(elecList)/2 - int(i), 0)
+            elif int(e) > len(elecList)/2:
+                elecLayout.addWidget(self.controls[e], len(elecList) - int(i), 2)
+        self.controls[str(hc.centerElectrode).zfill(2)].title.setText('CNT')
+        elecLayout.addWidget(self.controls[str(hc.centerElectrode).zfill(2)], len(elecList)/2, 1) 
+
+        spacer = QtGui.QSpacerItem(20,40,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.MinimumExpanding)
+        smaLayout.addItem(spacer)        
         self.inputUpdated = False                
         self.timer = QtCore.QTimer(self)        
         self.timer.timeout.connect(self.sendToServer)
         self.timer.start(UpdateTime)
         
-        for k in hc.DACDict.keys():
+        for k in self.dacDict.keys():
             self.controls[k].onNewValues.connect(self.inputHasUpdated(k))
 
         layout.setColumnStretch(1, 1)                   
@@ -129,7 +134,7 @@ class CHANNEL_CONTROL (QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac
+        self.dacserver = yield self.cxn.dac_server
         yield self.setupListeners()
         yield self.followSignal(0, 0)
 
@@ -166,8 +171,8 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         self.connect()
         
     def makeGUI(self):      
-        self.displays = {k: QtGui.QLCDNumber() for k in hc.DACDict.keys()}               
-        
+        self.dacDict = dict(hc.elecDict.items() + hc.smaDict.items())
+        self.displays = {k: QtGui.QLCDNumber() for k in self.dacDict.keys()}               
         layout = QtGui.QGridLayout()
         smaBox = QtGui.QGroupBox('SMA Out')
         smaLayout = QtGui.QGridLayout()
@@ -181,23 +186,28 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         layout.addWidget(smaBox, 0, 0)
         layout.addWidget(elecBox, 0, 1)
 
-        for k in hc.DACDict:
+        for k in hc.smaDict:
             self.displays[k].setAutoFillBackground(True)
-            if hc.DACDict[k].smaOutNumber:
-                smaLayout.addWidget(QtGui.QLabel(k),hc.DACDict[k].smaOutNumber, 0)
-                smaLayout.addWidget(self.displays[k], hc.DACDict[k].smaOutNumber, 1)
+            smaLayout.addWidget(QtGui.QLabel(k), self.dacDict[k].smaOutNumber, 0)
+            smaLayout.addWidget(self.displays[k], self.dacDict[k].smaOutNumber, 1)
+            s = hc.smaDict[k].smaOutNumber+1
+
+        elecList = hc.elecDict.keys()
+        elecList.sort()
+        elecList.pop(hc.centerElectrode-1)
+        for i,e in enumerate(elecList):
+            self.displays[k].setAutoFillBackground(True)
+            if int(i) < len(elecList)/2:
+                elecLayout.addWidget(QtGui.QLabel(e), len(elecList)/2 - int(i), 0)
+                elecLayout.addWidget(self.displays[e], len(elecList)/2 - int(i), 1)
             else:
-                if int(k) <= hc.numElectrodes/2:
-                    elecLayout.addWidget(QtGui.QLabel(k), hc.numElectrodes/2 + 1 - int(k), 0)
-                    elecLayout.addWidget(self.displays[k], hc.numElectrodes/2 + 1 - int(k), 1)
-                elif (int(k) == hc.numElectrodes) & (hc.numElectrodes%2):
-                    elecLayout.addWidget(QtGui.QLabel('CNT'), hc.numElectrodes/2 + 1, 2)
-                    elecLayout.addWidget(self.displays[k], hc.numElectrodes/2 + 1, 3)
-                    # elecLayout.addWidget(QtGui.QLabel('CNT'), 1, 2, hc.numElectrodes/2, 1)
-                    # elecLayout.addWidget(self.displays[k], 1, 3, hc.numElectrodes/2, 1)
-                elif int(k) > hc.numElectrodes/2:
-                    elecLayout.addWidget(QtGui.QLabel(k), hc.numElectrodes - int(k), 4)
-                    elecLayout.addWidget(self.displays[k], hc.numElectrodes - int(k), 5) 
+                elecLayout.addWidget(QtGui.QLabel(e), len(elecList) - int(i), 4)
+                elecLayout.addWidget(self.displays[e], len(elecList) - int(i), 5)
+        elecLayout.addWidget(QtGui.QLabel('CNT'), len(elecList)/2 + 1, 2)
+        elecLayout.addWidget(self.displays[str(hc.centerElectrode).zfill(2)], len(elecList)/2 + 1, 3)        
+
+        spacer = QtGui.QSpacerItem(20,40,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.MinimumExpanding)
+        smaLayout.addItem(spacer, s, 0,10, 2)  
 
         self.setLayout(layout)  
                 
@@ -206,7 +216,7 @@ class CHANNEL_MONITOR(QtGui.QWidget):
         from labrad.wrappers import connectAsync
         from labrad.types import Error
         self.cxn = yield connectAsync()
-        self.dacserver = yield self.cxn.cctdac
+        self.dacserver = yield self.cxn.dac_server
         self.ionInfo = {}
         yield self.setupListeners()
         yield self.followSignal(0, 0)       

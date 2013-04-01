@@ -1,16 +1,14 @@
-from cct.scripts.PulseSequences.PulseSequence import PulseSequence
+from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 
-class repump_d(PulseSequence):
-
-    def configuration(self):
-        config = [
-                  'repump_d_duration',
-                  'repump_d_frequency_854',
-                  'repump_d_amplitude_854',
-                  ]
-        return config
+class repump_d(pulse_sequence):
+    
+    required_parameters = [
+                           ('RepumpD_5_2','repump_d_duration'), 
+                           ('RepumpD_5_2','repump_d_frequency_854'), 
+                           ('RepumpD_5_2','repump_d_amplitude_854')
+                           ]
     
     def sequence(self):
-        self.end = self.start + self.p.repump_d_duration
-        pulse = ('854DP', self.start, self.p.repump_d_duration, self.p.repump_d_frequency_854, self.p.repump_d_amplitude_854)
-        self.dds_pulses.append(pulse)
+        p = self.parameters.RepumpD_5_2
+        self.end = self.start + p.repump_d_duration
+        self.addDDS('854', self.start, p.repump_d_duration, p.repump_d_frequency_854, p.repump_d_amplitude_854)
