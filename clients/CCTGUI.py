@@ -18,6 +18,7 @@ class cctGUI(QtGui.QMainWindow):
         from PMT_CONTROL import pmtWidget
         from common.clients.LINETRIGGER_CONTROL import linetriggerWidget as lineTrig
         from common.clients.script_scanner_gui.script_scanner_gui import script_scanner_gui
+        from common.clients.readout_histogram import readout_histogram
 
         self.tabWidget = QtGui.QTabWidget()
         lightControlTab = self.makeLightWidget(reactor)
@@ -25,11 +26,13 @@ class cctGUI(QtGui.QMainWindow):
         piezoControlTab = self.makePiezoWidget(reactor)
         #control729Widget = self.makecontrol729Widget(reactor, cxn)
         script_scanner = script_scanner_gui(reactor, cxn)
+        rdout_hist = readout_histogram(reactor, cxn)
 
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Optics')
         #self.tabWidget.addTab(control729Widget, '&729 Control')
         self.tabWidget.addTab(script_scanner, '&Script Scanner')
+        self.tabWidget.addTab(rdout_hist, '&Readout')
         self.tabWidget.addTab(piezoControlTab, '&Piezo')
         #scriptControl = self.makeScriptControl(reactor)
 
