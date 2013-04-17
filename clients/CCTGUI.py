@@ -18,23 +18,21 @@ class cctGUI(QtGui.QMainWindow):
         from PMT_CONTROL import pmtWidget
         from common.clients.LINETRIGGER_CONTROL import linetriggerWidget as lineTrig
         from common.clients.script_scanner_gui.script_scanner_gui import script_scanner_gui
-        from common.clients.readout_histogram import readout_histogram
-
+        from common.clients.drift_tracker.drift_tracker import drift_tracker
+        
+        dt = drift_tracker(reactor, cxn)
+        
         self.tabWidget = QtGui.QTabWidget()
-        lightControlTab = self.makeLightWidget(reactor)
+        lightControlTab = self.makeLightWidget(reactor, cxn)
         voltageControlTab = self.makeVoltageWidget(reactor)
         piezoControlTab = self.makePiezoWidget(reactor)
-        #control729Widget = self.makecontrol729Widget(reactor, cxn)
         script_scanner = script_scanner_gui(reactor, cxn)
-        rdout_hist = readout_histogram(reactor, cxn)
 
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Optics')
-        #self.tabWidget.addTab(control729Widget, '&729 Control')
         self.tabWidget.addTab(script_scanner, '&Script Scanner')
-        self.tabWidget.addTab(rdout_hist, '&Readout')
+        self.tabWidget.addTab(dt, '&Drift Tracker')
         self.tabWidget.addTab(piezoControlTab, '&Piezo')
-        #scriptControl = self.makeScriptControl(reactor)
 
         self.createGrapherTab()
         
@@ -50,9 +48,6 @@ class cctGUI(QtGui.QMainWindow):
         self.setCentralWidget(centralWidget)
         self.setWindowTitle('CCTGUI')
 
-        
-        #script_scanner.show()
-
     def makeScriptControl(self, reactor):
         from common.clients.guiscriptcontrol.scriptcontrol import ScriptControl
         self.sc = ScriptControl(reactor, self)
@@ -63,15 +58,17 @@ class cctGUI(QtGui.QMainWindow):
     def createExperimentParametersTab(self):
         self.tabWidget.addTab(self.experimentParametersWidget, '&Experiment Parameters')
 
-    def makeLightWidget(self, reactor):        
+    def makeLightWidget(self, reactor, cxn):        
         from common.clients.CAVITY_CONTROL import cavityWidget
         from common.clients.multiplexer.MULTIPLEXER_CONTROL import multiplexerWidget
         from common.clients.DDS_CONTROL import DDS_CONTROL
+        from common.clients.readout_histogram import readout_histogram
         widget = QtGui.QWidget()
         gridLayout = QtGui.QGridLayout()
         gridLayout.addWidget(multiplexerWidget(reactor),0,1)
         gridLayout.addWidget(cavityWidget(reactor),0,0)
         gridLayout.addWidget(DDS_CONTROL(reactor), 1, 0)
+        gridLayout.addWidget(readout_histogram(reactor, cxn), 1, 1)
         widget.setLayout(gridLayout)
         return widget
     
@@ -86,7 +83,7 @@ class cctGUI(QtGui.QMainWindow):
         return widget
         
     def makeVoltageWidget(self, reactor):        
-        from common.clients.DAC_CONTROL_dev import DAC_Control
+        from common.clients.DAC_CONTROL import DAC_Control
         #from PMT_CONTROL import pmtWidget
         #from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
