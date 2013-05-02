@@ -6,6 +6,7 @@ import time
 import labrad
 from labrad.units import WithUnit
 import numpy as np
+from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
 
 class spectrum(experiment):
     
@@ -15,6 +16,8 @@ class spectrum(experiment):
                            ('Spectrum','normal'),
                            ('Spectrum','fine'),
                            ('Spectrum','ultimate'),
+                           ('Spectrum','opticalpumping'),
+                           ('Spectrum','carrier'),
                            
                            ('Spectrum','line_selection'),
                            ('Spectrum','manual_amplitude_729'),
@@ -73,6 +76,7 @@ class spectrum(experiment):
         minim = minim['MHz']; maxim = maxim['MHz']
         self.scan = np.linspace(minim,maxim, steps)
         self.scan = [WithUnit(pt, 'MHz') for pt in self.scan]
+
         
     def setup_data_vault(self):
         localtime = time.localtime()
@@ -98,6 +102,11 @@ class spectrum(experiment):
             excitation = self.excite.run(cxn, context)
             self.dv.add((freq, excitation), context = self.spectrum_save_context)
             self.update_progress(i)
+        #dds = self.cxn.pulser.human_readable_dds()
+        #ttl = self.cxn.pulser.human_readable_ttl()
+        #channels = self.cxn.pulser.get_channels().asarray
+        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        #sp.makePlot()
     
     def fit_lorentzian(self, timeout):
         #for lorentzian format is FWHM, center, height, offset

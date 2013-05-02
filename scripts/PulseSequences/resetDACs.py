@@ -8,3 +8,4 @@ class reset_DACs(pulse_sequence):
 		pl = self.parameters.advanceDACs.pulse_length
 		self.addTTL('rst', 0*pl, 3*pl)
 		self.addTTL('adv', pl, pl)
+
