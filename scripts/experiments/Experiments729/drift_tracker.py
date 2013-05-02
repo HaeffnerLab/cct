@@ -29,6 +29,7 @@ class drift_tracker(experiment):
         self.spectrum.initialize(cxn, context, ident)
         self.parameters['Spectrum.scan_selection'] = 'auto'
         self.parameters['Spectrum.sideband_selection'] = [0,0,0,0]
+        self.parameters['SidebandCooling.sideband_cooling_enable'] = False
         
     def run(self, cxn, context):
         dt = self.parameters.DriftTracker
