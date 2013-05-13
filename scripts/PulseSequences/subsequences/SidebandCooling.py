@@ -17,6 +17,7 @@ class sideband_cooling(pulse_sequence):
                            ('SidebandCooling','sideband_cooling_frequency_854'),
                            ('SidebandCooling', 'sideband_cooling_frequency_866'),
                            ('SidebandCooling', 'sideband_cooling_frequency_729'),
+                           ('SidebandCooling', 'sideband_cooling_detuning_729'),
                            ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_729'),
                            ]
@@ -44,7 +45,7 @@ class sideband_cooling(pulse_sequence):
             cooling_replace = {
                                'SidebandCoolingContinuous.sideband_cooling_continuous_duration':self.parameters.SidebandCoolingContinuous.sideband_cooling_continuous_duration,
                                'SidebandCoolingContinuous.sideband_cooling_continuous_frequency_854':sc.sideband_cooling_frequency_854,
-                               'SidebandCoolingContinuous.sideband_cooling_continuous_frequency_729':sc.sideband_cooling_frequency_729,
+                               'SidebandCoolingContinuous.sideband_cooling_continuous_frequency_729':sc.sideband_cooling_frequency_729 + sc.sideband_cooling_detuning_729,
                                'SidebandCoolingContinuous.sideband_cooling_continuous_frequency_866':sc.sideband_cooling_frequency_866,
                                'SidebandCoolingContinuous.sideband_cooling_conitnuous_amplitude_854':sc.sideband_cooling_amplitude_854,
                                'SidebandCoolingContinuous.sideband_cooling_continuous_amplitude_729':sc.sideband_cooling_amplitude_729,
