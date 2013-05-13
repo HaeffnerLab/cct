@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"step",
+				"stepSize"
+			],
+			[
 				"mu",
 				"multipoleSet"
 			],
@@ -316,22 +320,6 @@
 	"buffers":
 	[
 		{
-			"file": "scripts/experiments/shuttling/shuttleLoop.py",
-			"settings":
-			{
-				"buffer_size": 2057,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "scripts/experiments/shuttling/shuttle.py",
-			"settings":
-			{
-				"buffer_size": 1885,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "/home/cct/LabRAD/common/clients/DAC_CONTROL.py",
 			"settings":
 			{
@@ -348,14 +336,112 @@
 			}
 		},
 		{
-			"contents": "from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence\nclass reset_DACs(pulse_sequence):\n	required_parameters = [\n							('advanceDACs', 'pulse_length'),\n	]\n\n	def sequence( self ):\n		pl = self.parameters.advanceDACs.pulse_length\n		self.addTTL('rst', 0*pl, 3*pl)\n		self.addTTL('adv', pl, pl)\n\n",
-			"file": "scripts/PulseSequences/resetDACs.py",
-			"file_size": 322,
-			"file_write_time": 1364952167000000,
+			"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dev.py",
 			"settings":
 			{
-				"buffer_size": 323,
+				"buffer_size": 13467,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/abstractdevices/script_scanner/configuration.py",
+			"settings":
+			{
+				"buffer_size": 1988,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/experiments/Experiments729/ramsey_scangap.py",
+			"settings":
+			{
+				"buffer_size": 5235,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/PulseSequences/spectrum_rabi.py",
+			"settings":
+			{
+				"buffer_size": 6259,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/pulse_sequences/plot_sequence.py",
+			"settings":
+			{
+				"buffer_size": 4908,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/PulseSequences/tests/test_sideband_cooling.py",
+			"settings":
+			{
+				"buffer_size": 374,
+				"line_ending": "Unix",
+				"name": "from cct.scripts.PulseSequences.spectrum_rabi impo"
+			}
+		},
+		{
+			"file": "scripts/experiments/Experiments729/spectrum.py",
+			"settings":
+			{
+				"buffer_size": 6993,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/scriptLibrary/dvParameters.py",
+			"settings":
+			{
+				"buffer_size": 1982,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "clients/NodeClient-control.py",
+			"settings":
+			{
+				"buffer_size": 1222,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DacConfiguration.py",
+			"settings":
+			{
+				"buffer_size": 2843,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripts/experiments/Experiments729/rabi_flopping.py",
+			"settings":
+			{
+				"buffer_size": 5246,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "from fractions import Fraction\nfrom labrad import units as U\nfrom labrad.units import WithUnit\nimport numpy\nfrom SD_tracker_config import config as conf\n    \nclass EnergyLevel(object):\n    \n    spectoscopic_notation = {\n                            'S': 0,\n                            'P': 1, \n                            'D': 2,\n                            }\n    \n    spectoscopic_notation_rev = {\n                            0 : 'S',\n                            1 : 'P',\n                            2 : 'D',\n                            }\n    \n    \n    def __init__(self, angular_momentum_l, total_angular_momentum_j, spin_s = '1/2'):\n        #convert spectroscopic notation to the spin number\n        if type(angular_momentum_l) == str:\n            angular_momentum_l = self.spectoscopic_notation[angular_momentum_l]\n        total_angular_momentum_j = Fraction(total_angular_momentum_j)\n        spin_s = Fraction(spin_s)\n        S = spin_s\n        self.L = L = angular_momentum_l\n        J = total_angular_momentum_j\n        lande_factor =  self.lande_factor(S, L, J)\n        #sublevels are found, 2* self.J is always an integer, so can use numerator\n        self.sublevels_m =  [-J + i for i in xrange( 1 + (2 * J).numerator)]\n        self.energy_scale = (lande_factor * U.bohr_magneton / U.hplanck) #1.4 MHz / gauss\n    \n    def lande_factor(self, S, L ,J):\n        '''computes the lande g factor'''\n        g = Fraction(3,2) + Fraction( S * (S + 1) - L * (L + 1) ,  2 * J*(J + 1))\n        return g\n    \n    def magnetic_to_energy(self, B):\n        '''given the magnitude of the magnetic field, returns all energies of all zeeman sublevels'''\n        energies = [(self.energy_scale * m * B).inUnitsOf('MHz') for m in self.sublevels_m]\n        representations = [self.frac_to_string(m) for m in self.sublevels_m]\n        return zip(self.sublevels_m,energies,representations)\n    \n    def frac_to_string(self, sublevel):\n        #helper class for converting energy levels to strings\n        sublevel = str(sublevel)\n        if not sublevel.startswith('-'): \n            sublevel = '+' + sublevel\n        together = self.spectoscopic_notation_rev[self.L] + sublevel\n        return together\n\nclass Transitions_SD(object):\n    \n    S = EnergyLevel('S', '1/2')\n    D = EnergyLevel('D', '5/2')\n    allowed_transitions = [0,1,2]\n    \n    def transitions(self):\n        transitions = []\n        for m_s,E_s,repr_s in self.S.magnetic_to_energy(WithUnit(0, 'gauss')):\n            for m_d,E_d,repr_d in self.D.magnetic_to_energy(WithUnit(0, 'gauss')):\n                if abs(m_d-m_s) in self.allowed_transitions:\n                    name = repr_s + repr_d\n                    transitions.append(name)220-22.4166\n        return transitions\n    \n    def get_transition_energies(self, B, zero_offset = WithUnit(0, 'MHz')):\n        '''returns the transition enenrgies in MHz where zero_offset is the 0-field transition energy between S and D'''\n        ans = []\n        for m_s,E_s,repr_s in self.S.magnetic_to_energy(B):\n            for m_d,E_d,repr_d in self.D.magnetic_to_energy(B):\n                if abs(m_d-m_s) in self.allowed_transitions:\n                    name = repr_s + repr_d\n                    diff = E_d - E_s\n                    diff+= zero_offset\n                    ans.append((name, diff))\n        return ans\n    \n    def energies_to_magnetic_field(self, transitions):\n        #given two points in the form [(S-1/2D5+1/2, 1.0 MHz), (-1/2, 5+/2, 2.0 MHz)], calculates the magnetic field\n        try:\n            transition1, transition2 = transitions\n        except ValueError:\n            raise Exception (\"Wrong number of inputs in energies_to_magnetic_field\")\n        ms1,md1 = self.str_to_fractions(transition1[0])\n        ms2,md2 = self.str_to_fractions(transition2[0])\n        en1,en2 = transition1[1], transition2[1]\n        if abs(md1 - ms1) not in self.allowed_transitions or abs(md2 - ms2) not in self.allowed_transitions:\n            raise Exception (\"Such transitions are not allowed\")\n        s_scale = self.S.energy_scale\n        d_scale = self.D.energy_scale\n        B = (en2 - en1) / ( d_scale * ( md2 - md1) - s_scale * (ms2 - ms1) )\n        B = B.inUnitsOf('gauss')\n        offset = en1 - (md1 * d_scale - ms1 * s_scale) * B\n        return B, offset\n        \n    def str_to_fractions(self, inp):\n        #takes S-1/2D5+1/2 and converts to Fraction(-1/2), Fraction(1/2)\n        return Fraction(inp[1:5]), Fraction(inp[6:10])\n\nclass fitter(object):\n    \n    order = conf.fit_order\n    \n    def fit(self, x, y):\n        '''given two inputs x and y returns a polynomail fit'''\n        #if the length of inputs is not sufficient, will avoid erros by decreasing the order of fitting\n        #returns highest order as first element\n        fit_order = min(self.order, x.size - 1)\n        fit = numpy.polyfit(x, y, deg = fit_order)\n        ans = numpy.zeros(self.order + 1)\n        ans[(self.order - fit_order):] = fit\n        return ans\n    \n    def evaluate(self, x, fit):\n        return numpy.polyval(fit, x)\n    \nif __name__ == '__main__':\n    SD = Transitions_SD()\n    fit = fitter()\n \n#    result = SD.get_transition_energies(WithUnit(1.014, 'gauss'), WithUnit(-12.84 ,'MHz'))\n#    for name,freq in result:\n#        print name,freq\n    \n    b,freq = SD.energies_to_magnetic_field([('S-1/2D+3/2', WithUnit(-16.813, 'MHz')), ('S+1/2D+5/2', WithUnit(-15.68, 'MHz'))])\n    print b,freq",
+			"file": "/home/cct/LabRAD/common/abstractdevices/SD_tracker/SD_calculator.py",
+			"file_size": 5393,
+			"file_write_time": 1362612841000000,
+			"settings":
+			{
+				"buffer_size": 5404,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/Desktop/test_pulser.py",
+			"settings":
+			{
+				"buffer_size": 239,
+				"line_ending": "Unix",
+				"name": "import labrad"
 			}
 		}
 	],
@@ -383,10 +469,24 @@
 	},
 	"file_history":
 	[
-		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttleNORESET.py",
-		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DacConfiguration.py",
-		"/home/cct/LabRAD/common/abstractdevices/script_scanner/configuration.py",
 		"/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+		"/home/cct/LabRAD/common/okfpgaservers/pulser/sequence.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/SidebandCooling.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/SidebandCoolingContinuous.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACsShuttleLoop.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACsShuttle.py",
+		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DacConfiguration.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttleLoop.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttle.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttlePlot.py",
+		"/home/cct/Downloads/contourf3d_demo.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttleLoopSteps.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/resetDACs.py",
+		"/home/cct/LabRAD/common/abstractdevices/script_scanner/configuration.py",
+		"/home/cct/LabRAD/common/clients/script_scanner_gui/tree_view/Controllers.py",
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/resetDACs.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttleNORESET.py",
 		"/home/cct/LabRAD/common/abstractdevices/DacConfiguration.py",
 		"/home/cct/LabRAD/common/clients/DAC_CONTROL.py",
 		"/home/cct/LabRAD/common/abstractdevices/DACServer.py",
@@ -395,15 +495,11 @@
 		"/home/cct/LabRAD/common/okfpgaservers/pulser/cctphoton_5.bit",
 		"/home/cct/LabRAD/cct/qt4reactor.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py",
-		"/home/cct/LabRAD/cct/scripts/experiments/shuttling/shuttle.py",
 		"/home/cct/LabRAD/cct/scripts/test_dacs.py",
 		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.py",
-		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/excitation_729.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/resetDACs.py",
 		"/home/cct/LabRAD/common/clients/drift_tracker/drift_tracker.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACs.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACsShuttle.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/ramsey_dephase.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/DopplerCooling.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/Ramsey.py",
@@ -500,17 +596,7 @@
 		"/home/cct/LabRAD/common/serialdevices/serialdeviceserver.py",
 		"/home/cct/LabRAD/common/serialdevices/U3751_SERVER.py",
 		"/home/cct/LabRAD/common/abstractdevices/SHUTTLE_SERVER.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/wireVoltageMod.py",
-		"/home/cct/LabRAD/cct/scripts/PulseSequences/sample_729.py",
-		"/home/cct/LabRAD/cct/opticscontrolservers/SHUTTLE_SERVER.py",
-		"/home/cct/LabRAD/common/abstractdevices/conf",
-		"/home/cct/LabRAD/cct/clients/Cfiles/4multipoles1row.txt",
-		"/home/cct/LabRAD/common/abstractdevices/dev/DAC_CONTROL_dev.py",
-		"/home/cct/LabRAD/common/abstractdevices/dev/qtui/QCustomSpinBox.py",
-		"/home/cct/LabRAD/common/abstractdevices/dev/CCTDAC_dev.py",
-		"/home/cct/LabRAD/common/abstractdevices/dev/DacConfiguration.py",
-		"/home/cct/LabRAD/cct/clients/DAC_CONTROL_dev.py",
-		"/home/cct/LabRAD/common/abstractdevices/CCTDAC_dev.py"
+		"/home/cct/LabRAD/cct/scripts/PulseSequences/wireVoltageMod.py"
 	],
 	"find":
 	{
@@ -528,6 +614,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"dvPara",
+			"measure",
+			"types",
+			"print",
+			"volts",
+			"+ 1",
 			"print",
 			"print\\",
 			"print",
@@ -649,13 +741,7 @@
 			"c.",
 			"test",
 			"teset",
-			"lattice",
-			"advanceDACs",
-			"ADV_DACS",
-			"for",
-			"cctmain_dac_server",
-			"cctmain_dac",
-			"for k in "
+			"lattice"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -675,65 +761,11 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 14,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "scripts/experiments/shuttling/shuttleLoop.py",
-					"settings":
-					{
-						"buffer_size": 2057,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1273,
-								1273
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "scripts/experiments/shuttling/shuttle.py",
-					"settings":
-					{
-						"buffer_size": 1885,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1724,
-								1724
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
 					"file": "/home/cct/LabRAD/common/clients/DAC_CONTROL.py",
 					"settings":
 					{
@@ -744,8 +776,8 @@
 						"selection":
 						[
 							[
-								2027,
-								2027
+								6321,
+								6321
 							]
 						],
 						"settings":
@@ -755,13 +787,13 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 619.0,
+						"translation.y": 1609.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 1,
 					"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.py",
 					"settings":
 					{
@@ -772,8 +804,8 @@
 						"selection":
 						[
 							[
-								8982,
-								8982
+								8362,
+								8362
 							]
 						],
 						"settings":
@@ -783,29 +815,364 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 271.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "scripts/PulseSequences/resetDACs.py",
+					"buffer": 2,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dev.py",
 					"settings":
 					{
-						"buffer_size": 323,
+						"buffer_size": 13467,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								322,
-								322
+								264,
+								264
 							]
 						],
 						"settings":
 						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/cct/LabRAD/common/abstractdevices/script_scanner/configuration.py",
+					"settings":
+					{
+						"buffer_size": 1988,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1260,
+								1260
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 54.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scripts/experiments/Experiments729/ramsey_scangap.py",
+					"settings":
+					{
+						"buffer_size": 5235,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3345,
+								3345
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1188.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "scripts/PulseSequences/spectrum_rabi.py",
+					"settings":
+					{
+						"buffer_size": 6259,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								922,
+								922
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/pulse_sequences/plot_sequence.py",
+					"settings":
+					{
+						"buffer_size": 4908,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								17,
+								17
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1620.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "scripts/PulseSequences/tests/test_sideband_cooling.py",
+					"settings":
+					{
+						"buffer_size": 374,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								67,
+								67
+							]
+						],
+						"settings":
+						{
+							"auto_name": "from cct.scripts.PulseSequences.spectrum_rabi impo",
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "scripts/experiments/Experiments729/spectrum.py",
+					"settings":
+					{
+						"buffer_size": 6993,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								806,
+								806
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2340.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "scripts/scriptLibrary/dvParameters.py",
+					"settings":
+					{
+						"buffer_size": 1982,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								35,
+								35
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "clients/NodeClient-control.py",
+					"settings":
+					{
+						"buffer_size": 1222,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								134,
+								134
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DacConfiguration.py",
+					"settings":
+					{
+						"buffer_size": 2843,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2157,
+								2157
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "scripts/experiments/Experiments729/rabi_flopping.py",
+					"settings":
+					{
+						"buffer_size": 5246,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								335,
+								335
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/home/cct/LabRAD/common/abstractdevices/SD_tracker/SD_calculator.py",
+					"settings":
+					{
+						"buffer_size": 5404,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								184,
+								184
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "/home/cct/Desktop/test_pulser.py",
+					"settings":
+					{
+						"buffer_size": 239,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								69,
+								69
+							]
+						],
+						"settings":
+						{
+							"auto_name": "import labrad",
 							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,

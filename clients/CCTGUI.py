@@ -37,7 +37,7 @@ class cctGUI(QtGui.QMainWindow):
         self.createGrapherTab()
         
         gridLayout = QtGui.QGridLayout()
-        # gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
+        #gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
         gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
         rightPanel = QtGui.QGridLayout()
         rightPanel.addWidget(pmtWidget(reactor), 0, 0) 
