@@ -54,6 +54,7 @@ class spectrum_rabi(pulse_sequence):
                             ('SidebandCooling','sideband_cooling_frequency_729'),
                             ('SidebandCooling','sideband_cooling_amplitude_729'),
                             ('SidebandCooling','sideband_cooling_optical_pumping_duration'),
+                            ('SidebandCooling', 'sideband_cooling_detuning_729'),
                             
                             ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
                           

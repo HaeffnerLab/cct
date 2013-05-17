@@ -10,7 +10,7 @@ class SHUTTER (QtGui.QWidget):
         super(SHUTTER, self).__init__(parent)
         print 'here'
         self.reactor = reactor
-        self.channels = ['375sw']        
+        self.channels = ['375shut']        
         self.makeGUI()
         self.connect()
         

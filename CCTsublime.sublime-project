@@ -18,6 +18,9 @@
 		},
 		{
 			"path": "/home/cct/LabRAD/common"
+		},
+		{
+			"path": "/home/cct/LabRAD/lattice"
 		}
 	]
 }
