@@ -7,10 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from random import randrange as r
+# import common.okfpgaservers.dacserver.DacConfiguration as hc
 
 class DAC_CALIBRATOR(QDACCalibrator):
     def __init__(self, cxncam, cxn, parent=None):
-        self.dacserver = cxn.cctdac_pulser_v2
+        self.dacserver = cxn.dac_server
         self.dmmserver = cxncam.keithley_2100_dmm
         self.datavault = cxn.data_vault
         self.registry = cxn.registry
@@ -36,18 +37,18 @@ class DAC_CALIBRATOR(QDACCalibrator):
 
         #stepsize = 1000
         stepsize = 500
-        self.numSteps = (61000-5000)/stepsize        
-        self.digVoltages = [ 5000 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
-        self.compareVolts = [ 5000 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
+        self.numSteps = (55000-11500)/stepsize        
+        self.digVoltages = [ 11500 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
+        self.compareVolts = [ 11500 + r(0, stepsize) + i*stepsize for i in  range(self.numSteps)]
             
 
         #self.digVoltages = range(0, 2**16, stepsize) # digital voltages we're going to iterate over
         self.anaVoltages = [] # corresponding analog voltages in volts
-        self.dacserver.set_individual_digital_voltages([(int(self.channelToCalib), self.digVoltages[0])], 1)
+        self.dacserver.set_individual_digital_voltages([(str(self.channelToCalib).zfill(2), self.digVoltages[0])])
         time.sleep(.3)
         for dv in self.digVoltages: # iterate over digital voltages
 
-            self.dacserver.set_individual_digital_voltages([(int(self.channelToCalib), dv)], 1) 
+            self.dacserver.set_individual_digital_voltages([(str(self.channelToCalib).zfill(2), dv)]) 
 
             time.sleep(.3)
             
@@ -64,9 +65,9 @@ class DAC_CALIBRATOR(QDACCalibrator):
 
         fit = np.polyfit(self.anaVoltages, self.digVoltages, 3) # fit to a second order polynomial
         if self.checksave.isChecked():
-            self.registry.cd(['', 'cctdac_pulser', 'Calibrations'])
+            # self.registry.cd(['', 'Calibrations'], True)
             #self.registry.mkdir(str(self.channelToCalib))
-            self.registry.cd(['', 'cctdac_pulser', 'Calibrations', str(self.channelToCalib)])
+            self.registry.cd(['', 'Calibrations', str(self.channelToCalib)], True)
             self.registry.set('c0', fit[3])
             self.registry.set('c1', fit[2])
             self.registry.set('c2', fit[1])
@@ -108,7 +109,7 @@ if __name__=="__main__":
     import labrad
     cxn = labrad.connect()
     cxncam = labrad.connect('192.168.169.30')
-    dacserver = cxn.cctdac_pulser_v2
+    dacserver = cxn.dac_server
     dmmserver = cxncam.keithley_2100_dmm
     dmmserver.select_device('GPIB Bus - USB0::0x05E6::0x2100::1243106')
     app = QtGui.QApplication(sys.argv)

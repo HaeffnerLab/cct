@@ -320,20 +320,34 @@
 	"buffers":
 	[
 		{
-			"contents": "--- /home/cct/LabRAD/cct/scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py Mon Apr  1 14:04:52 2013\n+++ /home/cct/LabRAD/lattice/scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py Fri May 17 11:21:24 2013\n@@ -1,10 +1,11 @@\n from common.abstractdevices.script_scanner.scan_methods import experiment\n-from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm\n+from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm\n from excitation_ramsey import excitation_ramsey\n from treedict import TreeDict\n from labrad.units import WithUnit\n from numpy import arcsin, pi\n import time\n+from labrad.types import Error\n \n class drift_tracker_ramsey_oneline(experiment):\n     \n@@ -43,17 +44,27 @@\n         self.dv = cxn.data_vault\n         \n     def setup_data_vault(self):\n+        line_name = self.parameters.DriftTrackerRamsey.line_selection\n+        #navigate to the directory\n         localtime = time.localtime()\n-        datasetNameAppend = time.strftime(\"%Y%b%d_%H%M_%S\",localtime)\n-        dirappend = [ time.strftime(\"%Y%b%d\",localtime) ,time.strftime(\"%H%M_%S\", localtime)]\n+        dirappend = [ time.strftime(\"%Y%b%d\",localtime)]\n         directory = ['','Experiments']\n         directory.extend([self.name])\n         directory.extend(dirappend)\n         self.dv.cd(directory ,True)\n-        self.dv.new('RameyDriftTrack {}'.format(datasetNameAppend),[('Time', 'Sec')],[('Excitation','Average','percent'),('Excitation','Deviation','percent')])\n-        window_name = ['Ramey Drift Track {0}'.format(self.parameters.DriftTrackerRamsey.line_selection)]\n-        self.dv.add_parameter('Window', window_name)\n-        self.dv.add_parameter('plotLive', True)\n+        #try opening the existing dataset\n+        datasetname = 'RameyDriftTrack {}'.format(line_name)\n+        datasets_in_folder = self.dv.dir()[1]\n+        names = sorted([name for name in datasets_in_folder if datasetname in name])\n+        if names:\n+            #dataset with that name exist\n+            self.dv.open_appendable(names[0])\n+        else:\n+            #dataset doesn't already exist\n+            self.dv.new(datasetname,[('Time', 'Sec')],[('Excitation','Average','percent'),('Excitation','Deviation','percent')])\n+            window_name = ['Ramey Drift Track {0}'.format(self.parameters.DriftTrackerRamsey.line_selection)]\n+            self.dv.add_parameter('Window', window_name)\n+            self.dv.add_parameter('plotLive', True)\n \n     def run(self, cxn, context):\n         self.setup_data_vault()\n@@ -78,17 +89,18 @@\n             excitations.append(excitation)\n         detuning, average_excitation = self.calculate_detuning(excitations)\n         corrected_frequency = frequency + detuning\n-        print corrected_frequency, average_excitation\n+#        print corrected_frequency, average_excitation\n         return corrected_frequency,average_excitation\n     \n     def calculate_detuning(self, excitations):\n         dt = self.parameters.DriftTrackerRamsey\n         average = (excitations[0] + excitations[1]) / 2.0\n-        deviation = (excitations[0] - excitations[1]) / 2.0\n+        deviation = (excitations[0] - excitations[1])\n         detuning = arcsin(deviation) / (2.0 * pi * dt.gap_time['s'])\n         detuning = WithUnit(detuning, 'Hz')\n-        print [time.time(), average, deviation]\n+#        print [time.time(), average, deviation]\n         self.dv.add([time.time(), average, deviation])\n+#        print 'calculated detuning', detuning\n         return detuning, average\n     \n     def update_progress(self, iteration):\n",
-			"settings":
-			{
-				"buffer_size": 3603,
-				"line_ending": "Unix",
-				"name": "drift_tracker_ramsey_oneline.py -> drift_tracker_ramsey_oneline.py",
-				"scratch": true
-			}
-		},
-		{
 			"file": "scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py",
 			"settings":
 			{
-				"buffer_size": 5606,
+				"buffer_size": 6025,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+			"settings":
+			{
+				"buffer_size": 4854,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dual.dev.py",
+			"settings":
+			{
+				"buffer_size": 14702,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dev.py",
+			"settings":
+			{
+				"buffer_size": 13467,
 				"line_ending": "Unix"
 			}
 		}
@@ -362,6 +376,8 @@
 	},
 	"file_history":
 	[
+		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.py",
+		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py",
 		"/home/cct/LabRAD/common/clients/DAC_CONTROL.py",
 		"/home/cct/LabRAD/cct/clients/CCTGUI.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/subsequences/SidebandCooling.py",
@@ -376,7 +392,6 @@
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/ramsey_scangap.py",
 		"/home/cct/LabRAD/common/abstractdevices/script_scanner/configuration.py",
 		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dev.py",
-		"/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.py",
 		"/home/cct/LabRAD/cct/clients/DAC_CONTROL.py",
 		"/home/cct/LabRAD/common/abstractdevices/SD_tracker/SD_calculator.py",
 		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/rabi_flopping.py",
@@ -402,7 +417,6 @@
 		"/home/cct/LabRAD/cct/CCTsublime.sublime-project",
 		"/home/cct/LabRAD/common/okfpgaservers/pulser/cctphoton_5.bit",
 		"/home/cct/LabRAD/cct/qt4reactor.py",
-		"/home/cct/LabRAD/cct/scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py",
 		"/home/cct/LabRAD/cct/scripts/test_dacs.py",
 		"/home/cct/LabRAD/common/clients/drift_tracker/drift_tracker.py",
 		"/home/cct/LabRAD/cct/scripts/PulseSequences/advanceDACs.py",
@@ -507,6 +521,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"setPreviousVoltages",
 			"sideband",
 			"dvPara",
 			"measure",
@@ -633,8 +648,7 @@
 			"yield",
 			"FFT",
 			"c.",
-			"test",
-			"teset"
+			"test"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -654,48 +668,23 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"settings":
-					{
-						"buffer_size": 3603,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								660,
-								660
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Diff/Diff.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 648.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "scripts/experiments/Experiments729/drift_tracker_ramsey_oneline.py",
 					"settings":
 					{
-						"buffer_size": 5606,
+						"buffer_size": 6025,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								340,
-								340
+								82,
+								82
 							]
 						],
 						"settings":
@@ -705,7 +694,91 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/pulser/hardwareConfiguration.py",
+					"settings":
+					{
+						"buffer_size": 4854,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3878,
+								3878
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 54.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dual.dev.py",
+					"settings":
+					{
+						"buffer_size": 14702,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6146,
+								6146
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2754.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/cct/LabRAD/common/okfpgaservers/dacserver/DACServer.dev.py",
+					"settings":
+					{
+						"buffer_size": 13467,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13467,
+								13467
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
