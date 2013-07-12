@@ -95,5 +95,6 @@ class spectrum_rabi(pulse_sequence):
         if p.SidebandCooling.sideband_cooling_enable:
             self.addSequence(sideband_cooling)
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
+        self.start_excitation_729 = self.end
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
