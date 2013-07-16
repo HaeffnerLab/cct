@@ -24,8 +24,8 @@ class excitation_729(experiment):
                            ('StateReadout', 'repeat_each_measurement'),
                            ('StateReadout', 'state_readout_threshold'),
 
-                           ('Excitation729', 'lock_excitation_phase'),
-                           ('Excitation729', 'phase_delay')
+                           ('Excitation_729', 'lock_excitation_phase'),
+                           ('Excitation_729', 'phase_delay')
                            ]
     pulse_sequence = spectrum_rabi
     required_parameters.extend(pulse_sequence.required_parameters)
@@ -75,11 +75,12 @@ class excitation_729(experiment):
         repetitions = int(self.parameters.StateReadout.repeat_each_measurement)
         pulse_sequence = self.pulse_sequence(self.parameters)
         pulse_sequence.programSequence(self.pulser)
-        if self.parameters['Excitation729.lock_excitation_phase']:
-            t_lock = self.parameters['Excitation729.phase_delay']
+        if self.parameters['Excitation_729.lock_excitation_phase']:
+            t_lock = self.parameters['Excitation_729.phase_delay']
             period = 1e6/60.0 # 60 Hz period in us
             diff = (t_lock['us'] - pulse_sequence.start_excitation_729['us'])
             offset = T.Value(diff%period, 'us')
+            self.pulser.line_trigger_state(True)
             self.pulser.line_trigger_duration(offset)
         self.pulser.start_number(repetitions)
         self.pulser.wait_sequence_done()

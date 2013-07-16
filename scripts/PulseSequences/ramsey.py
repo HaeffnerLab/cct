@@ -89,5 +89,6 @@ class ramsey(pulse_sequence):
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
             self.addSequence(sideband_cooling)
+        self.start_excitation_729 = self.end    
         self.addSequence(ramsey_excitation)
         self.addSequence(tomography_readout)

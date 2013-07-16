@@ -20,6 +20,8 @@ class excitation_ramsey(excitation_729):
                            
                            ('StateReadout', 'repeat_each_measurement'),
                            ('StateReadout', 'state_readout_threshold'),
+                           ('Excitation_729', 'lock_excitation_phase'),
+                           ('Excitation_729', 'phase_delay')
                            ]
     pulse_sequence = ramsey
     required_parameters.extend(pulse_sequence.required_parameters)
