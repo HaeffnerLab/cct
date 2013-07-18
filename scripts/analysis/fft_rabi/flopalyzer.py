@@ -26,9 +26,12 @@ class Flopalyzer:
         cxn = labrad.connect()
         dv = cxn.data_vault
         directory = ['', 'Experiments', 'RabiFlopping', self.date, self.datasetname]
+        
+
         cxn.dv.cd(directory)
         cxn.dv.open(1)
         data = cxn.dv.get()
+
 
         sideband_selection = dv.get_parameter('RabiFlopping.sideband_selection')
         
@@ -50,8 +53,6 @@ class Flopalyzer:
         return data.asarray
 
     def do_fft(self):
-        time = self.data[:,0]
-        excitation = self.data[:,1]
         tf = self.time[-1]
         n = len(self.excitation)
         x = fft.fft(self.excitation)
@@ -75,7 +76,7 @@ class Flopalyzer:
             wavelength = U.WithUnit(729.0, 'nm')
             m = 40*amu
             chi =  2*np.pi/wavelength['m']*np.sqrt(hbar['J*s']/(2.*m['kg']*2.*np.pi*self.trap_frequency['Hz']))
-            freq_data = list(np.abs(pos_freq))        
+            freq_data = list(np.abs(self.pos_freq_components))        
             maxElemIndex = freq_data.index(max(freq_data))
             peakFreq = freq[maxElemIndex]*1e3 # freq in Hz
             theta = U.WithUnit( np.arccos(peakFreq/(chi*bareRabi['Hz']))*180.0/np.pi , 'deg' )
