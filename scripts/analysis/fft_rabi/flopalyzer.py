@@ -62,7 +62,7 @@ class Flopalyzer:
     def make_plots(self):
         plt.figure(1)
         plt.subplot(211)
-        plt.plot(t,data)
+        plt.plot(self.time,self.excitation)
         plt.subplot(212)
         plt.plot(self.freq,np.abs(self.pos_freq_components))
         plt.show()
