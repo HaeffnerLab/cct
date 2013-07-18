@@ -12,3 +12,6 @@ Errors.log
 data
 *~
 *.pid
+#*
+CCTsublime.*
+octave-core
