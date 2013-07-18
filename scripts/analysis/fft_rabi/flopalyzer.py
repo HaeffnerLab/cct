@@ -28,9 +28,9 @@ class Flopalyzer:
         directory = ['', 'Experiments', 'RabiFlopping', self.date, self.datasetname]
         
 
-        cxn.dv.cd(directory)
-        cxn.dv.open(1)
-        data = cxn.dv.get()
+        dv.cd(directory)
+        dv.open(1)
+        data = dv.get()
 
 
         sideband_selection = dv.get_parameter('RabiFlopping.sideband_selection')
