@@ -85,14 +85,26 @@ class Flopalyzer:
         theta = U.WithUnit( np.arccos(peakFreq/(chi*bareRabi['Hz']))*180.0/np.pi , 'deg' )
         return theta
 
+    def compute_lines(self, bareRabi):
+        wavelength = U.WithUnit(729.0, 'nm')    
+        m = 40*amu
+        chi =  2*np.pi/wavelength['m']*np.sqrt(hbar['J*s']/(2.*m['kg']*2.*np.pi*self.trap_frequency['Hz']))
+        print chi
+        first = np.cos(np.pi/4)*chi*bareRabi
+        second = np.sqrt(2)*first
+        print self.freq
+        print first
+        print second 
 if __name__ == "__main__":
 
-    bareRabi = U.WithUnit(56136.0, 'Hz')
+    bareRabi = U.WithUnit(101372.0, 'Hz')
 
-    date = '2013Jul16'
-    datasetname = '0054_02'
-    #datasetname = '0056_00'
+    date = '2013Jul18'
+    #datasetname = '1550_25'
+    #datasetname = '1756_09'
+    datasetname = '1744_17'
     f = Flopalyzer(date, datasetname)
     print "Projection: " + str(f.compute_projection(bareRabi))
+    f.compute_lines(bareRabi)
 
     f.make_plots()
