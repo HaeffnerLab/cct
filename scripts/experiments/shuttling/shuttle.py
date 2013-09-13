@@ -17,12 +17,17 @@ class shuttle(experiment):
 						  ]
 
 	def initialize(self, cxn, context, ident):
+		print 'init'
 		self.ident = ident
 		self.dac_server = cxn.dac_server
 		self.pulser = cxn.pulser
+		print 'done init'
 		# self.startPosition = self.dac_server.get_position()
 
 	def run(self, cxn, context):
+		print 'run'
+		print self.parameters['shuttle.position']
+		print self.parameters['shuttle.step_size']
 		position = int(self.parameters['shuttle.position'])
 		step_size = int(self.parameters['shuttle.step_size'])
 		duration = float(self.parameters['shuttle.duration'])
@@ -31,7 +36,7 @@ class shuttle(experiment):
 		overshoot = bool(self.parameters['shuttle.overshoot'])
 		# shuttle_times = self.dac_server.shuttle(endPosition, step_size, duration, loop, overshoot)
 		# shuttle_times = self.dac_server.get_shuttle_times()
-		self.parameters['advanceDACs.times'] = self.dac_server.shuttle(position, step_size, duration, loop, loop_delay, overshoot)
+		self.parameters['advanceDACs.times'] = self.dac_server.shuttle((position, step_size, duration, loop, loop_delay, overshoot))
 		self.seq = advance_DACs_shuttle(self.parameters)
 		self.doSequence()
 		

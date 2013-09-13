@@ -18,6 +18,8 @@ class rabi_flopping(experiment):
                            ('RabiFlopping','rabi_amplitude_729'),
                            ('RabiFlopping','frequency_selection'),
                            ('RabiFlopping','sideband_selection'),
+                           ('RabiFlopping', 'offset_frequency'),
+                           #(''),
                            
                            ('TrapFrequencies','axial_frequency'),
                            ('TrapFrequencies','radial_frequency_1'),
@@ -53,7 +55,7 @@ class rabi_flopping(experiment):
         trap = self.parameters.TrapFrequencies
         if flop.frequency_selection == 'auto':
             frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)
-        self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
+        self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency + flop.offset_frequency
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
         minim,maxim,steps = flop.manual_scan
         minim = minim['us']; maxim = maxim['us']

@@ -30,7 +30,7 @@ class PS(SerialDeviceServer):
     regKey = 'piezokey'
     serNode = 'cctmain'
     onNewUpdate = Signal(SIGNALID, 'signal: settings updated', '(sv)')
-    port = 'attocube'
+    port = '/dev/ttyUSB7'
     ret = None
     
     timeout = T.Value(.01, 's')

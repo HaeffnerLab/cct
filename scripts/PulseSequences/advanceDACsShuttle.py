@@ -10,5 +10,6 @@ class advance_DACs_shuttle(pulse_sequence):
 	def sequence( self ):
 		pl = self.parameters.advanceDACs.pulse_length
 		times = self.parameters.advanceDACs.times
+		print 'times', times
 		for t in times:
 			self.addTTL('adv', WithUnit(t, 's'), pl)
