@@ -79,11 +79,14 @@ class spectrum_rabi(pulse_sequence):
                             #('Tomography', 'iteration'),
                             #('Tomography', 'tomography_excitation_frequency'),
                             #('Tomography', 'tomography_excitation_amplitude'),
+                            
+                            ('WireCharging', 'wire_charging_enable'),
+                            ('WireCharging', 'wire_charging_duration'),
                             ]
     
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
-                             rabi_excitation, state_readout, turn_off_all, sideband_cooling]
+                             rabi_excitation, state_readout, turn_off_all, sideband_cooling, wire_charging]
 
     def sequence(self):
         p = self.parameters
@@ -94,6 +97,8 @@ class spectrum_rabi(pulse_sequence):
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
             self.addSequence(sideband_cooling)
+        if p.WireCharging.wire_charging_enable:
+            self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
         self.start_excitation_729 = self.end
         self.addSequence(rabi_excitation)
