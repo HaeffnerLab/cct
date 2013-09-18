@@ -7,6 +7,7 @@ from subsequences.Tomography import tomography_readout
 from subsequences.StateReadout import state_readout
 from subsequences.TurnOffAll import turn_off_all
 from subsequences.SidebandCooling import sideband_cooling
+from subsequences.SidebandPrecooling import sideband_precooling
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -16,6 +17,7 @@ class spectrum_rabi(pulse_sequence):
                             ('Heating', 'background_heating_time'),
                             ('OpticalPumping','optical_pumping_enable'), 
                             ('SidebandCooling','sideband_cooling_enable'),
+                            ('SidebandPrecooling','sideband_precooling_enable'),
                             
                             ('RepumpD_5_2','repump_d_duration'),
                             ('RepumpD_5_2','repump_d_frequency_854'),
@@ -43,6 +45,17 @@ class spectrum_rabi(pulse_sequence):
                             ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_repumps'),
                             ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_additional_866'),
                             ('OpticalPumpingPulsed','optical_pumping_pulsed_duration_between_pulses'),
+
+                            ('SidebandPrecooling','sideband_precooling_cycles'),
+                            ('SidebandPrecooling','sideband_precooling_optical_pumping_duration'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_866'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_854'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_729'),
+                            ('SidebandPrecooling','sideband_precooling_frequency_854'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_866'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_729'),
+                            ('SidebandPrecooling', 'sideband_precooling_detuning_729'),
+                            ('SidebandPrecooling','sideband_precooling_continuous_duration'),
             
                             ('SidebandCooling','sideband_cooling_cycles'),
                             ('SidebandCooling','sideband_cooling_type'),
@@ -86,7 +99,7 @@ class spectrum_rabi(pulse_sequence):
     
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
-                             rabi_excitation, state_readout, turn_off_all, sideband_cooling, wire_charging]
+                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging]
 
     def sequence(self):
         p = self.parameters
@@ -96,6 +109,8 @@ class spectrum_rabi(pulse_sequence):
         if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
+            if p.SidebandPrecooling.sideband_precooling_enable:
+                self.addSequence(sideband_precooling)
             self.addSequence(sideband_cooling)
         if p.WireCharging.wire_charging_enable:
             self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
