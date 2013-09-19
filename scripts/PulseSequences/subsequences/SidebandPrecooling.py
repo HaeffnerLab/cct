@@ -22,7 +22,7 @@ class sideband_precooling(pulse_sequence):
 
     def sequence(self):
         replace = self.make_replace()
-        self.addSequence(sideband_cooling, TreeDict.fromDict(replace))
+        self.addSequence(sideband_cooling, TreeDict.fromdict(replace))
 
     def make_replace(self):
         sc = self.parameters.SidebandPrecooling
@@ -39,8 +39,8 @@ class sideband_precooling(pulse_sequence):
             'SidebandCooling.sideband_cooling_frequency_866':sc.sideband_precooling_frequency_866,
             'SidebandCooling.sideband_cooling_frequency_729':sc.sideband_precooling_frequency_729,
             'SidebandCooling.sideband_cooling_detuning_729':sc.sideband_precooling_detuning_729,
-            'SidebandCoolingContinuous.sideband_cooling_continuous_duration',sideband_precooling_continuous_duration,
-            'SidebandCoolingPulsed.sideband_cooling_pulsed_duration_729', sideband_precooling_continuous_duration
+            'SidebandCoolingContinuous.sideband_cooling_continuous_duration':sc.sideband_precooling_continuous_duration,
+            'SidebandCoolingPulsed.sideband_cooling_pulsed_duration_729': sc.sideband_precooling_continuous_duration
             }
 
         return replace

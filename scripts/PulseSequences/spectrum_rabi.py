@@ -8,6 +8,7 @@ from subsequences.StateReadout import state_readout
 from subsequences.TurnOffAll import turn_off_all
 from subsequences.SidebandCooling import sideband_cooling
 from subsequences.SidebandPrecooling import sideband_precooling
+from subsequences.WireCharging import wire_charging
 from labrad.units import WithUnit
 from treedict import TreeDict
 

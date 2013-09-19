@@ -69,12 +69,13 @@ class excitation_729(experiment):
         sp = self.parameters.SidebandPrecooling
         sideband_cooling_frequency = cm.frequency_from_line_selection(sc.frequency_selection, sc.manual_frequency_729, sc.line_selection, self.drift_tracker)
         # always want to precool on the same line as sideband cooling
-        sideband_precooling_frequency = cm.frequency_from_line_slection(sp.frequency_selection, sp.manual_frequency_729, sc.line_selection, self.drift_tracker)
+        sideband_precooling_frequency = cm.frequency_from_line_selection(sp.frequency_selection, sp.manual_frequency_729, sc.line_selection, self.drift_tracker)
         if sc.frequency_selection == 'auto': 
             trap = self.parameters.TrapFrequencies
             sideband_cooling_frequency = cm.add_sidebands(sideband_cooling_frequency, sc.sideband_selection, trap)
             sideband_precooling_frequency = cm.add_sidebands(sideband_precooling_frequency, sp.sideband_selection, trap)
         self.parameters['SidebandCooling.sideband_cooling_frequency_729'] = sideband_cooling_frequency
+        self.parameters['SidebandPrecooling.sideband_precooling_frequency_729'] = sideband_precooling_frequency
     
     def setup_initial_switches(self):
         #switch off 729 at the beginning
