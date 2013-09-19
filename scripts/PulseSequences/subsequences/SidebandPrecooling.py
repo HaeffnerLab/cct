@@ -1,5 +1,6 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from SidebandCooling import sideband_cooling
+from labrad.units import WithUnit
 from treedict import TreeDict
 
 class sideband_precooling(pulse_sequence):
@@ -29,7 +30,7 @@ class sideband_precooling(pulse_sequence):
         replace = {
             'SidebandCooling.sideband_cooling_cycles':sc.sideband_precooling_cycles,
             'SidebandCooling.sideband_cooling_type':'continuous',
-            'SidebandCooling.sideband_cooling_duration_729_increment_per_cycle':0.0,
+            'SidebandCooling.sideband_cooling_duration_729_increment_per_cycle':WithUnit(0.0,'us'),
             'SidebandCooling.sideband_cooling_optical_pumping_duration':sc.sideband_precooling_optical_pumping_duration,
             'SidebandCooling.sideband_cooling_amplitude_866':sc.sideband_precooling_amplitude_866,
             'SidebandCooling.sideband_cooling_amplitude_854':sc.sideband_precooling_amplitude_854,
