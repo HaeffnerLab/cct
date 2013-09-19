@@ -16,6 +16,11 @@ class excitation_729(experiment):
                            ('SidebandCooling','manual_frequency_729'),
                            ('SidebandCooling','line_selection'),
                            ('SidebandCooling','sideband_selection'),
+
+                           ('SidebandPrecooling', 'frequency_selection'),
+                           ('SidebandPrecooling', 'manual_frequency_729'),
+                           ('SidebandPrecooling', 'sideband_selection'),
+
                            ('TrapFrequencies','axial_frequency'),
                            ('TrapFrequencies','radial_frequency_1'),
                            ('TrapFrequencies','radial_frequency_2'),
@@ -32,6 +37,7 @@ class excitation_729(experiment):
     #removing pulse sequence items that will be calculated in the experiment and do not need to be loaded
     required_parameters.remove(('OpticalPumping', 'optical_pumping_frequency_729'))
     required_parameters.remove(('SidebandCooling', 'sideband_cooling_frequency_729'))
+    required_parameters.remove(('SidebandPrecooling', 'sideband_precooling_frequency_729'))
     
     def initialize(self, cxn, context, ident):
         self.pulser = cxn.pulser
@@ -60,10 +66,14 @@ class excitation_729(experiment):
         optical_pumping_frequency = cm.frequency_from_line_selection(op.frequency_selection, op.manual_frequency_729, op.line_selection, self.drift_tracker)
         self.parameters['OpticalPumping.optical_pumping_frequency_729'] = optical_pumping_frequency
         sc = self.parameters.SidebandCooling
+        sp = self.parameters.SidebandPrecooling
         sideband_cooling_frequency = cm.frequency_from_line_selection(sc.frequency_selection, sc.manual_frequency_729, sc.line_selection, self.drift_tracker)
+        # always want to precool on the same line as sideband cooling
+        sideband_precooling_frequency = cm.frequency_from_line_slection(sp.frequency_selection, sp.manual_frequency_729, sc.line_selection, self.drift_tracker)
         if sc.frequency_selection == 'auto': 
             trap = self.parameters.TrapFrequencies
             sideband_cooling_frequency = cm.add_sidebands(sideband_cooling_frequency, sc.sideband_selection, trap)
+            sideband_precooling_frequency = cm.add_sidebands(sideband_precooling_frequency, sp.sideband_selection, trap)
         self.parameters['SidebandCooling.sideband_cooling_frequency_729'] = sideband_cooling_frequency
     
     def setup_initial_switches(self):
