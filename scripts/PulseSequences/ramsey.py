@@ -5,6 +5,7 @@ from subsequences.OpticalPumping import optical_pumping
 from subsequences.Tomography import tomography_readout
 from subsequences.TurnOffAll import turn_off_all
 from subsequences.Ramsey import ramsey_excitation
+from subsequences.SidebandPrecooling import sideband_precooling
 
 from labrad.units import WithUnit
            
@@ -12,6 +13,7 @@ class ramsey(pulse_sequence):
     
     required_parameters =  [('OpticalPumping','optical_pumping_enable'), 
                             ('SidebandCooling','sideband_cooling_enable'),
+                            ('SidebandPrecooling','sideband_precooling_enable'),
                             ('RepumpD_5_2','repump_d_duration'),
                             ('RepumpD_5_2','repump_d_frequency_854'),
                             ('RepumpD_5_2','repump_d_amplitude_854'),
@@ -49,6 +51,18 @@ class ramsey(pulse_sequence):
                             ('SidebandCooling','sideband_cooling_frequency_729'),
                             ('SidebandCooling','sideband_cooling_amplitude_729'),
                             ('SidebandCooling','sideband_cooling_optical_pumping_duration'),
+
+                            ('SidebandPrecooling','sideband_precooling_cycles'),
+                            ('SidebandPrecooling','sideband_precooling_optical_pumping_duration'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_866'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_854'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_729'),
+                            ('SidebandPrecooling','sideband_precooling_frequency_854'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_866'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_729'),
+                            ('SidebandPrecooling', 'sideband_precooling_detuning_729'),
+                            ('SidebandPrecooling','sideband_precooling_continuous_duration'),
+            
                           
                             ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
                           
@@ -78,7 +92,7 @@ class ramsey(pulse_sequence):
                             ]
 
     required_subsequences = [doppler_cooling_after_repump_d, optical_pumping, 
-                             tomography_readout, turn_off_all, sideband_cooling, ramsey_excitation]
+                             tomography_readout, turn_off_all, sideband_cooling, sideband_precooling, ramsey_excitation]
                              
     def sequence(self):
         p = self.parameters
@@ -88,6 +102,8 @@ class ramsey(pulse_sequence):
         if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
+            if p.SidebandPrecooling.sideband_precooling_enable:
+                self.addSequence(sideband_precooling)
             self.addSequence(sideband_cooling)
         self.start_excitation_729 = self.end    
         self.addSequence(ramsey_excitation)

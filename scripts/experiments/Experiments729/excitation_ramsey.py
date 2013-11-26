@@ -13,6 +13,10 @@ class excitation_ramsey(excitation_729):
                            ('SidebandCooling','manual_frequency_729'),
                            ('SidebandCooling','line_selection'),
                            ('SidebandCooling','sideband_selection'),
+
+                           ('SidebandPrecooling', 'frequency_selection'),
+                           ('SidebandPrecooling', 'manual_frequency_729'),
+                           ('SidebandPrecooling', 'sideband_selection'),
                            ('TrapFrequencies','axial_frequency'),
                            ('TrapFrequencies','radial_frequency_1'),
                            ('TrapFrequencies','radial_frequency_2'),
@@ -28,7 +32,7 @@ class excitation_ramsey(excitation_729):
     #removing pulse sequence items that will be calculated in the experiment and do not need to be loaded
     required_parameters.remove(('OpticalPumping', 'optical_pumping_frequency_729'))
     required_parameters.remove(('SidebandCooling', 'sideband_cooling_frequency_729'))
-    
+    required_parameters.remove(('SidebandPrecooling', 'sideband_precooling_frequency_729'))
 if __name__ == '__main__':
     import labrad
     cxn = labrad.connect()

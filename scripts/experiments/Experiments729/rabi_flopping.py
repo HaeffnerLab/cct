@@ -6,6 +6,7 @@ import time
 import labrad
 from labrad.units import WithUnit
 from numpy import linspace
+from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
 
 class rabi_flopping(experiment):
     
@@ -48,7 +49,8 @@ class rabi_flopping(experiment):
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
         self.rabi_flop_save_context = cxn.context()
-    
+        self.pulser = cxn.pulser
+
     def setup_sequence_parameters(self):
         flop = self.parameters.RabiFlopping
         frequency = cm.frequency_from_line_selection(flop.frequency_selection, flop.manual_frequency_729, flop.line_selection, self.drift_tracker)
@@ -78,6 +80,7 @@ class rabi_flopping(experiment):
     def run(self, cxn, context):
         self.setup_data_vault()
         self.setup_sequence_parameters()
+        self.pulser.switch_auto('397mod')
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
@@ -86,6 +89,11 @@ class rabi_flopping(experiment):
             excitation = self.excite.run(cxn, context)
             self.dv.add((duration, excitation), context = self.rabi_flop_save_context)
             self.update_progress(i)
+            dds = self.cxn.pulser.human_readable_dds()
+        # ttl = self.cxn.pulser.human_readable_ttl()
+        # channels = self.cxn.pulser.get_channels().asarray
+        # sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        # sp.makePlot()
      
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.rabi_flop_save_context)

@@ -9,6 +9,7 @@ from subsequences.TurnOffAll import turn_off_all
 from subsequences.SidebandCooling import sideband_cooling
 from subsequences.SidebandPrecooling import sideband_precooling
 from subsequences.WireCharging import wire_charging
+from subsequences.PulsedHeating import pulsed_heating
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -96,17 +97,24 @@ class spectrum_rabi(pulse_sequence):
                             
                             ('WireCharging', 'wire_charging_enable'),
                             ('WireCharging', 'wire_charging_duration'),
+
+                            ('PulsedHeating','pulsed_heating_enable'),
+                            ('PulsedHeating','pulsed_heating_duration'),  
+                            ('PulsedHeating','pulsed_heating_amplitude_397'),
+                            ('PulsedHeating','pulsed_heating_frequency_397'),
                             ]
     
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
-                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging]
+                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating]
 
     def sequence(self):
         p = self.parameters
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         self.addSequence(doppler_cooling_after_repump_d)
+        if p.PulsedHeating.pulsed_heating_enable:
+            self.addSequence(pulsed_heating)
         if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
