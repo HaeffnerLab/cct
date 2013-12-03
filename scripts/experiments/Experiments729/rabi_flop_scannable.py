@@ -6,6 +6,8 @@ import time
 import labrad
 from labrad.units import WithUnit
 from numpy import linspace
+from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
+
 
 class rabi_flopping_scannable(experiment):
     
@@ -66,7 +68,12 @@ class rabi_flopping_scannable(experiment):
         self.load_frequency()
         self.excite.set_parameters(self.parameters)
         excitation = self.excite.run(cxn, context)
-        single_excitation = excitation       
+        single_excitation = excitation
+        # ttl = self.cxn.pulser.human_readable_ttl()
+        # dds = self.cxn.pulser.human_readable_dds()
+        # channels = self.cxn.pulser.get_channels().asarray
+        # sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        # sp.makePlot()      
         return single_excitation
      
     def finalize(self, cxn, context):

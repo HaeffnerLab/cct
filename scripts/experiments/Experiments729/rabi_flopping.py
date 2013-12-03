@@ -89,11 +89,11 @@ class rabi_flopping(experiment):
             excitation = self.excite.run(cxn, context)
             self.dv.add((duration, excitation), context = self.rabi_flop_save_context)
             self.update_progress(i)
-            dds = self.cxn.pulser.human_readable_dds()
-        # ttl = self.cxn.pulser.human_readable_ttl()
-        # channels = self.cxn.pulser.get_channels().asarray
-        # sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
-        # sp.makePlot()
+         #dds = self.cxn.pulser.human_readable_dds()
+         #ttl = self.cxn.pulser.human_readable_ttl()
+         #channels = self.cxn.pulser.get_channels().asarray
+         #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+         #sp.makePlot()
      
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.rabi_flop_save_context)

@@ -113,14 +113,16 @@ class spectrum_rabi(pulse_sequence):
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         self.addSequence(doppler_cooling_after_repump_d)
-        if p.PulsedHeating.pulsed_heating_enable:
-            self.addSequence(pulsed_heating)
         if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
             if p.SidebandPrecooling.sideband_precooling_enable:
                 self.addSequence(sideband_precooling)
             self.addSequence(sideband_cooling)
+        if p.PulsedHeating.pulsed_heating_enable: # this is now parametric coupling
+            self.addSequence(pulsed_heating)
+        #if p.SidebandCooling.sideband_cooling_enable: # SECOND SB COOLING!!! DELETE THIS LATER
+        #    self.addSequence(sideband_cooling)
         if p.WireCharging.wire_charging_enable:
             self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))

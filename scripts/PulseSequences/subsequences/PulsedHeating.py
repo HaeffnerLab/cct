@@ -17,5 +17,5 @@ class pulsed_heating(pulse_sequence):
 
 		self.end = self.start + dur
 		self.addTTL('397mod', self.start, dur)
-		self.addDDS ('397',self.start, dur, ph.pulsed_heating_frequency_397, ph.pulsed_heating_amplitude_397)
+		#self.addDDS ('397',self.start, dur, ph.pulsed_heating_frequency_397, ph.pulsed_heating_amplitude_397)
 		self.addDDS ('866',self.start, dur, dc.doppler_cooling_frequency_866, dc.doppler_cooling_amplitude_866)

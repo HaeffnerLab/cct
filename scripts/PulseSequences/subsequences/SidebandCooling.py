@@ -3,6 +3,7 @@ from OpticalPumping import optical_pumping
 from SidebandCoolingContinuous import sideband_cooling_continuous
 from SidebandCoolingPulsed import sideband_cooling_pulsed
 from treedict import TreeDict
+from labrad.units import WithUnit
 
 class sideband_cooling(pulse_sequence):
     
@@ -34,8 +35,13 @@ class sideband_cooling(pulse_sequence):
         sc = self.parameters.SidebandCooling
         if sc.sideband_cooling_type == 'continuous':
             continuous = True
+            mode_coupled = False
         elif sc.sideband_cooling_type == 'pulsed':
             continuous = False
+            mode_coupled = False
+        elif sc.sideband_cooling_type == 'mode_coupled':
+            continuous = True
+            mode_coupled = True
         else:
             raise Exception ("Incorrect Sideband cooling type {0}".format(sc.sideband_cooling_type))
         
@@ -73,3 +79,5 @@ class sideband_cooling(pulse_sequence):
             cooling_replace[duration_key] +=  sc.sideband_cooling_duration_729_increment_per_cycle
             self.addSequence(cooling, TreeDict.fromdict(cooling_replace))
             self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
+        if mode_coupled:
+            self.addTTL('397mod', self.start, self.end-self.start - WithUnit(10., 'us'))
