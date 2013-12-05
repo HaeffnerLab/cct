@@ -38,6 +38,7 @@ class spectrum_rabi(pulse_sequence):
                             ('OpticalPumping','optical_pumping_amplitude_854'),
                             ('OpticalPumping','optical_pumping_amplitude_866'),
                             ('OpticalPumping','optical_pumping_type'),
+                            ('OpticalPumping','mode_swapping_time'),
                           
                             ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
                             ('OpticalPumpingContinuous','optical_pumping_continuous_repump_additional'),

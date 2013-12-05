@@ -1,5 +1,6 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from OpticalPumping import optical_pumping
+from OpticalPumpingWithModeSwapping import optical_pumping_with_mode_swapping
 from SidebandCoolingContinuous import sideband_cooling_continuous
 from SidebandCoolingPulsed import sideband_cooling_pulsed
 from treedict import TreeDict
@@ -23,7 +24,7 @@ class sideband_cooling(pulse_sequence):
                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_729'),
                            ]
     
-    required_subsequences = [sideband_cooling_continuous, sideband_cooling_pulsed, optical_pumping]
+    required_subsequences = [sideband_cooling_continuous, sideband_cooling_pulsed, optical_pumping, optical_pumping_with_mode_swapping]
     
     def sequence(self):
         '''
@@ -78,6 +79,7 @@ class sideband_cooling(pulse_sequence):
             #each cycle, increment the 729 duration
             cooling_replace[duration_key] +=  sc.sideband_cooling_duration_729_increment_per_cycle
             self.addSequence(cooling, TreeDict.fromdict(cooling_replace))
-            self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
-        if mode_coupled:
-            self.addTTL('397mod', self.start, self.end-self.start - WithUnit(10., 'us'))
+            if not mode_coupled:
+              self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
+            else:
+              self.addSequence(optical_pumping_with_mode_swapping, TreeDict.fromdict(optical_pump_replace))
