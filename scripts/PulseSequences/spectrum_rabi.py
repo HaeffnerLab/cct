@@ -10,6 +10,7 @@ from subsequences.SidebandCooling import sideband_cooling
 from subsequences.SidebandPrecooling import sideband_precooling
 from subsequences.WireCharging import wire_charging
 from subsequences.PulsedHeating import pulsed_heating
+from subsequences.ParametricCoupling import parametric_coupling
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -103,11 +104,14 @@ class spectrum_rabi(pulse_sequence):
                             ('PulsedHeating','pulsed_heating_duration'),  
                             ('PulsedHeating','pulsed_heating_amplitude_397'),
                             ('PulsedHeating','pulsed_heating_frequency_397'),
+
+                            ('ParametricCoupling', 'parametric_coupling_enable'),
+                            ('ParametricCoupling', 'parametric_coupling_duration')
                             ]
     
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
-                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating]
+                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating, parametric_coupling]
 
     def sequence(self):
         p = self.parameters
@@ -120,10 +124,10 @@ class spectrum_rabi(pulse_sequence):
             if p.SidebandPrecooling.sideband_precooling_enable:
                 self.addSequence(sideband_precooling)
             self.addSequence(sideband_cooling)
-        if p.PulsedHeating.pulsed_heating_enable: # this is now parametric coupling
+        if p.PulsedHeating.pulsed_heating_enable:
             self.addSequence(pulsed_heating)
-        #if p.SidebandCooling.sideband_cooling_enable: # SECOND SB COOLING!!! DELETE THIS LATER
-        #    self.addSequence(sideband_cooling)
+        if p.ParametricCoupling.parametric_coupling_enable:
+            self.addSequence(parametric_coupling)
         if p.WireCharging.wire_charging_enable:
             self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))

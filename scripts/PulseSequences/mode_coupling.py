@@ -9,6 +9,9 @@ from subsequences.TurnOffAll import turn_off_all
 from subsequences.SidebandCooling import sideband_cooling
 from subsequences.WireCharging import wire_charging
 from subsequences.PulsedHeating import pulsed_heating
+from subsequences.PiPulse import pi_pulse
+from subsequences.RepumpD import repump_d
+from subsequences.ParametricCoupling import parametric_coupling
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -18,6 +21,7 @@ class mode_coupling(pulse_sequence):
                             ('Heating', 'background_heating_time'),
                             ('OpticalPumping','optical_pumping_enable'), 
                             ('SidebandCooling','sideband_cooling_enable'),
+                            ('SidebandPrecooling','sideband_precooling_enable'),
                             
                             ('RepumpD_5_2','repump_d_duration'),
                             ('RepumpD_5_2','repump_d_frequency_854'),
@@ -36,6 +40,7 @@ class mode_coupling(pulse_sequence):
                             ('OpticalPumping','optical_pumping_amplitude_854'),
                             ('OpticalPumping','optical_pumping_amplitude_866'),
                             ('OpticalPumping','optical_pumping_type'),
+                            ('OpticalPumping', 'mode_swapping_time'),
                           
                             ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
                             ('OpticalPumpingContinuous','optical_pumping_continuous_repump_additional'),
@@ -57,6 +62,18 @@ class mode_coupling(pulse_sequence):
                             ('SidebandCooling','sideband_cooling_amplitude_729'),
                             ('SidebandCooling','sideband_cooling_optical_pumping_duration'),
                             ('SidebandCooling', 'sideband_cooling_detuning_729'),
+
+                            ('SidebandPrecooling','sideband_precooling_cycles'),
+                            ('SidebandPrecooling','sideband_precooling_optical_pumping_duration'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_866'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_854'),
+                            ('SidebandPrecooling','sideband_precooling_amplitude_729'),
+                            ('SidebandPrecooling','sideband_precooling_frequency_854'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_866'),
+                            ('SidebandPrecooling', 'sideband_precooling_frequency_729'),
+                            ('SidebandPrecooling', 'sideband_precooling_detuning_729'),
+                            ('SidebandPrecooling','sideband_precooling_continuous_duration'),
+            
                             
                             ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
                           
@@ -92,7 +109,7 @@ class mode_coupling(pulse_sequence):
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
                              rabi_excitation, state_readout, turn_off_all,  sideband_cooling, pi_pulse,
-                             parametric_coupling]
+                             repump_d, parametric_coupling]
 
     def sequence(self):
         p = self.parameters
@@ -104,6 +121,8 @@ class mode_coupling(pulse_sequence):
         if p.SidebandCooling.sideband_cooling_enable:
             self.addSequence(sideband_cooling)
         self.addSequence(pi_pulse)
+        self.addSequence(repump_d)
+        self.addSequence(optical_pumping)
         self.addSequence(parametric_coupling)
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
         self.start_excitation_729 = self.end

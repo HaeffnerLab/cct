@@ -12,6 +12,7 @@ from common.abstractdevices.script_scanner.scan_methods import experiment
 from excitation_mode_coupling import excitation_mode_coupling
 from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 from cct.scripts.scriptLibrary import dvParameters
+from excitation_mode_coupling import excitation_mode_coupling
 import time
 import labrad
 from labrad.units import WithUnit
@@ -30,7 +31,9 @@ class mode_coupling(experiment):
         ('RabiFlopping','rabi_amplitude_729'),
         ('RabiFlopping','frequency_selection'),
         ('RabiFlopping','sideband_selection'),
+        ('RabiFlopping', 'offset_frequency'),
         
+        ('PiPulse','sideband_selection'),
         ('RabiFlopping_Sit', 'sit_on_excitation'),
         ]
     required_parameters.extend(excitation_mode_coupling.required_parameters)
@@ -45,11 +48,12 @@ class mode_coupling(experiment):
     required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
     required_parameters.remove(('PiPulse', 'rabi_amplitude_729'))
     required_parameters.remove(('PiPulse', 'rabi_excitation_frequency'))
+    required_parameters.remove(('ParametricCoupling','parametric_coupling_duration'))
 
 
     def initialize(self, cxn, context, ident):
         self.ident = ident
-        self.excite = self.make_experiment(excitation_729)
+        self.excite = self.make_experiment(excitation_mode_coupling)
         self.excite.initialize(cxn, context, ident)
         self.scan = []
         self.amplitude = None
@@ -61,11 +65,11 @@ class mode_coupling(experiment):
         self.pulser = cxn.pulser
 
     def setup_sequence_parameters(self):
-        coupling = self.parameters.ModeCoupling
+        coupling = self.parameters.ParametricCoupling
         piPulse = self.parameters.PiPulse
         flop = self.parameters.RabiFlopping
         analysis_frequency = cm.frequency_from_line_selection(flop.frequency_selection, flop.manual_frequency_729, flop.line_selection, self.drift_tracker)
-        pi_frequency = cm.frequency_from_line_selection(piPulse.frequency_selection, piPulse.manual_frequency_729, piPulse.line_selection, self.drift_tracker)
+        pi_frequency = cm.frequency_from_line_selection('auto', flop.manual_frequency_729, flop.line_selection, self.drift_tracker) # do pi pulse on same line as rabi flop
         trap = self.parameters.TrapFrequencies
         if flop.frequency_selection == 'auto':
             analysis_frequency = cm.add_sidebands(analysis_frequency, flop.sideband_selection, trap)
@@ -86,7 +90,7 @@ class mode_coupling(experiment):
         directory.extend([self.name])
         directory.extend(dirappend)
         self.dv.cd(directory ,True, context = self.mode_coupling_save_context)
-        self.dv.new('Parametric Coupling {}'.format(datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.rabi_flop_save_context)
+        self.dv.new('Parametric Coupling {}'.format(datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.mode_coupling_save_context)
         window_name = self.parameters.get('ParametricCoupling.window_name', ['Parametric Coupling'])
         self.dv.add_parameter('Window', window_name, context = self.mode_coupling_save_context)
         self.dv.add_parameter('plotLive', True, context = self.mode_coupling_save_context)
@@ -105,14 +109,14 @@ class mode_coupling(experiment):
             self.dv.add((duration, excitation), context = self.mode_coupling_save_context)
             self.update_progress(i)
             
-        #dds = self.cxn.pulser.human_readable_dds()
-        #ttl = self.cxn.pulser.human_readable_ttl()
-        #channels = self.cxn.pulser.get_channels().asarray
-        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
-        #sp.makePlot()
+        dds = self.cxn.pulser.human_readable_dds()
+        ttl = self.cxn.pulser.human_readable_ttl()
+        channels = self.cxn.pulser.get_channels().asarray
+        sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        sp.makePlot()
 
     def finalize(self, cxn, context):
-        self.save_parameters(self.dv, cxn, self.cxnlab, self.rabi_flop_save_context)
+        self.save_parameters(self.dv, cxn, self.cxnlab, self.mode_coupling_save_context)
 
     def update_progress(self, iteration):
         progress = self.min_progress + (self.max_progress - self.min_progress) * float(iteration + 1.0) / len(self.scan)
