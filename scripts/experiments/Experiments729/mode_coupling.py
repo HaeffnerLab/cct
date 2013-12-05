@@ -98,7 +98,8 @@ class mode_coupling(experiment):
     def run(self, cxn, context):
         self.setup_data_vault()
         self.setup_sequence_parameters()
-        
+        self.pulser.switch_auto('397mod')
+        self.pulser.switch_auto('parametric_modulation')
         for i, duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break

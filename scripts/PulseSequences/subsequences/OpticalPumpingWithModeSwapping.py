@@ -14,7 +14,7 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
                   ('OpticalPumping','optical_pumping_amplitude_729'),
                   ('OpticalPumping','optical_pumping_amplitude_854'),
                   ('OpticalPumping','optical_pumping_amplitude_866'),
-                  ('OpticalPumping', 'mode_swapping_time')
+                  ('ParametricCoupling', 'mode_swapping_time')
                   ]
     
     required_subsequences = [optical_pumping_continuous, optical_pumping_pulsed]
@@ -38,7 +38,7 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
                        'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':op.optical_pumping_amplitude_866,
                        }
             self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
-            self.addTTL('parametric_modulation', self.start, op.mode_swapping_time)
+            self.addTTL('parametric_modulation', self.start, self.parameters.ParametricCoupling.mode_swapping_time)
         else:
             #pulsed
             replace = {

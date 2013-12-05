@@ -1,5 +1,6 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from subsequences.RepumpDwithDoppler import doppler_cooling_after_repump_d
+from subsequences.RepumpDwithDopplerAndModeCoupling import doppler_cooling_with_mode_coupling
 from subsequences.EmptySequence import empty_sequence
 from subsequences.OpticalPumping import optical_pumping
 from subsequences.RabiExcitation import rabi_excitation
@@ -31,6 +32,8 @@ class spectrum_rabi(pulse_sequence):
                             ('DopplerCooling', 'doppler_cooling_amplitude_866'),
                             ('DopplerCooling', 'doppler_cooling_repump_additional'),
                             ('DopplerCooling', 'doppler_cooling_duration'),
+                            ('DopplerCooling', 'mode_swapping_cycles'),
+                            ('DopplerCooling', 'mode_swapping_enable'),
                           
                             ('OpticalPumping','optical_pumping_frequency_729'),
                             ('OpticalPumping','optical_pumping_frequency_854'),
@@ -39,7 +42,6 @@ class spectrum_rabi(pulse_sequence):
                             ('OpticalPumping','optical_pumping_amplitude_854'),
                             ('OpticalPumping','optical_pumping_amplitude_866'),
                             ('OpticalPumping','optical_pumping_type'),
-                            ('OpticalPumping','mode_swapping_time'),
                           
                             ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
                             ('OpticalPumpingContinuous','optical_pumping_continuous_repump_additional'),
@@ -106,18 +108,22 @@ class spectrum_rabi(pulse_sequence):
                             ('PulsedHeating','pulsed_heating_frequency_397'),
 
                             ('ParametricCoupling', 'parametric_coupling_enable'),
-                            ('ParametricCoupling', 'parametric_coupling_duration')
+                            ('ParametricCoupling', 'parametric_coupling_duration'),
+                            ('ParametricCoupling', 'mode_swapping_time')
                             ]
     
     
-    required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
+    required_subsequences = [doppler_cooling_after_repump_d, doppler_cooling_with_mode_coupling, empty_sequence, optical_pumping, 
                              rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating, parametric_coupling]
 
     def sequence(self):
         p = self.parameters
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
-        self.addSequence(doppler_cooling_after_repump_d)
+        if p.DopplerCooling.mode_swapping_enable:
+            self.addSequence(doppler_cooling_with_mode_coupling)
+        else:
+            self.addSequence(doppler_cooling_after_repump_d)
         if p.OpticalPumping.optical_pumping_enable:
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
