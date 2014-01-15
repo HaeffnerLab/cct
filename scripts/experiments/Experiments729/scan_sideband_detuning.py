@@ -52,16 +52,16 @@ class scan_sideband_detuning(experiment):
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
         self.pulser = self.cxn.pulser
-        self.rabi_flop_save_context = cxn.context()
+        self.sb_det_save_context = cxn.context()
     
     def setup_sequence_parameters(self):
         self.load_frequency()
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = self.parameters.RabiFlopping.rabi_amplitude_729
         self.parameters['Excitation_729.rabi_excitation_duration'] = self.parameters.RabiFlopping_Sit.sit_on_excitation
         minim,maxim,steps = self.parameters.SidebandCoolingDetuningScan.manual_scan
-        minim = minim['us']; maxim = maxim['us']
+        minim = minim['kHz']; maxim = maxim['kHz']
         self.scan = linspace(minim, maxim, steps)
-        self.scan = [WithUnit(pt, 'us') for pt in self.scan]
+        self.scan = [WithUnit(pt, 'kHz') for pt in self.scan]
     
     def load_frequency(self):
         #reloads trap frequencyies and gets the latest information from the drift tracker
@@ -81,12 +81,13 @@ class scan_sideband_detuning(experiment):
         directory.extend([self.name])
         directory.extend(dirappend)
         self.dv.cd(directory ,True, context = self.sb_det_save_context)
-        self.dv.new('Detuning Scan {}'.format(datasetNameAppend),[('detuning', 'kHz')],[('Excitation Probability','Arb','Arb')], context = self.rabi_flop_save_context)
+        self.dv.new('Detuning Scan {}'.format(datasetNameAppend),[('detuning', 'kHz')],[('Excitation Probability','Arb','Arb')], context = self.sb_det_save_context)
         window_name = self.parameters.get('SidebandCoolingDetuningScan.window_name', ['Detuning Scan'])
         self.dv.add_parameter('Window', window_name, context = self.sb_det_save_context)
         self.dv.add_parameter('plotLive', True, context = self.sb_det_save_context)
 
     def run(self, cxn, context):
+        self.setup_data_vault()
         self.setup_sequence_parameters()
         self.load_frequency()
         self.pulser.switch_auto('397mod')
