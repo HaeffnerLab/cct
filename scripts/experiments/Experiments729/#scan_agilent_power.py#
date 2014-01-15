@@ -43,22 +43,12 @@ class scan_agilent_amplitude(experiment):
         self.amplitude = None
         self.duration = None
         self.cxnlab = labrad.connect('192.168.169.49') #connection to labwide network
-<<<<<<< Updated upstream
-        self.cxnwin = labrad.connect('192.168.169.30') # windows computer for gpib
-        self.drift_tracker = cxn.sd_tracker
-        self.dv = cxn.data_vault
-        self.pulser = self.cxn.pulser
-        self.agi = self.cxnwin.agilent_server
-        self.agi.select_device()
-        self.agi_scan_context = cxn.context()
-=======
         self.cxnwindows = labrad.connect('192.168.169.30') # windows computer for gpib
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
         self.pulser = self.cxn.pulser
         self.agi_scan_context = cxn.context()
         self.agi = agilent_server
->>>>>>> Stashed changes
 
     def setup_sequence_parameters(self):
         self.load_frequency()
@@ -69,19 +59,6 @@ class scan_agilent_amplitude(experiment):
         self.scan = linspace(minim, maxim, steps)
         self.scan = [WithUnit(pt, 'dBm') for pt in self.scan]
 
-<<<<<<< Updated upstream
-    def load_frequency(self):
-        #reloads trap frequencyies and gets the latest information from the drift tracker
-        self.reload_some_parameters(self.trap_frequencies)
-        flop = self.parameters.RabiFlopping
-        frequency = cm.frequency_from_line_selection(flop.frequency_selection, flop.manual_frequency_729, flop.line_selection, self.drift_tracker)
-        trap = self.parameters.TrapFrequencies
-        if flop.frequency_selection == 'auto':
-            frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)
-        self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
-
-=======
->>>>>>> Stashed changes
     def setup_data_vault(self):
         localtime = time.localtime()
         datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
@@ -90,21 +67,12 @@ class scan_agilent_amplitude(experiment):
         directory.extend([self.name])
         directory.extend(dirappend)
         self.dv.cd(directory ,True, context = self.agi_scan_context)
-<<<<<<< Updated upstream
-        self.dv.new('Detuning Scan {}'.format(datasetNameAppend),[('detuning', 'kHz')],[('Excitation Probability','Arb','Arb')], context = self.agi_scan_context)
-        window_name = self.parameters.get('AgilentScan.window_name', ['Agilent Amplitude Scan'])
-=======
         self.dv.new('Agilent Amplitude Scan {}'.format(datasetNameAppend),[('Amplitude', 'dBm')],[('Excitation Probability','Arb','Arb')], context = self.agi_scan_context)
         window_name = 'Amplitude scan'
->>>>>>> Stashed changes
         self.dv.add_parameter('Window', window_name, context = self.agi_scan_context)
         self.dv.add_parameter('plotLive', True, context = self.agi_scan_context)
 
     def run(self, cxn, context):
-<<<<<<< Updated upstream
-        self.setup_data_vault()
-=======
->>>>>>> Stashed changes
         self.setup_sequence_parameters()
         self.load_frequency()
         self.pulser.switch_auto('397mod')
@@ -118,14 +86,6 @@ class scan_agilent_amplitude(experiment):
             excitation = self.excite.run(cxn, context)
             self.dv.add((amp, excitation), context = self.agi_scan_context)
             self.update_progress(i)
-<<<<<<< Updated upstream
-        #ttl = self.cxn.pulser.human_readable_ttl()
-        #dds = self.cxn.pulser.human_readable_dds()
-        #channels = self.cxn.pulser.get_channels().asarray
-        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
-        #sp.makePlot()
-=======
->>>>>>> Stashed changes
 
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.agi_scan_context)
