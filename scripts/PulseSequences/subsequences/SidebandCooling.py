@@ -82,4 +82,7 @@ class sideband_cooling(pulse_sequence):
             if not mode_coupled:
               self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
             else:
-              self.addSequence(optical_pumping_with_mode_swapping, TreeDict.fromdict(optical_pump_replace))
+              if i == (int(sc.sideband_cooling_cycles) - 1):
+                self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
+              else:
+                self.addSequence(optical_pumping_with_mode_swapping, TreeDict.fromdict(optical_pump_replace))

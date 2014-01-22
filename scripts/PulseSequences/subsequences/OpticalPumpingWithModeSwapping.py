@@ -14,6 +14,8 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
                   ('OpticalPumping','optical_pumping_amplitude_729'),
                   ('OpticalPumping','optical_pumping_amplitude_854'),
                   ('OpticalPumping','optical_pumping_amplitude_866'),
+                  ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
+                  ('OpticalPumpingContinuous','optical_pumping_continuous_repump_additional'),
                   ('ParametricCoupling', 'mode_swapping_time')
                   ]
     
@@ -21,6 +23,7 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
     
     def sequence(self):
         op = self.parameters.OpticalPumping
+        opc = self.parameters.OpticalPumpingContinuous
         
         if op.optical_pumping_type == 'continuous':
             continuous = True
@@ -38,7 +41,11 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
                        'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':op.optical_pumping_amplitude_866,
                        }
             self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
-            self.addTTL('parametric_modulation', self.start, self.parameters.ParametricCoupling.mode_swapping_time)
+            opc_dur = opc.optical_pumping_continuous_duration
+            self.addTTL('parametric_modulation', self.start + opc_dur , self.parameters.ParametricCoupling.mode_swapping_time)
+            #print opc.optical_pumping_continuous_duration
+            self.end = self.start + max(opc_dur + opc.optical_pumping_continuous_repump_additional, opc_dur + self.parameters.ParametricCoupling.mode_swapping_time)
+
         else:
             #pulsed
             replace = {

@@ -69,11 +69,11 @@ class rabi_flopping_scannable(experiment):
         self.excite.set_parameters(self.parameters)
         excitation = self.excite.run(cxn, context)
         single_excitation = excitation
-        # ttl = self.cxn.pulser.human_readable_ttl()
-        # dds = self.cxn.pulser.human_readable_dds()
-        # channels = self.cxn.pulser.get_channels().asarray
-        # sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
-        # sp.makePlot()      
+        #ttl = self.cxn.pulser.human_readable_ttl()
+        #dds = self.cxn.pulser.human_readable_dds()
+        #channels = self.cxn.pulser.get_channels().asarray
+        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        #sp.makePlot()      
         return single_excitation
      
     def finalize(self, cxn, context):

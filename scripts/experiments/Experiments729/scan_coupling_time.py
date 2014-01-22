@@ -41,6 +41,11 @@ class scan_mode_coupling_time(experiment):
     required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
     required_parameters.remove(('Excitation_729','rabi_excitation_duration'))
     required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+    required_parameters.remove(('ParametricCoupling', 'parametric_coupling_duration'))
+
+    optional_parameters = [
+        ('ParametricCoupling', 'window_name')
+        ]
 
     def initialize(self, cxn, context, ident):
         self.ident = ident
@@ -50,21 +55,31 @@ class scan_mode_coupling_time(experiment):
         self.amplitude = None
         self.duration = None
         self.cxnlab = labrad.connect('192.168.169.49') #connection to labwide network
-        self.cxnwindows = labrad.connect('192.168.169.30') # windows computer for gpib
+        self.cxnwin = labrad.connect('192.168.169.30') # windows computer for gpib
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
         self.pulser = self.cxn.pulser
-        self.agi_scan_context = cxn.context()
-        self.agi = agilent_server
+        self.agi_scan_context = self.cxnwin.context()
+        #self.agi = cxn.agilent_server
 
     def setup_sequence_parameters(self):
         self.load_frequency()
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = self.parameters.RabiFlopping.rabi_amplitude_729
         self.parameters['Excitation_729.rabi_excitation_duration'] = self.parameters.RabiFlopping_Sit.sit_on_excitation
-        minim,maxim,steps = self.parameters.AgilentScan.manual_time_scan
+        minim,maxim,steps = self.parameters.ParametricCoupling.manual_time_scan
         minim = minim['us']; maxim = maxim['us']
         self.scan = linspace(minim, maxim, steps)
         self.scan = [WithUnit(pt, 'us') for pt in self.scan]
+
+    def load_frequency(self):
+        #reloads trap frequencyies and gets the latest information from the drift tracker
+        self.reload_some_parameters(self.trap_frequencies)
+        flop = self.parameters.RabiFlopping
+        frequency = cm.frequency_from_line_selection(flop.frequency_selection, flop.manual_frequency_729, flop.line_selection, self.drift_tracker)
+        trap = self.parameters.TrapFrequencies
+        if flop.frequency_selection == 'auto':
+            frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)
+        self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
 
     def setup_data_vault(self):
         localtime = time.localtime()
@@ -75,11 +90,12 @@ class scan_mode_coupling_time(experiment):
         directory.extend(dirappend)
         self.dv.cd(directory ,True, context = self.agi_scan_context)
         self.dv.new('Mode Coupling Time Scan {}'.format(datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.agi_scan_context)
-        window_name = 'Coupling time scan'
+        window_name = self.parameters.get('ParametricCoupling.window_name', ['Coupling time scan'])
         self.dv.add_parameter('Window', window_name, context = self.agi_scan_context)
         self.dv.add_parameter('plotLive', True, context = self.agi_scan_context)
 
     def run(self, cxn, context):
+        self.setup_data_vault()
         self.setup_sequence_parameters()
         self.load_frequency()
         self.pulser.switch_auto('397mod')
@@ -87,13 +103,21 @@ class scan_mode_coupling_time(experiment):
         self.setup_sequence_parameters()
         p = self.parameters.ParametricCoupling
         for i, ti in enumerate(self.scan):
+            p['parametric_coupling_duration'] = (1/0.42)*(ti) + WithUnit(20., 'us')
+            print "switch time: " + str( p['parametric_coupling_duration'])
             couple.write_to_agilent(ti, p.drive_frequency, p.drive_amplitude, p.N_points)
+            time.sleep(1)
             should_stop = self.pause_or_stop()
             if should_stop: break
             self.excite.set_parameters(self.parameters)
             excitation = self.excite.run(cxn, context)
-            self.dv.add((amp, excitation), context = self.agi_scan_context)
+            self.dv.add((ti, excitation), context = self.agi_scan_context)
             self.update_progress(i)
+        #ttl = self.cxn.pulser.human_readable_ttl()
+        #dds = self.cxn.pulser.human_readable_dds()
+        #channels = self.cxn.pulser.get_channels().asarray
+        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
+        #sp.makePlot()      
 
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.agi_scan_context)

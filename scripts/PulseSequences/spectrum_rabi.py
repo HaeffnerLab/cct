@@ -108,8 +108,13 @@ class spectrum_rabi(pulse_sequence):
                             ('PulsedHeating','pulsed_heating_frequency_397'),
 
                             ('ParametricCoupling', 'parametric_coupling_enable'),
-                            ('ParametricCoupling', 'parametric_coupling_duration'),
-                            ('ParametricCoupling', 'mode_swapping_time')
+                            ('ParametricCoupling', 'mode_swapping_time'),
+                            ('ParametricCoupling', 'swap_after_heating'),
+                            ('ParametricCoupling','parametric_coupling_duration'),
+                            ('ParametricCoupling','drive_frequency'),
+                            ('ParametricCoupling','N_points'),
+                            ('ParametricCoupling','drive_amplitude'),
+                            ('ParametricCoupling','parametric_coupling_phase'),
                             ]
     
     
@@ -137,6 +142,8 @@ class spectrum_rabi(pulse_sequence):
         if p.WireCharging.wire_charging_enable:
             self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
+        if p.ParametricCoupling.swap_after_heating:
+            self.addSequence(parametric_coupling)
         self.start_excitation_729 = self.end
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
