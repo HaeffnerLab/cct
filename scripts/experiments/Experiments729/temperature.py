@@ -219,8 +219,8 @@ class temperature(experiment):
 
     def finalize(self, cxn, context):
         #self.save_parameters(self.dv, cxn, self.cxnlab, self.temp_save_context)
-        #self.spectrum.finalize()
-        #self.flop.finalize()
+        self.spectrum.finalize(cxn, context)
+        self.flop.finalize(cxn, context)
         pass
 
     def save_parameters(self, dv, cxn, cxnlab, context):
