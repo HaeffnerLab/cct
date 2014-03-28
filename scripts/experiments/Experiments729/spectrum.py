@@ -34,7 +34,9 @@ class spectrum(experiment):
                            ]
     
     optional_parmeters = [
-                          ('Spectrum', 'window_name')
+                          ('Spectrum', 'window_name'),
+                          ('Spectrum', 'dataset_name_append'),
+                          ('Spectrum', 'save_directory')
                           ]
     required_parameters.extend(excitation_729.required_parameters)
     #removing parameters we'll be overwriting, and they do not need to be loaded
@@ -53,6 +55,11 @@ class spectrum(experiment):
         self.cxnlab = labrad.connect('192.168.169.49') #connection to labwide network
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
+        self.fitter = None
+        try:
+            self.fitter = cxn.fitter
+        except:
+            print "No data analyzer"
         self.spectrum_save_context = cxn.context()
     
     def setup_sequence_parameters(self):
@@ -79,14 +86,21 @@ class spectrum(experiment):
 
         
     def setup_data_vault(self):
-        localtime = time.localtime()
-        datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
-        dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
-        directory = ['','Experiments']
-        directory.extend([self.name])
-        directory.extend(dirappend)
+        localtime = time.localtime()        
+        # check if there's a specified save directory and dataset
+        try:
+            directory = self.parameters.get('Spectrum.save_directory')
+            datasetNameAppend = self.parameters.get('Spectrum.dataset_name_append')
+        except KeyError:
+            dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
+            directory = ['','Experiments']
+            directory.extend([self.name])
+            directory.extend(dirappend)
+            datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
+
+        self.datasetName = 'Spectrum {}'.format(datasetNameAppend)        
         self.dv.cd(directory ,True, context = self.spectrum_save_context)
-        self.dv.new('Spectrum {}'.format(datasetNameAppend),[('Freq', 'MHz')],[('Excitation Probability','Arb','Arb')], context = self.spectrum_save_context)
+        self.dv.new(self.datasetName,[('Freq', 'MHz')],[('Excitation Probability','Arb','Arb')], context = self.spectrum_save_context)
         window_name = self.parameters.get('Spectrum.window_name', ['Spectrum'])
         self.dv.add_parameter('Window', window_name, context = self.spectrum_save_context)
         self.dv.add_parameter('plotLive', True, context = self.spectrum_save_context)
@@ -94,8 +108,8 @@ class spectrum(experiment):
     def run(self, cxn, context):
         self.setup_data_vault()
         self.setup_sequence_parameters()
-        #self.pulser.switch_auto('397mod')
-        #self.pulser.switch_auto('parametric_modulation')
+        self.pulser.switch_auto('397mod')
+        self.pulser.switch_auto('parametric_modulation')
         for i,freq in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
@@ -104,6 +118,23 @@ class spectrum(experiment):
             excitation = self.excite.run(cxn, context)
             self.dv.add((freq, excitation), context = self.spectrum_save_context)
             self.update_progress(i)
+        if self.fitter is not None:
+
+            dir = (self.directory, self.datasetName)
+            fitter.load_data(dir)
+            fitter.fit('Lorentzian', True)
+            
+            accepted = fitter.wait_for_acceptance()
+            
+            if accepted:
+                center = WithUnit(fitter.get_parameter('Center'), 'MHz')
+                fwhm = fitter.get_parameter('FWHM')
+                height = fitter.get_parameter('Height')
+                return (center, fwhm, height)
+            else:
+                print 'fit rejected!'
+            
+        
         #dds = self.cxn.pulser.human_readable_dds()
         #ttl = self.cxn.pulser.human_readable_ttl()
         #channels = self.cxn.pulser.get_channels().asarray
@@ -123,7 +154,7 @@ class spectrum(experiment):
             return self.cxn.data_vault.get_parameter('Solutions-0-Lorentzian', context = self.spectrum_save_context)
         else:
             return None
-        
+
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.spectrum_save_context)
 

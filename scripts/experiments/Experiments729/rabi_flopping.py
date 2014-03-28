@@ -29,7 +29,9 @@ class rabi_flopping(experiment):
                            ]
     
     optional_parmeters = [
-                          ('RabiFlopping', 'window_name')
+                          ('RabiFlopping', 'window_name'),
+                          ('RabiFlopping', 'dataset_name_append'),
+                          ('RabiFlopping', 'save_directory')
                           ]
     required_parameters.extend(excitation_729.required_parameters)
     #removing parameters we'll be overwriting, and they do not need to be loaded
@@ -50,6 +52,11 @@ class rabi_flopping(experiment):
         self.dv = cxn.data_vault
         self.rabi_flop_save_context = cxn.context()
         self.pulser = cxn.pulser
+        self.fitter = None
+        try:
+            self.fitter = cxn.fitter
+        except:
+            print "No data analyzer"
 
     def setup_sequence_parameters(self):
         flop = self.parameters.RabiFlopping
@@ -66,22 +73,36 @@ class rabi_flopping(experiment):
         
     def setup_data_vault(self):
         localtime = time.localtime()
-        datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
-        dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
-        directory = ['','Experiments']
-        directory.extend([self.name])
-        directory.extend(dirappend)
-        self.dv.cd(directory ,True, context = self.rabi_flop_save_context)
+        try:
+            directory = self.parameters.get('RabiFlopping.save_directory')
+            datasetNameAppend = self.parameters.get('RabiFlopping.dataset_name_append')
+        except KeyError:
+            datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
+            dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
+            directory = ['','Experiments']
+            directory.extend([self.name])
+            directory.extend(dirappend)
+        self.dv.cd(self.directory ,True, context = self.rabi_flop_save_context)
         self.dv.new('Rabi Flopping {}'.format(datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.rabi_flop_save_context)
         window_name = self.parameters.get('RabiFlopping.window_name', ['Rabi Flopping'])
         self.dv.add_parameter('Window', window_name, context = self.rabi_flop_save_context)
         self.dv.add_parameter('plotLive', True, context = self.rabi_flop_save_context)
         
     def run(self, cxn, context):
+        '''
+        Right now this function returns the time at which the maximum excitation
+        is achieved. This is supposed to be a guess for the pi time to be used
+        in heating rate measurements.
+        
+        To do: have it fit to some model and return the parameters
+        '''
         self.setup_data_vault()
         self.setup_sequence_parameters()
         self.pulser.switch_auto('397mod')
         self.pulser.switch_auto('parametric_modulation')
+
+        excitaton_list = []
+        time_list = []
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
@@ -89,13 +110,22 @@ class rabi_flopping(experiment):
             self.excite.set_parameters(self.parameters)
             excitation = self.excite.run(cxn, context)
             self.dv.add((duration, excitation), context = self.rabi_flop_save_context)
+            time_list.append(duration)
+            excitation_list.append(excitation)
             self.update_progress(i)
+
+        index = excitation_list.index(max(excitation_list))
+        pi_time = time_list[index]
+        return pi_time
+        
+            
+
          #dds = self.cxn.pulser.human_readable_dds()
          #ttl = self.cxn.pulser.human_readable_ttl()
          #channels = self.cxn.pulser.get_channels().asarray
          #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
          #sp.makePlot()
-     
+
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.rabi_flop_save_context)
 
