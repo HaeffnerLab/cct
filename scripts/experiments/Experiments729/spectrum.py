@@ -18,6 +18,7 @@ class spectrum(experiment):
                            ('Spectrum','ultimate'),
                            ('Spectrum','opticalpumping'),
                            ('Spectrum','carrier'),
+                           ('Spectrum', 'temperature'),
                            
                            ('Spectrum','line_selection'),
                            ('Spectrum','manual_amplitude_729'),
@@ -55,6 +56,7 @@ class spectrum(experiment):
         self.cxnlab = labrad.connect('192.168.169.49') #connection to labwide network
         self.drift_tracker = cxn.sd_tracker
         self.dv = cxn.data_vault
+        self.pulser = cxn.pulser
         self.fitter = None
         try:
             self.fitter = cxn.fitter
@@ -104,6 +106,7 @@ class spectrum(experiment):
         window_name = self.parameters.get('Spectrum.window_name', ['Spectrum'])
         self.dv.add_parameter('Window', window_name, context = self.spectrum_save_context)
         self.dv.add_parameter('plotLive', True, context = self.spectrum_save_context)
+        self.directory = directory
         
     def run(self, cxn, context):
         self.setup_data_vault()
@@ -120,16 +123,20 @@ class spectrum(experiment):
             self.update_progress(i)
         if self.fitter is not None:
 
-            dir = (self.directory, self.datasetName)
-            fitter.load_data(dir)
-            fitter.fit('Lorentzian', True)
+            dir = (self.directory, 1)
+            print dir
+            self.fitter.load_data(dir)
+            self.fitter.fit('Lorentzian', True)
             
-            accepted = fitter.wait_for_acceptance()
+            accepted = self.fitter.wait_for_acceptance()
             
             if accepted:
-                center = WithUnit(fitter.get_parameter('Center'), 'MHz')
-                fwhm = fitter.get_parameter('FWHM')
-                height = fitter.get_parameter('Height')
+                center = WithUnit(self.fitter.get_parameter('Center'), 'MHz')
+                fwhm = self.fitter.get_parameter('FWHM')
+                height = self.fitter.get_parameter('Height')
+                print center
+                print fwhm
+                print height
                 return (center, fwhm, height)
             else:
                 print 'fit rejected!'

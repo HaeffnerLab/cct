@@ -19,11 +19,17 @@ class ramsey_excitation(pulse_sequence):
         replace = TreeDict.fromdict({
                                      'Excitation_729.rabi_excitation_duration':r.rabi_pi_time / 2.0,
                                      'Excitation_729.rabi_excitation_phase':WithUnit(0, 'deg'),
+                                     'Excitation_729.mode_coupling_during_excitation':False,
+                                     'ParametricCoupling.drive_amplitude':WithUnit(-63, 'dBm'),
+                                     'ParametricCoupling.drive_frequency':WithUnit(100., 'kHz')
                                      })
         self.addSequence(rabi_excitation, replace)
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':r.ramsey_time}))
         replace = TreeDict.fromdict({
                              'Excitation_729.rabi_excitation_duration':r.rabi_pi_time / 2.0,
                              'Excitation_729.rabi_excitation_phase':r.second_pulse_phase,
+                             'Excitation_729.mode_coupling_during_excitation':False,
+                             'ParametricCoupling.drive_amplitude':WithUnit(-63, 'dBm'),
+                             'ParametricCoupling.drive_frequency':WithUnit(100., 'kHz')
                              })
         self.addSequence(rabi_excitation_no_offset, replace)

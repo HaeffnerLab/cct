@@ -82,7 +82,7 @@ class rabi_flopping(experiment):
             directory = ['','Experiments']
             directory.extend([self.name])
             directory.extend(dirappend)
-        self.dv.cd(self.directory ,True, context = self.rabi_flop_save_context)
+        self.dv.cd(directory ,True, context = self.rabi_flop_save_context)
         self.dv.new('Rabi Flopping {}'.format(datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.rabi_flop_save_context)
         window_name = self.parameters.get('RabiFlopping.window_name', ['Rabi Flopping'])
         self.dv.add_parameter('Window', window_name, context = self.rabi_flop_save_context)
@@ -101,7 +101,7 @@ class rabi_flopping(experiment):
         self.pulser.switch_auto('397mod')
         self.pulser.switch_auto('parametric_modulation')
 
-        excitaton_list = []
+        excitation_list = []
         time_list = []
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()

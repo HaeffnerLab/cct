@@ -8,11 +8,15 @@ class rabi_excitation(pulse_sequence):
                           ('Excitation_729','rabi_excitation_amplitude'),
                           ('Excitation_729','rabi_excitation_duration'),
                           ('Excitation_729','rabi_excitation_phase'),
+                          ('Excitation_729', 'mode_coupling_during_excitation'),
+                          ('ParametricCoupling', 'drive_amplitude'),
+                          ('ParametricCoupling', 'drive_frequency')
                           ]
 
     def sequence(self):
         #this hack will be not needed with the new dds parsing methods
         p = self.parameters.Excitation_729
+        pc = self.parameters.ParametricCoupling
         frequency_advance_duration = WithUnit(6, 'us')
         ampl_off = WithUnit(-63.0, 'dBm')
         self.end = self.start + frequency_advance_duration + p.rabi_excitation_duration
@@ -20,6 +24,8 @@ class rabi_excitation(pulse_sequence):
         self.addDDS('729', self.start, frequency_advance_duration, p.rabi_excitation_frequency, ampl_off)
         #turn on
         self.addDDS('729', self.start + frequency_advance_duration, p.rabi_excitation_duration, p.rabi_excitation_frequency, p.rabi_excitation_amplitude, p.rabi_excitation_phase)
+        if p.mode_coupling_during_excitation:
+          self.addDDS('parametric_coupling', self.start + frequency_advance_duration, p.rabi_excitation_duration, pc.drive_frequency, pc.drive_amplitude, WithUnit(0., 'deg'))
 
 class rabi_excitation_second_dds(pulse_sequence):
     

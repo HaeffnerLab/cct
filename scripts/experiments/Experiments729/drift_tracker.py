@@ -33,7 +33,7 @@ class drift_tracker(experiment):
         self.parameters['Heating.background_heating_time'] = WithUnit(0.0, 'us')
         
     def run(self, cxn, context):
-o        dt = self.parameters.DriftTracker
+        dt = self.parameters.DriftTracker
         if dt.line_selection_1 == dt.line_selection_2:
             raise Exception ("The two Drift Tracking lines can not be the same")
         self.parameters['Spectrum.line_selection'] = dt.line_selection_1

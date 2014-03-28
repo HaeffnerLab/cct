@@ -3,6 +3,7 @@ from OpticalPumping import optical_pumping
 from OpticalPumpingWithModeSwapping import optical_pumping_with_mode_swapping
 from SidebandCoolingContinuous import sideband_cooling_continuous
 from SidebandCoolingPulsed import sideband_cooling_pulsed
+from ParametricCoupling import parametric_coupling
 from treedict import TreeDict
 from labrad.units import WithUnit
 
@@ -22,9 +23,10 @@ class sideband_cooling(pulse_sequence):
                            ('SidebandCooling', 'sideband_cooling_detuning_729'),
                            ('SidebandCoolingContinuous','sideband_cooling_continuous_duration'),
                            ('SidebandCoolingPulsed','sideband_cooling_pulsed_duration_729'),
+                           ('ParametricCoupling', 'mode_swapping_time')
                            ]
     
-    required_subsequences = [sideband_cooling_continuous, sideband_cooling_pulsed, optical_pumping, optical_pumping_with_mode_swapping]
+    required_subsequences = [sideband_cooling_continuous, sideband_cooling_pulsed, optical_pumping, optical_pumping_with_mode_swapping, parametric_coupling]
     
     def sequence(self):
         '''
@@ -34,6 +36,7 @@ class sideband_cooling(pulse_sequence):
         sideband cooling can be either pulsed or continuous 
         '''
         sc = self.parameters.SidebandCooling
+        pc = self.parameters.ParametricCoupling
         if sc.sideband_cooling_type == 'continuous':
             continuous = True
             mode_coupled = False
@@ -85,4 +88,6 @@ class sideband_cooling(pulse_sequence):
               if i == (int(sc.sideband_cooling_cycles) - 1):
                 self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
               else:
-                self.addSequence(optical_pumping_with_mode_swapping, TreeDict.fromdict(optical_pump_replace))
+                self.addSequence(optical_pumping, TreeDict.fromdict(optical_pump_replace))
+                self.addSequence(parametric_coupling, TreeDict.fromdict({ 'ParametricCoupling.parametric_coupling_duration':pc.mode_swapping_time}))
+                #self.addSequence(optical_pumping_with_mode_swapping, TreeDict.fromdict(optical_pump_replace))

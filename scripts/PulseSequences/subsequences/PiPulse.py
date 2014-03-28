@@ -1,4 +1,5 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
+from OpticalPumping import optical_pumping
 from RabiExcitation import rabi_excitation
 from treedict import TreeDict
 from labrad.units import WithUnit
@@ -11,7 +12,7 @@ class pi_pulse(pulse_sequence):
         ('PiPulse', 'rabi_excitation_frequency'),
         ]
 
-    required_subsequences = [rabi_excitation]
+    required_subsequences = [rabi_excitation, optical_pumping]
 
     def sequence(self):
         p = self.parameters.PiPulse

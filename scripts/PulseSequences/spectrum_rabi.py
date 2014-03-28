@@ -12,6 +12,7 @@ from subsequences.SidebandPrecooling import sideband_precooling
 from subsequences.WireCharging import wire_charging
 from subsequences.PulsedHeating import pulsed_heating
 from subsequences.ParametricCoupling import parametric_coupling
+from subsequences.PiPulse import pi_pulse
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -87,6 +88,7 @@ class spectrum_rabi(pulse_sequence):
                             ('Excitation_729','rabi_excitation_amplitude'),
                             ('Excitation_729','rabi_excitation_duration'),
                             ('Excitation_729','rabi_excitation_phase'),
+                            ('Excitation_729', 'mode_coupling_during_excitation'),
 
                             ('StateReadout','state_readout_frequency_397'),
                             ('StateReadout','state_readout_amplitude_397'),
@@ -115,11 +117,17 @@ class spectrum_rabi(pulse_sequence):
                             ('ParametricCoupling','N_points'),
                             ('ParametricCoupling','drive_amplitude'),
                             ('ParametricCoupling','parametric_coupling_phase'),
+                            ('ParametricCoupling','pulse_shaping'),
+
+                            ('PiPulse', 'pi_time'),
+                            ('PiPulse', 'rabi_amplitude_729'),
+                            ('PiPulse', 'rabi_excitation_frequency'),
+
                             ]
     
     
     required_subsequences = [doppler_cooling_after_repump_d, doppler_cooling_with_mode_coupling, empty_sequence, optical_pumping, 
-                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating, parametric_coupling]
+                             rabi_excitation, state_readout, turn_off_all, sideband_precooling, sideband_cooling, wire_charging, pulsed_heating, parametric_coupling, pi_pulse]
 
     def sequence(self):
         p = self.parameters
@@ -136,14 +144,17 @@ class spectrum_rabi(pulse_sequence):
                 self.addSequence(sideband_precooling)
             self.addSequence(sideband_cooling)
         if p.PulsedHeating.pulsed_heating_enable:
-            self.addSequence(pulsed_heating)
+            #self.addSequence(pulsed_heating)
+            self.addSequence(pi_pulse)
+            self.addSequence(repump_d)
+            self.addSequence(optical_pumping)
         if p.ParametricCoupling.parametric_coupling_enable:
-            self.addSequence(parametric_coupling)
+            self.addSequence(parametric_coupling, TreeDict.fromdict({'ParametricCoupling.parametric_coupling_phase':WithUnit(0, 'deg')}))
         if p.WireCharging.wire_charging_enable:
             self.addSequence(wire_charging, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.WireCharging.wire_charging_duration}))
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
         if p.ParametricCoupling.swap_after_heating:
-            self.addSequence(parametric_coupling)
+            self.addSequence(parametric_coupling, TreeDict.fromdict({'ParametricCoupling.drive_frequency': p.ParametricCoupling.drive_frequency}))
         self.start_excitation_729 = self.end
         self.addSequence(rabi_excitation)
         self.addSequence(state_readout)
