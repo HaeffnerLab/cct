@@ -80,37 +80,46 @@ class temperature(experiment):
     def setup_data_vault_dirs(self):
         localtime = time.localtime()
         try:
-            dir = self.parameters.get('Temperature.save_directory')
+            direc = self.parameters.get('Temperature.save_directory')
             self.directory = ['']
-            self.directory.extend(dir.split('.'))
+            self.directory.extend(direc) # path up to timetag
+            self.directory.extend(str(self.parameters.Heating.background_heating_time))
+
+            # ['', 'Experiments', 'HeatingRate', '0.3']
+            #blue_scan_append = ['bsb_scan']
+
+##            self.bsb_scan_dir = []
+##            self.bsb_scan_dir.extend(
+
         except KeyError:
             dirappend = [ time.strftime("%Y%b%d",localtime) ,time.strftime("%H%M_%S", localtime)]
             self.datasetNameAppend = time.strftime("%Y%b%d_%H%M_%S",localtime)
             
-            blue_scan_append = ['bsb_scan']
-            red_scan_append = ['rsb_scan']
-            blue_flop_append = ['bsb_flop']
-            red_flop_append = ['rsb_flop']
             directory = ['','Experiments']
             directory.extend([self.name])
+            #directory.extend(str(self.parameters.Heating.background_heating_time))
             directory.extend(dirappend)
+
+        blue_scan_append = ['bsb_scan']
+        red_scan_append = ['rsb_scan']
+        blue_flop_append = ['bsb_flop']
+        red_flop_append = ['rsb_flop']
+        self.bsb_scan_dir = []
+        self.rsb_scan_dir = []
+        self.bsb_flop_dir = []
+        self.rsb_flop_dir = []
             
-            self.bsb_scan_dir = []
-            self.rsb_scan_dir = []
-            self.bsb_flop_dir = []
-            self.rsb_flop_dir = []
-            
-            self.bsb_scan_dir.extend(directory)
-            self.bsb_scan_dir.extend(blue_scan_append)
+        self.bsb_scan_dir.extend(directory)
+        self.bsb_scan_dir.extend(blue_scan_append)
 
-            self.rsb_scan_dir.extend(directory)
-            self.rsb_scan_dir.extend(red_scan_append)
+        self.rsb_scan_dir.extend(directory)
+        self.rsb_scan_dir.extend(red_scan_append)
 
-            self.bsb_flop_dir.extend(directory)
-            self.bsb_flop_dir.extend(blue_flop_append)
+        self.bsb_flop_dir.extend(directory)
+        self.bsb_flop_dir.extend(blue_flop_append)
 
-            self.rsb_flop_dir.extend(directory)
-            self.rsb_flop_dir.extend(red_flop_append)
+        self.rsb_flop_dir.extend(directory)
+        self.rsb_flop_dir.extend(red_flop_append)
             
     def setup_scan(self, sideband):
 
