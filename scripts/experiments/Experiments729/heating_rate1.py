@@ -1,11 +1,12 @@
+from __future__ import division
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from spectrum import spectrum
 from rabi_flopping import rabi_flopping
+from temperature import temperature
 from labrad.units import WithUnit
 from treedict import TreeDict
 import time
 import labrad
-
 '''
 General experiment to measure heating rate of a mode
 '''
@@ -23,7 +24,7 @@ class heating_rate(experiment):
         #('Temperature', 'rabi_flop_rsb'),
         
         ('HeatingRate', 'rabi_flop_enable'),
-        ('HeatingRate', 'heating_scan'), #(min_time, max_time, step size)
+        ('HeatingRate', 'heating_scan'), #(min_time, max_time, number of steps)
         ]
 
     required_parameters.extend(spectrum.required_parameters)
@@ -67,8 +68,10 @@ class heating_rate(experiment):
 
         self.nbars = []
         self.do_flop = self.parameters.HeatingRate.rabi_flop_enable
-        (min_time, max_time,step_size) = self.parameters.HeatingRate.heating_scan
-        self.heating_times = [i*step_size for i in range(min_time,int(max_time/step_size))]
+        (min_time, max_time,num_steps) = self.parameters.HeatingRate.heating_scan
+        min_time = min_time['ms']; max_time = max_time['ms']
+        step_size = (max_time-min_time)/num_steps
+        self.heating_times = [i*step_size for i in range(int(min_time),int(max_time/step_size))]
         
         
         # write the red and blue sideband scan selections in a form that the drift
@@ -121,7 +124,7 @@ class heating_rate(experiment):
             
     def setup_temp(self, t):
         replace = TreeDict.fromdict({
-                'Temperature.save_directory': self.temp_save_dir
+                'Temperature.save_directory': self.temp_save_dir,
                 'Heating.background_heating_time':t #does this need units?
                 })
         self.temperature.set_parameters(replace)
@@ -203,6 +206,6 @@ if __name__ == '__main__':
     import labrad
     cxn = labrad.connect()
     scanner = cxn.scriptscanner
-    exprt = temperature(cxn = cxn)
+    exprt = heating_rate(cxn = cxn)
     ident = scanner.register_external_launch(exprt.name)
     exprt.execute(ident)

@@ -2,24 +2,32 @@ from common.abstractdevices.script_scanner.scan_methods import experiment
 from drift_tracker_ramsey_oneline import drift_tracker_ramsey_oneline
 from labrad.units import WithUnit
 from treedict import TreeDict
+import numpy as np
 
 class drift_tracker_ramsey(experiment):
     
     name = 'DriftTrackerRamsey'
-    required_parameters = [
+    dt_required_parameters = [
                            ('DriftTracker','line_selection_1'),
                            ('DriftTracker','line_selection_2'),
                            ('DriftTrackerRamsey','line_1_pi_time'),
                            ('DriftTrackerRamsey','line_1_amplitude'),
                            ('DriftTrackerRamsey','line_2_pi_time'),
                            ('DriftTrackerRamsey','line_2_amplitude'),
+                           ('DriftTrackerRamsey','error_sensitivity'),
                            ]
-    
-    required_parameters.extend(drift_tracker_ramsey_oneline.required_parameters)
-    required_parameters.remove(('DriftTrackerRamsey','line_selection'))
-    required_parameters.remove(('DriftTrackerRamsey','pi_time'))
-    required_parameters.remove(('DriftTrackerRamsey','amplitude'))
-    required_parameters.remove(('DriftTrackerRamsey','detuning'))
+
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.dt_required_parameters)
+        parameters = parameters.union(set(drift_tracker_ramsey_oneline.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('DriftTrackerRamsey','line_selection'))
+        parameters.remove(('DriftTrackerRamsey','pi_time'))
+        parameters.remove(('DriftTrackerRamsey','amplitude'))
+        parameters.remove(('DriftTrackerRamsey','detuning'))
+        return parameters
 
     def initialize(self, cxn, context, ident):
         self.ident = ident
@@ -45,21 +53,25 @@ class drift_tracker_ramsey(experiment):
                                        'DriftTrackerRamsey.detuning':WithUnit(0,'Hz')
                                        })
         
-
+        replace_1,replace_2 = np.random.permutation([replace_1,replace_2])
         self.ramsey_dt.set_parameters(replace_1)
         self.ramsey_dt.set_progress_limits(0, 50.0)
         frequency_1,excitation = self.ramsey_dt.run(cxn, context)
+        error_sensitivity = ramsey_dt.error_sensitivity
+        if not 0.5 - error_sensitivity <= excitation <= 0.5 + error_sensitivity:
+            raise Exception("Incorrect Excitation {}".format(replace_1.DriftTrackerRamsey.line_selection)) 
         self.ramsey_dt.set_parameters(replace_2)
         self.ramsey_dt.set_progress_limits(50.0, 100.0)
         frequency_2,excitation = self.ramsey_dt.run(cxn, context)
-        self.submit_centers(frequency_1, frequency_2)
+        if not 0.5 - error_sensitivity <= excitation <= 0.5 + error_sensitivity:
+            raise Exception("Incorrect Excitation {}".format(replace_2.DriftTrackerRamsey.line_selection)) 
+        self.submit_centers(replace_1,frequency_1,replace_2,frequency_2)
 
-    def submit_centers(self, center1, center2):
-        dt = self.parameters.DriftTracker
+    def submit_centers(self, replace_1, center1, replace_2, center2):     
         if center1 is not None and center2 is not None:
             submission = [
-                          (dt.line_selection_1, center1),
-                          (dt.line_selection_2, center2),
+                          (replace_1.DriftTrackerRamsey.line_selection, center1),
+                          (replace_2.DriftTrackerRamsey.line_selection, center2),
                           ]
             self.drift_tracker.set_measurements(submission)
      
