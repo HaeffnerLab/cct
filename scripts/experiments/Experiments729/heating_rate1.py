@@ -121,6 +121,12 @@ class heating_rate(experiment):
             self.temp_save_dir = []
             self.temp_save_dir.extend(directory)
            # self.temp_save_dir.extend(str(heatingtime))
+
+            self.save_directory = directory
+            self.dv.cd(self.save_directory ,True, context = self.temp_save_context)
+            self.dv.new('HeatingRate {}'.format(self.datasetNameAppend),[('Heating Time', 'ms')],[('nbar','Arb','Arb')], context = self.temp_save_context)
+            self.dv.add_parameter('Window', self.name, context = self.temp_save_context)
+            self.dv.add_parameter('plotLive', True, context = self.temp_save_context)
             
     def setup_temp(self, t):
         replace = TreeDict.fromdict({
@@ -166,7 +172,7 @@ class heating_rate(experiment):
         '''Heating Rate procedure:
         check boolean - do rabi flop
         iterate: setup_temp with new heating_time
-        store nbar values
+        store/plot nbar values
         
 
         '''
@@ -184,6 +190,7 @@ class heating_rate(experiment):
             self.setup_temp(t)
             nbar = self.temperature.run(cxn, context) 
             self.nbars.append(nbar)
+            self.dv.add([t,nbar])
             if self.spectrum.should_stop: return
         
         print self.heating_times
