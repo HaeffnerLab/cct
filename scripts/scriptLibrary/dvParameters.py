@@ -7,6 +7,8 @@ def measureParameters(cxn, cxnlab, specified = None):
     """Measures parameters in the list and returns the dictionary containing these"""
     d = {}
     local = {
+            'endcaps':measure_endcaps,
+            'compensation':measure_compensation,
             }
     lab = {
             'cavity397':measure_cavity('397'),

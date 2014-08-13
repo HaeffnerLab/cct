@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from excitation_729 import excitation_729
-from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from cct.scripts.scriptLibrary import dvParameters
+from excitations import excitation_729
+from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from lattice.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 
@@ -26,14 +26,20 @@ class rabi_tomography(experiment):
                            ('Tomography', 'line_selection'),
                            ]
 
-    required_parameters.extend(excitation_729.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
-    required_parameters.remove(('Tomography','iteration'))
-    required_parameters.remove(('Tomography','tomography_excitation_frequency'))
-    required_parameters.remove(('StateReadout','repeat_each_measurement'))
-
+    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.required_parameters)
+        parameters = parameters.union(set(excitation_729.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        parameters.remove(('Tomography','iteration'))
+        parameters.remove(('Tomography','tomography_excitation_frequency'))
+        parameters.remove(('StateReadout','repeat_each_measurement'))
+        return parameters
+    
     def initialize(self, cxn, context, ident):
         self.ident = ident
         self.excite = self.make_experiment(excitation_729)
@@ -82,7 +88,7 @@ class rabi_tomography(experiment):
             self.parameters['Tomography.iteration'] = iteration
             self.parameters['StateReadout.repeat_each_measurement'] = self.parameters.Tomography.repeat_each_measurement
             self.excite.set_parameters(self.parameters)
-            excitation = self.excite.run(cxn, context)
+            excitation, readouts = self.excite.run(cxn, context)
             self.dv.add((iteration, excitation), context = self.data_save_context)
             self.excitations.append(excitation)
             self.update_progress(i)

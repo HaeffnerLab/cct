@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from excitation_ramsey import excitation_ramsey
-from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from cct.scripts.scriptLibrary import dvParameters
+from excitations import excitation_ramsey
+from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from lattice.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit
@@ -25,12 +25,17 @@ class ramsey_scanphase(experiment):
                            ('TrapFrequencies','radial_frequency_2'),
                            ('TrapFrequencies','rf_drive_frequency'),
                            ]
-
-    required_parameters.extend(excitation_ramsey.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
-    required_parameters.remove(('Ramsey','second_pulse_phase'))
+    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.required_parameters)
+        parameters = parameters.union(set(excitation_ramsey.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        parameters.remove(('Ramsey','second_pulse_phase'))
+        return parameters
     
     def initialize(self, cxn, context, ident):
         self.ident = ident
@@ -53,6 +58,8 @@ class ramsey_scanphase(experiment):
             frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)   
         self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
+        self.parameters['Ramsey.first_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
+        self.parameters['Ramsey.second_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
         minim,maxim,steps = self.parameters.RamseyScanPhase.scanphase
         minim = minim['deg']; maxim = maxim['deg']
         self.scan = linspace(minim,maxim, steps)
@@ -65,8 +72,9 @@ class ramsey_scanphase(experiment):
         directory = ['','Experiments']
         directory.extend([self.name])
         directory.extend(dirappend)
-        self.dv.cd(directory ,True, context = self.data_save_context)
-        self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Second pulse phase', 'deg')],[('Excitation Probability','Arb','Arb')], context = self.data_save_context)
+        output_size = self.excite.output_size
+        dependants = [('Excitation','Ion {}'.format(ion),'Probability') for ion in range(output_size)]
+        self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Second pulse phase', 'deg')], dependants , context = self.data_save_context)
         window_name = self.parameters.get('RamseyScanPhase.window_name', ['Ramsey Phase Scan'])
         self.dv.add_parameter('Window', window_name, context = self.data_save_context)
         self.dv.add_parameter('plotLive', True, context = self.data_save_context)
@@ -78,9 +86,18 @@ class ramsey_scanphase(experiment):
             if should_stop: break
             self.parameters['Ramsey.second_pulse_phase'] = duration
             self.excite.set_parameters(self.parameters)
-            excitation = self.excite.run(cxn, context)
-            self.dv.add((duration, excitation), context = self.data_save_context)
+            excitation, readouts = self.excite.run(cxn, context)
+            submission = [duration['deg']]
+            submission.extend(excitation)
+            self.dv.add(submission, context = self.data_save_context)
             self.update_progress(i)
+            
+    @property
+    def output_size(self):
+        if self.use_camera:
+            return int(self.parameters.IonsOnCamera.ion_number)
+        else:
+            return 1
      
     def finalize(self, cxn, context):
         self.save_parameters(self.dv, cxn, self.cxnlab, self.data_save_context)

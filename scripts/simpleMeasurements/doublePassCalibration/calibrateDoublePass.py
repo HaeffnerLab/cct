@@ -92,7 +92,7 @@ if __name__ == '__main__':
     freq_info = (90.0, 130.0, 100) #min, max, steps, freqs in MHz
     ampl_info = (-15.0, -11.0, 100) #mapl in dBm
     average = 50
-    name = '729'
+    name = '110DP'
     pm = cxn.power_meter_server
     pm.select_device(0)
     pm.auto_range()

@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from excitation_ramsey import excitation_ramsey
-from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from cct.scripts.scriptLibrary import dvParameters
+from excitations import excitation_ramsey
+from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from lattice.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit
@@ -10,7 +10,7 @@ from numpy import linspace
 class ramsey_scangap(experiment):
     
     name = 'RamseyScanGap'
-    required_parameters = [
+    ramsey_required_parameters = [
                            ('RamseyScanGap', 'detuning'),
                            ('RamseyScanGap', 'scangap'),
                            
@@ -26,12 +26,17 @@ class ramsey_scangap(experiment):
                            ('TrapFrequencies','radial_frequency_2'),
                            ('TrapFrequencies','rf_drive_frequency'),
                            ]
-
-    required_parameters.extend(excitation_ramsey.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
-    required_parameters.remove(('Ramsey','ramsey_time'))
+    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.ramsey_required_parameters)
+        parameters = parameters.union(set(excitation_ramsey.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        parameters.remove(('Ramsey','ramsey_time'))
+        return parameters
     
     def initialize(self, cxn, context, ident):
         self.ident = ident
@@ -53,6 +58,7 @@ class ramsey_scangap(experiment):
         if flop.frequency_selection == 'auto':
             frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)   
         frequency += self.parameters.RamseyScanGap.detuning
+        #print frequency
         self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
         minim,maxim,steps = self.parameters.RamseyScanGap.scangap
@@ -67,8 +73,10 @@ class ramsey_scangap(experiment):
         directory = ['','Experiments']
         directory.extend([self.name])
         directory.extend(dirappend)
-        self.dv.cd(directory ,True, context = self.data_save_context)
-        self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Excitation', 'us')],[('Excitation Probability','Arb','Arb')], context = self.data_save_context)
+        output_size = self.excite.output_size
+        dependants = [('Excitation','Ion {}'.format(ion),'Probability') for ion in range(output_size)]
+        self.dv.cd(directory, True,context = self.data_save_context)
+        self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Excitation', 'us')], dependants , context = self.data_save_context)
         window_name = self.parameters.get('RamseyScanGap.window_name', ['Ramsey Gap Scan'])
         self.dv.add_parameter('Window', window_name, context = self.data_save_context)
         self.dv.add_parameter('plotLive', True, context = self.data_save_context)
@@ -80,8 +88,10 @@ class ramsey_scangap(experiment):
             if should_stop: break
             self.parameters['Ramsey.ramsey_time'] = duration
             self.excite.set_parameters(self.parameters)
-            excitation = self.excite.run(cxn, context)
-            self.dv.add((duration, excitation), context = self.data_save_context)
+            excitation, readouts = self.excite.run(cxn, context)
+            submission = [duration['us']]
+            submission.extend(excitation)
+            self.dv.add(submission, context = self.data_save_context)
             self.update_progress(i)
      
     def finalize(self, cxn, context):

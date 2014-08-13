@@ -1,13 +1,11 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from excitation_729 import excitation_729
-from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from cct.scripts.scriptLibrary import dvParameters
+from excitations import excitation_729
+from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from lattice.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit
 from numpy import linspace
-from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
-
 
 class rabi_flopping_scannable(experiment):
     
@@ -27,13 +25,22 @@ class rabi_flopping_scannable(experiment):
                            ('RabiFlopping','sideband_selection'),
                            
                            ('RabiFlopping_Sit', 'sit_on_excitation'),
+                           ('RabiFlopping_Sit', 'selected_ion'),
+                           ('StateReadout', 'use_camera_for_readout'),
                            ]
     required_parameters.extend(trap_frequencies)
-    required_parameters.extend(excitation_729.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_duration'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.required_parameters)
+        parameters = parameters.union(set(cls.trap_frequencies))
+        parameters = parameters.union(set(excitation_729.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_duration'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        return parameters
     
     
     def initialize(self, cxn, context, ident):
@@ -67,13 +74,12 @@ class rabi_flopping_scannable(experiment):
         self.setup_sequence_parameters()
         self.load_frequency()
         self.excite.set_parameters(self.parameters)
-        excitation = self.excite.run(cxn, context)
-        single_excitation = excitation
-        #ttl = self.cxn.pulser.human_readable_ttl()
-        #dds = self.cxn.pulser.human_readable_dds()
-        #channels = self.cxn.pulser.get_channels().asarray
-        #sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
-        #sp.makePlot()      
+        excitation, readouts = self.excite.run(cxn, context)
+        if not self.parameters['StateReadout.use_camera_for_readout']:
+            single_excitation = excitation[0]
+        else:
+            ion = int(self.parameters.RabiFlopping_Sit.selected_ion)
+            single_excitation = excitation[ion]
         return single_excitation
      
     def finalize(self, cxn, context):

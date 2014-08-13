@@ -1,7 +1,7 @@
 import labrad
 import numpy as np
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from cct.scripts.PulseSequences.subsequences.RecordTimeTags import record_timetags
+from lattice.scripts.PulseSequences.subsequences.RecordTimeTags import record_timetags
 from processFFT import processFFT
 from treedict import TreeDict
 
