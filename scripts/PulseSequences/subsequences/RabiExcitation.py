@@ -21,6 +21,10 @@ class rabi_excitation(pulse_sequence):
 #         self.addDDS('729DP_aux', self.start, frequency_advance_duration, p.rabi_excitation_frequency, ampl_off)
         #turn on
         self.addDDS('729', self.start + frequency_advance_duration, p.rabi_excitation_duration, p.rabi_excitation_frequency, p.rabi_excitation_amplitude, p.rabi_excitation_phase)
+
+        ####### HACK FOR 2 ION STUFF #################
+        self.addTTL('729_1', self.start + frequency_advance_duration, p.rabi_excitation_duration/2.)
+        self.addTTL('729_2', self.start + frequency_advance_duration + p.rabi_excitation_duration/2., p.rabi_excitation_duration/2.)
 #         self.addDDS('729DP_aux', self.start + frequency_advance_duration, p.rabi_excitation_duration, p.rabi_excitation_frequency, p.rabi_excitation_amplitude, p.rabi_excitation_phase)
 
 class rabi_excitation_second_dds(pulse_sequence):
@@ -56,7 +60,10 @@ class rabi_excitation_no_offset(pulse_sequence):
         p = self.parameters.Excitation_729
         self.end = self.start + p.rabi_excitation_duration
         self.addDDS('729', self.start, p.rabi_excitation_duration, p.rabi_excitation_frequency, p.rabi_excitation_amplitude, p.rabi_excitation_phase)
-    
+        ####### HACK FOR 2 ION STUFF #################
+        self.addTTL('729_1', self.start, p.rabi_excitation_duration/2.)
+        self.addTTL('729_2', self.start + p.rabi_excitation_duration/2., p.rabi_excitation_duration/2.)
+
 class rabi_excitation_select_channel(pulse_sequence):
     
     required_parameters = [

@@ -1,5 +1,5 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
-from lattice.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
+from cct.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
 from treedict import TreeDict
 
 class state_readout(pulse_sequence):

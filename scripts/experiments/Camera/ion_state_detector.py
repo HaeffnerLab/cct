@@ -1,6 +1,7 @@
 import numpy as np
 import lmfit
 from equilbrium_positions import position_dict
+import IPython  as ip
 
 class ion_state_detector(object):
     
@@ -85,8 +86,9 @@ class ion_state_detector(object):
         sum_selected_gaussians = self.background + np.tensordot(selection, self.fitted_gaussians, axes = (1, 0))
         sum_selected_gaussians = sum_selected_gaussians[:, None, :, :]
         image_size = float(image.shape[1] * image.shape[2]) 
+        #ip.embed()
         chi_sq = (sum_selected_gaussians - image)**2 / image / image_size
-        chi_sq = chi_sq.sum(axis = (2,3))
+        chi_sq = chi_sq.sum(axis = (2,3)) # this line will break for numpy version <= 1.7
         best_states = selection[np.argmin(chi_sq, axis = 0)]
         sorted_chi = np.sort(chi_sq, axis = 0)
         lowest_chi,second_lowest_chi = sorted_chi[0:2]

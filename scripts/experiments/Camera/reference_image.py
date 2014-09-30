@@ -1,11 +1,12 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
-from lattice.scripts.PulseSequences.subsequences.StateReadout import state_readout
-from lattice.scripts.PulseSequences.subsequences.TurnOffAll import turn_off_all
+from cct.scripts.PulseSequences.subsequences.StateReadout import state_readout
+from cct.scripts.PulseSequences.subsequences.TurnOffAll import turn_off_all
 import numpy as np
 from ion_state_detector import ion_state_detector
 from labrad.units import WithUnit
 from multiprocessing import Process
+import labrad
 
 class reference_camera_image(experiment):
     
@@ -43,9 +44,10 @@ class reference_camera_image(experiment):
     def initialize(self, cxn, context, ident):
         p = self.parameters.IonsOnCamera
         print int(p.ion_number)
+        self.cxncam = labrad.connect('192.168.169.30')
         self.fitter = ion_state_detector(int(p.ion_number))
         self.ident = ident
-        self.camera = cxn.andor_server
+        self.camera = self.cxncam.andor_server
         self.pulser = cxn.pulser
         self.pv = cxn.parametervault
 
@@ -102,6 +104,8 @@ class reference_camera_image(experiment):
         x_axis = np.arange(p.horizontal_min, p.horizontal_max + 1, self.image_region[0])
         y_axis = np.arange(p.vertical_min, p.vertical_max + 1, self.image_region[1])
         xx, yy = np.meshgrid(x_axis, y_axis)
+        #import IPython
+        #IPython.embed()
         result, params = self.fitter.guess_parameters_and_fit(xx, yy, image)
         self.fitter.report(params)
         #ideally graphing should be done by saving to data vault and using the grapher
@@ -121,6 +125,7 @@ class reference_camera_image(experiment):
         self.camera.set_exposure_time(self.initial_exposure)
         self.camera.set_image_region(self.initial_region)
         self.camera.start_live_display()
+        self.cxncam.disconnect()
 
 if __name__ == '__main__':
     import labrad

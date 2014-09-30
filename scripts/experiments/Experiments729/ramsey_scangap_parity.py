@@ -1,16 +1,18 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from excitations import excitation_ramsey
-from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from lattice.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit
 from numpy import linspace
+import numpy as np
 
 class ramsey_scangap_parity(experiment):
     
     name = 'RamseyScanGapParity'
-    required_parameters = [
+    ramsey_required_parameters = [
+                           ('Ramsey', 'rabi_pi_time'),
                            ('RamseyScanGap', 'detuning'),
                            ('RamseyScanGap', 'scangap'),
                            
@@ -20,6 +22,8 @@ class ramsey_scangap_parity(experiment):
                            ('RabiFlopping','rabi_amplitude_729'),
                            ('RabiFlopping','frequency_selection'),
                            ('RabiFlopping','sideband_selection'),
+                           ('StateReadout', 'parity_threshold_low'),
+                           ('StateReadout', 'parity_threshold_high'), 
                            
                            ('TrapFrequencies','axial_frequency'),
                            ('TrapFrequencies','radial_frequency_1'),
@@ -27,12 +31,17 @@ class ramsey_scangap_parity(experiment):
                            ('TrapFrequencies','rf_drive_frequency'),
                            ]
 
-    required_parameters.extend(excitation_ramsey.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
-    required_parameters.remove(('Ramsey','ramsey_time'))
-    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.ramsey_required_parameters)
+        parameters = parameters.union(set(excitation_ramsey.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        parameters.remove(('Ramsey','ramsey_time'))
+        return parameters
+
     def initialize(self, cxn, context, ident):
         self.ident = ident
         self.excite = self.make_experiment(excitation_ramsey)
@@ -54,6 +63,7 @@ class ramsey_scangap_parity(experiment):
         if flop.frequency_selection == 'auto':
             frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)   
         frequency += self.parameters.RamseyScanGap.detuning
+        print self.parameters.Ramsey.rabi_pi_time
         self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
         self.parameters['Ramsey.first_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
@@ -84,13 +94,15 @@ class ramsey_scangap_parity(experiment):
         
     def run(self, cxn, context):
         self.setup_sequence_parameters()
+        threshold_low = self.parameters.StateReadout.parity_threshold_low
+        threshold_high = self.parameters.StateReadout.parity_threshold_high
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
             self.parameters['Ramsey.ramsey_time'] = duration
             self.excite.set_parameters(self.parameters)
             excitation,readouts = self.excite.run(cxn, context)
-            parity = self.compute_parity(readouts)
+            parity = self.compute_parity_pmt(readouts, threshold_low, threshold_high)
             submission = [duration['us']]
             submission.extend(excitation)
             self.dv.add(submission, context = self.data_save_context)
@@ -103,6 +115,17 @@ class ramsey_scangap_parity(experiment):
         '''
         total = readouts.sum(axis = 1)
         parity = (total % 2 == 0).mean() - (total % 2 == 1).mean()
+        return parity
+
+    def compute_parity_pmt(self, readouts,threshold_low,threshold_high):
+        '''
+        computes the parity of the provided readouts using a pmt
+        '''
+        even_parity = np.count_nonzero((readouts <= threshold_low)|(readouts >= threshold_high))
+        print "even = ", even_parity
+        odd_parity = np.count_nonzero((readouts >= threshold_low)&(readouts <= threshold_high))
+        print "odd = ", odd_parity
+        parity = (even_parity - odd_parity)/float(len(readouts))
         return parity
      
     def finalize(self, cxn, context):

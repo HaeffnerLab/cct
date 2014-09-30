@@ -1,7 +1,8 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from lattice.scripts.experiments.Camera.ion_state_detector import ion_state_detector
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.experiments.Camera.ion_state_detector import ion_state_detector
 from labrad.units import WithUnit
+import labrad
 import numpy
 import time
        
@@ -11,9 +12,6 @@ class base_excitation(experiment):
                             ('OpticalPumping','frequency_selection'),
                             ('OpticalPumping','manual_frequency_729'),
                             ('OpticalPumping','line_selection'),
-                            
-                            ('OpticalPumpingAux','aux_op_line_selection'),
-                            ('OpticalPumpingAux','aux_op_enable'),
                             
                             ('SidebandCooling','frequency_selection'),
                             ('SidebandCooling','manual_frequency_729'),
@@ -55,7 +53,6 @@ class base_excitation(experiment):
         params = list(params)
         params.remove(('OpticalPumping', 'optical_pumping_frequency_729'))
         params.remove(('SidebandCooling', 'sideband_cooling_frequency_729'))
-        params.remove(('OpticalPumpingAux', 'aux_optical_frequency_729'))
         return params
     
     def initialize(self, cxn, context, ident):
@@ -70,8 +67,9 @@ class base_excitation(experiment):
         self.setup_initial_switches()
         self.setup_data_vault()
         self.use_camera = self.parameters.StateReadout.use_camera_for_readout
+        self.cxncam = labrad.connect('192.168.169.30')
         if self.use_camera:
-            self.initialize_camera(cxn)
+            self.initialize_camera(self.cxncam)
             
     def initialize_camera(self, cxn):
         self.total_camera_confidences = []
@@ -110,6 +108,7 @@ class base_excitation(experiment):
         self.camera.set_acquisition_mode('Kinetics')
         self.initial_trigger_mode = self.camera.get_trigger_mode()
         self.camera.set_trigger_mode('External')
+
         
     def setup_data_vault(self):
         localtime = time.localtime()
@@ -125,9 +124,6 @@ class base_excitation(experiment):
         op = self.parameters.OpticalPumping
         optical_pumping_frequency = cm.frequency_from_line_selection(op.frequency_selection, op.manual_frequency_729, op.line_selection, self.drift_tracker, op.optical_pumping_enable)
         self.parameters['OpticalPumping.optical_pumping_frequency_729'] = optical_pumping_frequency
-        aux = self.parameters.OpticalPumpingAux
-        aux_optical_pumping_frequency = cm.frequency_from_line_selection('auto', WithUnit(0,'MHz'),  aux.aux_op_line_selection, self.drift_tracker, aux.aux_op_enable)
-        self.parameters['OpticalPumpingAux.aux_optical_frequency_729'] = aux_optical_pumping_frequency
         sc = self.parameters.SidebandCooling
         sideband_cooling_frequency = cm.frequency_from_line_selection(sc.frequency_selection, sc.manual_frequency_729, sc.line_selection, self.drift_tracker, sc.sideband_cooling_enable)
         if sc.frequency_selection == 'auto': 
@@ -136,9 +132,8 @@ class base_excitation(experiment):
         self.parameters['SidebandCooling.sideband_cooling_frequency_729'] = sideband_cooling_frequency
     
     def setup_initial_switches(self):
-        self.pulser.switch_manual('crystallization',  False)
         #switch off 729 at the beginning
-        self.pulser.output('729DP', False)
+        self.pulser.output('729', False)
     
     def plot_current_sequence(self, cxn):
         from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
@@ -149,15 +144,17 @@ class base_excitation(experiment):
         sp.makePlot()
         
     def run(self, cxn, context):
+        import time
         threshold = int(self.parameters.StateReadout.state_readout_threshold)
         repetitions = int(self.parameters.StateReadout.repeat_each_measurement)
         pulse_sequence = self.pulse_sequence(self.parameters)
         pulse_sequence.programSequence(self.pulser)
-#         self.plot_current_sequence(cxn)
+        #self.plot_current_sequence(cxn)
         if self.use_camera:
             #print 'starting acquisition'
             self.camera.set_number_kinetics(repetitions)
             self.camera.start_acquisition()
+        #time.sleep(0.5)
         self.pulser.start_number(repetitions)
         self.pulser.wait_sequence_done()
         self.pulser.stop_sequence()
@@ -178,8 +175,10 @@ class base_excitation(experiment):
             if not proceed:
                 self.camera.abort_acquisition()
                 
-                self.finalize(cxn, context)
-                raise Exception ("Did not get all kinetic images from camera")
+                #self.finalize(cxn, context)
+                #raise Exception ("Did not get all kinetic images from camera")
+                print "Did not get kinetics from camera. Re-running the point. Also fuck you."
+                self.run(cxn, context)
             images = self.camera.get_acquired_data(repetitions).asarray
             self.camera.abort_acquisition()
             x_pixels = int( (self.image_region[3] - self.image_region[2] + 1.) / (self.image_region[0]) )
@@ -207,6 +206,7 @@ class base_excitation(experiment):
             self.camera.set_image_region(self.initial_region)
             if self.camera_initially_live_display:
                 self.camera.start_live_display()
+        self.cxncam.disconnect()
                
     def save_data(self, readouts):
         #save the current readouts

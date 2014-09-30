@@ -1,8 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from excitations import excitation_729
-from lattice.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from lattice.scripts.scriptLibrary import dvParameters
-from lattice.scripts.experiments.Crystallization.crystallization import crystallization
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit
@@ -26,15 +25,6 @@ class rabi_flopping(experiment):
                            ('RabiFlopping','frequency_selection'),
                            ('RabiFlopping','sideband_selection'),
                            
-                           ('Crystallization', 'auto_crystallization'),
-                           ('Crystallization', 'camera_record_exposure'),
-                           ('Crystallization', 'camera_threshold'),
-                           ('Crystallization', 'max_attempts'),
-                           ('Crystallization', 'max_duration'),
-                           ('Crystallization', 'min_duration'),
-                           ('Crystallization', 'pmt_record_duration'),
-                           ('Crystallization', 'pmt_threshold'),
-                           ('Crystallization', 'use_camera'),
                            ]
     
     @classmethod
@@ -53,9 +43,6 @@ class rabi_flopping(experiment):
         self.ident = ident
         self.excite = self.make_experiment(excitation_729)
         self.excite.initialize(cxn, context, ident)
-        if self.parameters.Crystallization.auto_crystallization:
-            self.crystallizer = self.make_experiment(crystallization)
-            self.crystallizer.initialize(cxn, context, ident)
         self.scan = []
         self.amplitude = None
         self.duration = None
@@ -103,27 +90,12 @@ class rabi_flopping(experiment):
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
-            excitation = self.get_excitation_crystallizing(cxn, context, duration)
+            excitation = self.do_get_excitation(cxn, context, duration)
             if excitation is None: break 
             submission = [duration['us']]
             submission.extend(excitation)
             self.dv.add(submission, context = self.rabi_flop_save_context)
             self.update_progress(i)
-    
-    def get_excitation_crystallizing(self, cxn, context, duration):
-        excitation = self.do_get_excitation(cxn, context, duration)
-        if self.parameters.Crystallization.auto_crystallization:
-            initally_melted, got_crystallized = self.crystallizer.run(cxn, context)
-            #if initially melted, redo the point
-            while initally_melted:
-                if not got_crystallized:
-                    #if crystallizer wasn't able to crystallize, then pause and wait for user interaction
-                    self.cxn.scriptscanner.pause_script(self.ident, True)
-                    should_stop = self.pause_or_stop()
-                    if should_stop: return None
-                excitation = self.do_get_excitation(cxn, context, duration)
-                initally_melted, got_crystallized = self.crystallizer.run(cxn, context)
-        return excitation
     
     def do_get_excitation(self, cxn, context, duration):
         self.load_frequency()
