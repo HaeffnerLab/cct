@@ -14,25 +14,18 @@ class ramsey_2ions_scangap_parity(experiment):
                            ('Ramsey2ions_ScanGapParity', 'scangap'),
                            ('Ramsey2ions_ScanGapParity', 'first_ion_number'),
                            ('Ramsey2ions_ScanGapParity', 'second_ion_number'),
-                           ('Ramsey2ions_ScanGapParity', 'ion1_pi_over_2_line_selection'),
-                           ('Ramsey2ions_ScanGapParity', 'ion1_pi_line_selection'),                         
-                           ('Ramsey2ions_ScanGapParity', 'ion2_pi_over_2_line_selection'),
-                           ('Ramsey2ions_ScanGapParity', 'ion2_pi_line_selection'),
- #                          ('Ramsey2ions_ScanGapParity', 'sympathetic_cooling_enable'),
-                                                      
+                           ('Ramsey2ions_ScanGapParity', 'line_selection'),
+                           ('StateReadout', 'parity_threshold_high'),
+                           ('StateReadout', 'parity_threshold_low')
                            ]
 
-    
     @classmethod
     def all_required_parameters(cls):
         parameters = set(cls.ramsey2ions_required_parameters)
         parameters = parameters.union(set(excitation_ramsey_2ions.all_required_parameters()))
         parameters = list(parameters)
         #removing parameters we'll be overwriting, and they do not need to be loaded
-        parameters.remove(('Ramsey_2ions','ion1_excitation_frequency1'))
-        parameters.remove(('Ramsey_2ions','ion1_excitation_frequency2'))
-        parameters.remove(('Ramsey_2ions','ion2_excitation_frequency1'))
-        parameters.remove(('Ramsey_2ions','ion2_excitation_frequency2'))
+        parameters.remove(('Ramsey_2ions','excitation_frequency'))
         parameters.remove(('Ramsey_2ions','ramsey_time'))
         return parameters
     
@@ -52,22 +45,11 @@ class ramsey_2ions_scangap_parity(experiment):
     
     def setup_sequence_parameters(self):
         flop = self.parameters.Ramsey2ions_ScanGapParity
-        ion1_frequency1 = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.ion1_pi_over_2_line_selection, self.drift_tracker)
-        ion1_frequency2 = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.ion1_pi_line_selection, self.drift_tracker)
-        ion2_frequency1 = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.ion2_pi_over_2_line_selection, self.drift_tracker)
-        ion2_frequency2 = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.ion2_pi_line_selection, self.drift_tracker)
-        #trap = self.parameters.TrapFrequencies
-        #if flop.frequency_selection == 'auto':
-        #    frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)   
-        #frequency += self.parameters.RamseyScanGap.detuning
-        print ion1_frequency1
-        self.parameters['Ramsey_2ions.ion1_excitation_frequency1'] = ion1_frequency1
-        self.parameters['Ramsey_2ions.ion1_excitation_frequency2'] = ion1_frequency2
-        self.parameters['Ramsey_2ions.ion2_excitation_frequency1'] = ion2_frequency1
-        self.parameters['Ramsey_2ions.ion2_excitation_frequency2'] = ion2_frequency2
-        #self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
-        #self.parameters['Ramsey.first_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
-        #self.parameters['Ramsey.second_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
+        trap = self.parameters.TrapFrequencies
+        excitation_frequency = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.line_selection, self.drift_tracker)
+        excitation_frequency = cm.add_sidebands(ion1_frequency1, flop.ion1_sideband_selection, trap)
+        print excitaton_frequency
+        self.parameters['Ramsey_2ions.excitation_frequency'] = excitaton_frequency
         minim,maxim,steps = self.parameters.Ramsey2ions_ScanGapParity.scangap
         minim = minim['us']; maxim = maxim['us']
         self.scan = linspace(minim,maxim, steps)
@@ -94,6 +76,8 @@ class ramsey_2ions_scangap_parity(experiment):
         
     def run(self, cxn, context):
         self.setup_sequence_parameters()
+        threshold_low = self.parameters.StateReadout.parity_threshold_low
+        threshold_high = self.parameters.StateReadout.parity_threshold_high
         for i,duration in enumerate(self.scan):
             should_stop = self.pause_or_stop()
             if should_stop: break
@@ -102,7 +86,8 @@ class ramsey_2ions_scangap_parity(experiment):
             excitation,readouts = self.excite.run(cxn, context)
             position1 = int(self.parameters.Ramsey2ions_ScanGapParity.first_ion_number)
             position2 = int(self.parameters.Ramsey2ions_ScanGapParity.second_ion_number)
-            parity = self.compute_parity(readouts,position1,position2)
+            #parity = self.compute_parity(readouts,position1,position2)
+            parity = self.compute_parity_pmt(readouts, threshold_low, threshold_high)
             submission = [duration['us']]
             submission.extend(excitation)
             self.dv.add(submission, context = self.data_save_context)
@@ -116,6 +101,17 @@ class ramsey_2ions_scangap_parity(experiment):
         #print readouts
         correlated_readout = readouts[:,pos1]+readouts[:,pos2]
         parity = (correlated_readout % 2 == 0).mean() - (correlated_readout % 2 == 1).mean()
+        return parity
+
+    def compute_parity_pmt(self, readouts,threshold_low,threshold_high):
+        '''
+        computes the parity of the provided readouts using a pmt
+        '''
+        even_parity = np.count_nonzero((readouts <= threshold_low)|(readouts >= threshold_high))
+        print "even = ", even_parity
+        odd_parity = np.count_nonzero((readouts >= threshold_low)&(readouts <= threshold_high))
+        print "odd = ", odd_parity
+        parity = (even_parity - odd_parity)/float(len(readouts))
         return parity
      
     def finalize(self, cxn, context):
