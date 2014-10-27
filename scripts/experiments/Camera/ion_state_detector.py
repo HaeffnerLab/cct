@@ -100,7 +100,7 @@ class ion_state_detector(object):
         background_guess = data[0].mean() #assumes that there are no ions at the edge of the image
         background_std = np.std(data[0])
         center_x_guess,center_y_guess,amplitude_guess, spacing_guess = self.guess_centers(data, background_guess, background_std, xx, yy)
-        sigma_guess = 1#assume it's hard to resolve the ion, sigma ~ 1
+        sigma_guess = 1 #assume it's hard to resolve the ion, sigma ~ 1
         params.add('background_level', value = background_guess, min = 0.0)
         params.add('amplitude', value = amplitude_guess, min = 0.0)
         params.add('rotation_angle', value = 0.0001, min = -np.pi, max = np.pi, vary = False)

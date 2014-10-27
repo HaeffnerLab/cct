@@ -7,6 +7,7 @@ from ion_state_detector import ion_state_detector
 from labrad.units import WithUnit
 from multiprocessing import Process
 import labrad
+import IPython as ip
 
 class reference_camera_image(experiment):
     
@@ -92,14 +93,22 @@ class reference_camera_image(experiment):
             self.finalize(cxn, context)
             raise Exception ("Did not get all kinetic images from camera")
         images = self.camera.get_acquired_data(self.exposures).asarray
+        print images.shape
         x_pixels = int( (self.image_region[3] - self.image_region[2] + 1.) / (self.image_region[0]) )
         y_pixels = int(self.image_region[5] - self.image_region[4] + 1.) / (self.image_region[1])
         images = np.reshape(images, (self.exposures, y_pixels, x_pixels))
         image  = np.average(images, axis = 0)
+       
+        ########## Remove the high intensity line:
+        for i in range(image.shape[0]): image[i][-1] = image[i][-2]
+        #########################################
+
+        #ip.embed()
         np.save('37ions_global', image)
         self.fit_and_plot(image)
         
     def fit_and_plot(self, image):
+        print "fit and plot"
         p = self.parameters.IonsOnCamera
         x_axis = np.arange(p.horizontal_min, p.horizontal_max + 1, self.image_region[0])
         y_axis = np.arange(p.vertical_min, p.vertical_max + 1, self.image_region[1])
@@ -111,6 +120,7 @@ class reference_camera_image(experiment):
         #ideally graphing should be done by saving to data vault and using the grapher
         p = Process(target = self.fitter.graph, args = (x_axis, y_axis, image, params, result))
         p.start()
+        print params
         self.pv.set_parameter('IonsOnCamera','fit_background_level', params['background_level'].value)
         self.pv.set_parameter('IonsOnCamera','fit_amplitude', params['amplitude'].value)
         self.pv.set_parameter('IonsOnCamera','fit_rotation_angle', params['rotation_angle'].value)

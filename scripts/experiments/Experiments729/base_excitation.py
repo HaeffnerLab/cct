@@ -5,6 +5,7 @@ from labrad.units import WithUnit
 import labrad
 import numpy
 import time
+from datetime import *
        
 class base_excitation(experiment):
     name = ''  
@@ -43,6 +44,7 @@ class base_excitation(experiment):
                             ('IonsOnCamera','fit_rotation_angle'),
                             ('IonsOnCamera','fit_sigma'),
                             ('IonsOnCamera','fit_spacing'),
+                            ('IonsOnCamera', 'save_images'),
                            ]
     pulse_sequence = None
     
@@ -169,7 +171,7 @@ class base_excitation(experiment):
                 perc_excited = -1.0
             ion_state = [perc_excited]
 #             print readouts
-        else:
+v        else:
             #get the percentage of excitation using the camera state readout
             proceed = self.camera.wait_for_kinetic()
             if not proceed:
@@ -177,13 +179,26 @@ class base_excitation(experiment):
                 
                 #self.finalize(cxn, context)
                 #raise Exception ("Did not get all kinetic images from camera")
-                print "Did not get kinetics from camera. Re-running the point. Also fuck you."
+                print "Did not get kinetics from camera. Re-running the point."
                 self.run(cxn, context)
             images = self.camera.get_acquired_data(repetitions).asarray
             self.camera.abort_acquisition()
             x_pixels = int( (self.image_region[3] - self.image_region[2] + 1.) / (self.image_region[0]) )
             y_pixels = int(self.image_region[5] - self.image_region[4] + 1.) / (self.image_region[1])
             images = numpy.reshape(images, (repetitions, y_pixels, x_pixels))
+            #import IPython
+            #IPython.embed()
+            ########## Remove the high intensity line:
+            for image in images:
+                for i in range(image.shape[0]): image[i][-1] = image[i][-2]
+            #########################################
+                
+            # save the camera images
+            if self.parameters.IonsOnCamera.save_images:
+                now = str(datetime.now())
+                fi = '/home/cct/camera_images/' + now
+                numpy.save(fi, images)
+
             readouts, confidences = self.fitter.state_detection(images)
             ion_state = 1 - readouts.mean(axis = 0)
             #useful for debugging, saving the images

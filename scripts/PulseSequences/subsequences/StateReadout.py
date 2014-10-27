@@ -1,6 +1,7 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from cct.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
 from treedict import TreeDict
+from labrad.units import WithUnit
 
 class state_readout(pulse_sequence):
     '''
@@ -24,6 +25,9 @@ class state_readout(pulse_sequence):
                                              ('DopplerCooling','doppler_cooling_frequency_866'),
                                              ('DopplerCooling','doppler_cooling_amplitude_866'),
                                              ('DopplerCooling','doppler_cooling_duration'),
+                                             ('DopplerCooling', 'mode_swapping_enable'),
+                                             ('ParametricCoupling', 'drive_amplitude'),
+                                             ('ParametricCoupling', 'drive_frequency'),
                                              ]
                           }
     
@@ -35,6 +39,9 @@ class state_readout(pulse_sequence):
                    'DopplerCooling.doppler_cooling_frequency_866':st.state_readout_frequency_866,
                    'DopplerCooling.doppler_cooling_amplitude_866':st.state_readout_amplitude_866,
                    'DopplerCooling.doppler_cooling_duration':st.state_readout_duration + st.camera_transfer_additional,
+                   'DopplerCooling.mode_swapping_enable':False,
+                   'ParametricCoupling.drive_amplitude':WithUnit(-63.,'dBm'),
+                   'ParametricCoupling.drive_frequency':WithUnit(80., 'kHz'),
                    }
         self.addSequence(doppler_cooling, TreeDict.fromdict(replace))
         self.addTTL('ReadoutCount', self.start, st.state_readout_duration)

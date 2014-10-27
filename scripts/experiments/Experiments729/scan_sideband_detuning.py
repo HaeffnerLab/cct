@@ -1,5 +1,5 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from excitation_729 import excitation_729
+from excitations import excitation_729
 from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 from cct.scripts.scriptLibrary import dvParameters
 import time
@@ -34,12 +34,18 @@ class scan_sideband_detuning(experiment):
         ('SidebandCoolingDetuningScan', 'manual_scan')
         ]
     required_parameters.extend(trap_frequencies)
-    required_parameters.extend(excitation_729.required_parameters)
-    #removing parameters we'll be overwriting, and they do not need to be loaded
-    required_parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_duration'))
-    required_parameters.remove(('Excitation_729','rabi_excitation_frequency'))
-    required_parameters.remove(('SidebandCooling', 'sideband_cooling_detuning_729'))
+    
+    @classmethod
+    def all_required_parameters(cls):
+        parameters = set(cls.required_parameters)
+        parameters = parameters.union(set(cls.trap_frequencies))
+        parameters = parameters.union(set(excitation_729.all_required_parameters()))
+        parameters = list(parameters)
+        #removing parameters we'll be overwriting, and they do not need to be loaded
+        parameters.remove(('Excitation_729','rabi_excitation_amplitude'))
+        parameters.remove(('Excitation_729','rabi_excitation_duration'))
+        parameters.remove(('Excitation_729','rabi_excitation_frequency'))
+        return parameters
 
     def initialize(self, cxn, context, ident):
         self.ident = ident
@@ -89,9 +95,7 @@ class scan_sideband_detuning(experiment):
     def run(self, cxn, context):
         self.setup_data_vault()
         self.setup_sequence_parameters()
-        self.load_frequency()
-        self.pulser.switch_auto('397mod')
-        self.pulser.switch_auto('parametric_modulation')        
+        self.load_frequency()  
         self.setup_sequence_parameters()
         
         for i, det in enumerate(self.scan):
@@ -99,8 +103,8 @@ class scan_sideband_detuning(experiment):
             if should_stop: break
             self.parameters['SidebandCooling.sideband_cooling_detuning_729'] = det
             self.excite.set_parameters(self.parameters)
-            excitation = self.excite.run(cxn, context)
-            self.dv.add((det, excitation), context = self.sb_det_save_context)
+            excitation, readouts = self.excite.run(cxn, context)
+            self.dv.add((det, excitation[0]), context = self.sb_det_save_context)
             self.update_progress(i)
         # ttl = self.cxn.pulser.human_readable_ttl()
         # dds = self.cxn.pulser.human_readable_dds()

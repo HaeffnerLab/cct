@@ -25,7 +25,7 @@ class rabi_flopping_scannable(experiment):
                            ('RabiFlopping','sideband_selection'),
                            
                            ('RabiFlopping_Sit', 'sit_on_excitation'),
-                           ('RabiFlopping_Sit', 'selected_ion'),
+                           #('RabiFlopping_Sit', 'selected_ion'),
                            ('StateReadout', 'use_camera_for_readout'),
                            ]
     required_parameters.extend(trap_frequencies)
