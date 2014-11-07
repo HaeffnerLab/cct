@@ -5,7 +5,7 @@ from labrad.units import WithUnit
 import labrad
 import numpy
 import time
-from datetime import *
+import datetime as dt
        
 class base_excitation(experiment):
     name = ''  
@@ -102,6 +102,7 @@ class base_excitation(experiment):
         self.fit_parameters.add('center_y', value = p.fit_center_vertical)
         self.fit_parameters.add('spacing', value = p.fit_spacing)
         self.fit_parameters.add('sigma', value = p.fit_sigma)
+        #self.fit_parameters.add('sigma', value = 3.5, vary=False)
         x_axis = numpy.arange(self.image_region[2], self.image_region[3] + 1, self.image_region[0])
         y_axis = numpy.arange(self.image_region[4], self.image_region[5] + 1, self.image_region[1])
         xx,yy = numpy.meshgrid(x_axis, y_axis)
@@ -171,7 +172,7 @@ class base_excitation(experiment):
                 perc_excited = -1.0
             ion_state = [perc_excited]
 #             print readouts
-v        else:
+        else:
             #get the percentage of excitation using the camera state readout
             proceed = self.camera.wait_for_kinetic()
             if not proceed:
@@ -195,7 +196,7 @@ v        else:
                 
             # save the camera images
             if self.parameters.IonsOnCamera.save_images:
-                now = str(datetime.now())
+                now = str(dt.datetime.now())
                 fi = '/home/cct/camera_images/' + now
                 numpy.save(fi, images)
 
