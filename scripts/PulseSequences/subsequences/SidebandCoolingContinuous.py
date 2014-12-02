@@ -24,6 +24,7 @@ class sideband_cooling_continuous(pulse_sequence):
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_amplitude_729'),
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_frequency_866'),
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_amplitude_866'),
+                                                       ('OpticalPumpingContinuous','beam')
                                                        ]
                            }
     
@@ -41,5 +42,6 @@ class sideband_cooling_continuous(pulse_sequence):
                    'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_729':sc.sideband_cooling_continuous_amplitude_729,
                    'OpticalPumpingContinuous.optical_pumping_continuous_frequency_866':sc.sideband_cooling_continuous_frequency_866, 
                    'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':sc.sideband_cooling_continuous_amplitude_866,
+                   'OpticalPumpingContinuous.beam':'729_1',
                    }
         return replace

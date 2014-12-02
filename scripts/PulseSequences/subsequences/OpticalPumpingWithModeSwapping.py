@@ -39,6 +39,7 @@ class optical_pumping_with_mode_swapping(pulse_sequence):
                        'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_729':op.optical_pumping_amplitude_729,
                        'OpticalPumpingContinuous.optical_pumping_continuous_frequency_866':op.optical_pumping_frequency_866,
                        'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':op.optical_pumping_amplitude_866,
+                       'OpticalPumpingContinuous.beam':'729_1',
                        }
             self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
             opc_dur = opc.optical_pumping_continuous_duration

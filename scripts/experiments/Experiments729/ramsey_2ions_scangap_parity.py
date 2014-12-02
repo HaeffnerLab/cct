@@ -47,9 +47,9 @@ class ramsey_2ions_scangap_parity(experiment):
         flop = self.parameters.Ramsey2ions_ScanGapParity
         trap = self.parameters.TrapFrequencies
         excitation_frequency = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.line_selection, self.drift_tracker)
-        excitation_frequency = cm.add_sidebands(ion1_frequency1, flop.ion1_sideband_selection, trap)
-        print excitaton_frequency
-        self.parameters['Ramsey_2ions.excitation_frequency'] = excitaton_frequency
+        excitation_frequency = cm.add_sidebands(excitation_frequency, flop.ion1_sideband_selection, trap)
+        print excitation_frequency
+        self.parameters['Ramsey_2ions.excitation_frequency'] = excitation_frequency
         minim,maxim,steps = self.parameters.Ramsey2ions_ScanGapParity.scangap
         minim = minim['us']; maxim = maxim['us']
         self.scan = linspace(minim,maxim, steps)
@@ -86,12 +86,13 @@ class ramsey_2ions_scangap_parity(experiment):
             excitation,readouts = self.excite.run(cxn, context)
             position1 = int(self.parameters.Ramsey2ions_ScanGapParity.first_ion_number)
             position2 = int(self.parameters.Ramsey2ions_ScanGapParity.second_ion_number)
-            #parity = self.compute_parity(readouts,position1,position2)
-            parity = self.compute_parity_pmt(readouts, threshold_low, threshold_high)
+            parity = self.compute_parity(readouts,position1,position2)
+            #parity = self.compute_parity_pmt(readouts, threshold_low, threshold_high)
             submission = [duration['us']]
             submission.extend(excitation)
             self.dv.add(submission, context = self.data_save_context)
             self.dv.add([duration['us'], parity], context = self.parity_save_context)
+            #self.excite.plot_current_sequence(cxn)
             self.update_progress(i)
     
     def compute_parity(self, readouts,pos1,pos2):

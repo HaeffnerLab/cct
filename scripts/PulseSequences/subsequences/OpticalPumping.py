@@ -13,7 +13,9 @@ class optical_pumping(pulse_sequence):
                   ('OpticalPumping','optical_pumping_frequency_866'),
                   ('OpticalPumping','optical_pumping_amplitude_729'),
                   ('OpticalPumping','optical_pumping_amplitude_854'),
-                  ('OpticalPumping','optical_pumping_amplitude_866')
+                  ('OpticalPumping','optical_pumping_amplitude_866'),
+                  ('OpticalPumping', 'pumping_2_ions'),
+                  ('OpticalPumping', 'offset_frequency')
                   ]
     
     required_subsequences = [optical_pumping_continuous, optical_pumping_pulsed]
@@ -25,6 +27,7 @@ class optical_pumping(pulse_sequence):
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_amplitude_729'),
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_frequency_866'),
                                                        ('OpticalPumpingContinuous','optical_pumping_continuous_amplitude_866'),
+                                                       ('OpticalPumpingContinuous','beam'),
                                                        ],
                            optical_pumping_pulsed:[
                                                      ('OpticalPumpingPulsed','optical_pumping_pulsed_frequency_854'),
@@ -54,7 +57,16 @@ class optical_pumping(pulse_sequence):
                        'OpticalPumpingContinuous.optical_pumping_continuous_frequency_866':op.optical_pumping_frequency_866,
                        'OpticalPumpingContinuous.optical_pumping_continuous_amplitude_866':op.optical_pumping_amplitude_866,
                        }
-            self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
+            if not op.pumping_2_ions:
+              replace['OpticalPumpingContinuous.beam'] ='729_1'
+              self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
+            else:
+              replace['OpticalPumpingContinuous.beam'] = '729_1'
+              self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
+              replace['OpticalPumpingContinuous.beam'] = '729_2'
+              replace['OpticalPumpingContinuous.optical_pumping_continuous_frequency_729'] = op.optical_pumping_frequency_729 + op.offset_frequency
+              self.addSequence(optical_pumping_continuous, TreeDict.fromdict(replace))
+
         else:
             #pulsed
             replace = {

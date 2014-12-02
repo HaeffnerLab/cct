@@ -44,7 +44,8 @@ class sideband_cooling(pulse_sequence):
                                                         ],
                            optical_pumping:[
                                             ('OpticalPumping','optical_pumping_continuous'),
-                                            ('OpticalPumpingContinuous','optical_pumping_continuous_duration')
+                                            ('OpticalPumpingContinuous','optical_pumping_continuous_duration'),
+                                            ('OpticalPumpingContinuous','beam')
                                             ]
                            }
     
@@ -91,6 +92,7 @@ class sideband_cooling(pulse_sequence):
         optical_pump_replace = {
                                 'OpticalPumping.optical_pumping_continuous':True,
                                 'OpticalPumpingContinuous.optical_pumping_continuous_duration':sc.sideband_cooling_optical_pumping_duration,
+                                'OpticalPumpingContinuous.beam':'729_1'
                                 }
         for i in range(int(sc.sideband_cooling_cycles)):
             #each cycle, increment the 729 duration

@@ -58,8 +58,8 @@ class ramsey_scanphase(experiment):
             frequency = cm.add_sidebands(frequency, flop.sideband_selection, trap)   
         self.parameters['Excitation_729.rabi_excitation_frequency'] = frequency
         self.parameters['Excitation_729.rabi_excitation_amplitude'] = flop.rabi_amplitude_729
-        self.parameters['Ramsey.first_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
-        self.parameters['Ramsey.second_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
+        #self.parameters['Ramsey.first_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
+        #self.parameters['Ramsey.second_pulse_duration'] = self.parameters.Ramsey.rabi_pi_time / 2.0
         minim,maxim,steps = self.parameters.RamseyScanPhase.scanphase
         minim = minim['deg']; maxim = maxim['deg']
         self.scan = linspace(minim,maxim, steps)
@@ -91,6 +91,7 @@ class ramsey_scanphase(experiment):
             submission.extend(excitation)
             self.dv.add(submission, context = self.data_save_context)
             self.update_progress(i)
+            #self.excite.plot_current_sequence(cxn)
             
     @property
     def output_size(self):

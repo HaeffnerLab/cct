@@ -48,6 +48,11 @@ class cctGUI(QtGui.QMainWindow):
         self.setCentralWidget(centralWidget)
         self.setWindowTitle('CCTGUI')
 
+        '''
+        #Adding 729 Beams Position:
+        
+        rightPanel.addWidget(  )
+        '''
     def makeScriptControl(self, reactor):
         from common.clients.guiscriptcontrol.scriptcontrol import ScriptControl
         self.sc = ScriptControl(reactor, self)

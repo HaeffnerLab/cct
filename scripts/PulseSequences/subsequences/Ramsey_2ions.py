@@ -6,12 +6,10 @@ from treedict import TreeDict
 class ramsey_2ions_excitation(pulse_sequence):
     
     required_parameters = [
-                          ('Ramsey_2ions','excitation_frequency'),
+                          ('Ramsey_2ions','excitation_frequency'), 
                           ('Ramsey_2ions','excitation_amplitude'),
-                          ('Ramsey_2ions','ion1_excitation_duration'),
-                          ('Ramsey_2ions', 'ion2_excitation_duration'),
-                          ('Ramsey_2ions','ion2_excitation_frequency'),
-                          ('Ramsey_2ions','ion2_excitation_amplitude'),
+                          ('Ramsey_2ions', 'second_pulse_phase'),
+                          ('Ramsey_2ions', 'ion1_excitation_duration'),
                           ('Ramsey_2ions','ion2_excitation_duration'),
                           ('Ramsey_2ions','ramsey_time'),
                           ]
@@ -21,7 +19,7 @@ class ramsey_2ions_excitation(pulse_sequence):
         p = self.parameters.Ramsey_2ions
         frequency_advance_duration = WithUnit(8.0, 'us')
         ampl_off = WithUnit(-63.0, 'dBm')
-        excitaton_duration = p.ion1_excitation_duration + p.ion2_excitation_duration
+        excitation_duration = p.ion1_excitation_duration + p.ion2_excitation_duration
         #detuning = WithUnit(0.0,'kHz')
         
         #self.end = self.start + frequency_advance_duration + p.rabi_excitation_duration
@@ -44,7 +42,7 @@ class ramsey_2ions_excitation(pulse_sequence):
         print 'Ramsey_time:', p.ramsey_time
         
         ###pi/2 pulses###
-        self.addDDS('729', self.end, excitation_duration, p.excitation_frequency, p.excitation_amplitude, WithUnit(180,'deg'))
+        self.addDDS('729', self.end, excitation_duration, p.excitation_frequency, p.excitation_amplitude, p.second_pulse_phase)
         self.addTTL('729_1', self.end, p.ion1_excitation_duration)
         self.addTTL('729_2', self.end + p.ion1_excitation_duration, p.ion2_excitation_duration)
         self.end = self.end + excitation_duration

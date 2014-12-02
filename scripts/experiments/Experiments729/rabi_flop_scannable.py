@@ -80,6 +80,7 @@ class rabi_flopping_scannable(experiment):
         else:
             ion = int(self.parameters.RabiFlopping_Sit.selected_ion)
             single_excitation = excitation[ion]
+        self.excite.plot_current_sequence(cxn)
         return single_excitation
      
     def finalize(self, cxn, context):

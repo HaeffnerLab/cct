@@ -146,7 +146,7 @@ class base_excitation(experiment):
         sp = SequencePlotter(ttl.asarray, dds.aslist, channels)
         sp.makePlot()
         
-    def run(self, cxn, context):
+    def run(self, cxn, context, image_save_context=None):
         import time
         threshold = int(self.parameters.StateReadout.state_readout_threshold)
         repetitions = int(self.parameters.StateReadout.repeat_each_measurement)
@@ -183,6 +183,7 @@ class base_excitation(experiment):
                 print "Did not get kinetics from camera. Re-running the point."
                 self.run(cxn, context)
             images = self.camera.get_acquired_data(repetitions).asarray
+            imagesave = images
             self.camera.abort_acquisition()
             x_pixels = int( (self.image_region[3] - self.image_region[2] + 1.) / (self.image_region[0]) )
             y_pixels = int(self.image_region[5] - self.image_region[4] + 1.) / (self.image_region[1])
@@ -193,14 +194,12 @@ class base_excitation(experiment):
             for image in images:
                 for i in range(image.shape[0]): image[i][-1] = image[i][-2]
             #########################################
-                
+            #import IPython
+            #IPython.embed()
             # save the camera images
             if self.parameters.IonsOnCamera.save_images:
-                now = str(dt.datetime.now())
-                fi = '/home/cct/camera_images/' + now
-                numpy.save(fi, images)
-
-            readouts, confidences = self.fitter.state_detection(images)
+                self.dv.save_image(imagesave, [x_pixels, y_pixels], repetitions, context = image_save_context)
+            readouts, confidences = self.fitter.state_detection(images, pmt_mode=True)
             ion_state = 1 - readouts.mean(axis = 0)
             #useful for debugging, saving the images
 #             numpy.save('readout {}'.format(int(time.time())), images)

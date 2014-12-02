@@ -2,6 +2,7 @@ import numpy as np
 import lmfit
 from equilbrium_positions import position_dict
 import IPython  as ip
+import camera_pmt as cpmt
 
 class ion_state_detector(object):
     
@@ -14,7 +15,10 @@ class ion_state_detector(object):
     def set_fitted_parameters(self, params, xx, yy):
         self.fitted_gaussians = self.ion_gaussians(params, xx, yy)
         self.background = params['background_level'].value
-    
+        self.params = params
+        self.xx = xx
+        self.yy = yy
+
     def gaussian_2D(self, xx, yy, x_center, y_center, sigma_x, sigma_y, amplitude):
         '''
         xx and yy are the provided meshgrid of x and y coordinates
@@ -162,7 +166,7 @@ class ion_state_detector(object):
         gaussians = self.fitted_gaussians / self.fitted_gaussians.max()
         return np.sum(gaussians * image, axis = (1,2))
         
-    def state_detection(self, image):
+    def state_detection(self, image, pmt_mode=False):
         '''
         given the image and the parameters of the reference images with all ions bright, determines
         which ions are currently darks
@@ -172,7 +176,10 @@ class ion_state_detector(object):
         if image.ndim == 2:
             #if only a single image is provided, shape it to be a 1-long sequence
             image = image.reshape((1, image.shape[0],image.shape[1]))
-        state, confidence = self.fitting_error_state(self.all_state_combinations, image)
+        if pmt_mode == True:
+            state, confidence = cpmt.detect_pmt(self.params,self.xx, self.yy, image)
+        else:
+            state, confidence = self.fitting_error_state(self.all_state_combinations, image)
         return state, confidence
 
     def report(self, params):

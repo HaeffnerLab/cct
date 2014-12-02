@@ -159,7 +159,7 @@ class beam_addressing_with_rabi_flop(experiment):
         
         #Go to initial position:
         #self.apt.move_absolute(0.)
-
+        self.init_position   =   self.get_position()
         for j in range(len(self.scan_beam_window)):
             should_stop = self.pause_or_stop()
             if should_stop: break
@@ -186,7 +186,8 @@ class beam_addressing_with_rabi_flop(experiment):
             submission.extend(excitation)
             self.dv.add(submission, context = self.beam_addressing_with_rabi_flop_save_context)
             self.update_progress(j)
-
+        self.cxn_apt.disconnect()
+        #self.move_absolute( self.init_position )  #Move the motor back to where it started.
            
             
     def finalize(self, cxn, context):
