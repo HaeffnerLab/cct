@@ -4,6 +4,7 @@ from cct.scripts.PulseSequences.subsequences.StateReadout import state_readout
 from cct.scripts.PulseSequences.subsequences.TurnOffAll import turn_off_all
 import numpy as np
 from ion_state_detector import ion_state_detector
+#from ion_state_detector_1d import ion_state_detector
 from labrad.units import WithUnit
 from multiprocessing import Process
 import labrad

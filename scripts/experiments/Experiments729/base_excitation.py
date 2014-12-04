@@ -1,6 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from cct.scripts.experiments.Camera.ion_state_detector import ion_state_detector
+#from cct.scripts.experiments.Camera.ion_state_detector import ion_state_detector
+from cct.scripts.experiments.Camera.ion_state_detector_1d import ion_state_detector
 from labrad.units import WithUnit
 import labrad
 import numpy
@@ -199,7 +200,7 @@ class base_excitation(experiment):
             # save the camera images
             if self.parameters.IonsOnCamera.save_images:
                 self.dv.save_image(imagesave, [x_pixels, y_pixels], repetitions, context = image_save_context)
-            readouts, confidences = self.fitter.state_detection(images, pmt_mode=True)
+            readouts, confidences = self.fitter.state_detection(images, pmt_mode=False)
             ion_state = 1 - readouts.mean(axis = 0)
             #useful for debugging, saving the images
 #             numpy.save('readout {}'.format(int(time.time())), images)

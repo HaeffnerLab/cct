@@ -15,8 +15,13 @@ class ramsey_2ions_scangap_parity(experiment):
                            ('Ramsey2ions_ScanGapParity', 'first_ion_number'),
                            ('Ramsey2ions_ScanGapParity', 'second_ion_number'),
                            ('Ramsey2ions_ScanGapParity', 'line_selection'),
+                           ('Ramsey2ions_ScanGapParity','sideband_selection'),
                            ('StateReadout', 'parity_threshold_high'),
-                           ('StateReadout', 'parity_threshold_low')
+                           ('StateReadout', 'parity_threshold_low'),
+                            ('TrapFrequencies','axial_frequency'),
+                            ('TrapFrequencies','radial_frequency_1'),
+                            ('TrapFrequencies','radial_frequency_2'),
+                            ('TrapFrequencies','rf_drive_frequency'),      
                            ]
 
     @classmethod
@@ -46,8 +51,10 @@ class ramsey_2ions_scangap_parity(experiment):
     def setup_sequence_parameters(self):
         flop = self.parameters.Ramsey2ions_ScanGapParity
         trap = self.parameters.TrapFrequencies
+        print "sideband_selection"
+        print flop.sideband_selection
         excitation_frequency = cm.frequency_from_line_selection('auto', WithUnit(0.00, 'MHz'), flop.line_selection, self.drift_tracker)
-        excitation_frequency = cm.add_sidebands(excitation_frequency, flop.ion1_sideband_selection, trap)
+        excitation_frequency = cm.add_sidebands(excitation_frequency, flop.sideband_selection, trap)
         print excitation_frequency
         self.parameters['Ramsey_2ions.excitation_frequency'] = excitation_frequency
         minim,maxim,steps = self.parameters.Ramsey2ions_ScanGapParity.scangap
@@ -83,7 +90,7 @@ class ramsey_2ions_scangap_parity(experiment):
             if should_stop: break
             self.parameters['Ramsey_2ions.ramsey_time'] = duration
             self.excite.set_parameters(self.parameters)
-            excitation,readouts = self.excite.run(cxn, context)
+            excitation,readouts = self.excite.run(cxn, context, image_save_context = self.data_save_context)
             position1 = int(self.parameters.Ramsey2ions_ScanGapParity.first_ion_number)
             position2 = int(self.parameters.Ramsey2ions_ScanGapParity.second_ion_number)
             parity = self.compute_parity(readouts,position1,position2)
