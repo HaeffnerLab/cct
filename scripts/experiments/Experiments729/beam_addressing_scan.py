@@ -205,6 +205,7 @@ class beam_addressing_with_rabi_flop(experiment):
 
         try:
             self.cxn_apt = labrad.connect(self.cxn_apt_ip)
+            #self.cxn_apt  = yield connectAsync(self.cxn_apt_ip)
             apt = self.cxn_apt.apt_motor_server
             return apt
         except Exception as inst:

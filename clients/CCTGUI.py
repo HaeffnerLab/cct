@@ -20,6 +20,7 @@ class cctGUI(QtGui.QMainWindow):
         from common.clients.script_scanner_gui.script_scanner_gui import script_scanner_gui
         from common.clients.drift_tracker.drift_tracker import drift_tracker
         
+
         dt = drift_tracker(reactor, cxn)
         
         self.tabWidget = QtGui.QTabWidget()
@@ -33,7 +34,6 @@ class cctGUI(QtGui.QMainWindow):
         self.tabWidget.addTab(script_scanner, '&Script Scanner')
         self.tabWidget.addTab(dt, '&Drift Tracker')
         self.tabWidget.addTab(piezoControlTab, '&Piezo')
-
         self.createGrapherTab()
         
         gridLayout = QtGui.QGridLayout()
@@ -42,17 +42,20 @@ class cctGUI(QtGui.QMainWindow):
         rightPanel = QtGui.QGridLayout()
         rightPanel.addWidget(pmtWidget(reactor), 0, 0) 
         rightPanel.addWidget(lineTrig(reactor), 1, 0)
+        '''
+        #Adding 729 Beams Position:
+        #from common.clients.MOTOR_CONTROL import motorWidget
+        
+        rightPanel.addWidget( motorWidget(reactor), 2, 0)
+        
+        '''
         gridLayout.addLayout(rightPanel, 0, 4)
         centralWidget = QtGui.QWidget()
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
         self.setWindowTitle('CCTGUI')
 
-        '''
-        #Adding 729 Beams Position:
-        
-        rightPanel.addWidget(  )
-        '''
+
     def makeScriptControl(self, reactor):
         from common.clients.guiscriptcontrol.scriptcontrol import ScriptControl
         self.sc = ScriptControl(reactor, self)
