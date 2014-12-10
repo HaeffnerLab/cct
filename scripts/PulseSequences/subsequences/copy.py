@@ -1,3 +1,4 @@
+__author__ = 'cct'
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from labrad.units import WithUnit
 from DopplerCooling import doppler_cooling
@@ -10,6 +11,7 @@ class ramsey_2ions_excitation(pulse_sequence):
                           ('Ramsey_2ions','excitation_amplitude'),
                           ('Ramsey_2ions', 'second_pulse_phase'),
                           ('Ramsey_2ions', 'ion1_excitation_duration'),
+
                           ('Ramsey_2ions','ion2_excitation_duration'),
                           ('Ramsey_2ions','ramsey_time'),
                           ('Ramsey_2ions', 'single_pass_frequency'),
@@ -49,9 +51,14 @@ class ramsey_2ions_excitation(pulse_sequence):
         self.end = self.end+p.ramsey_time
         print 'Ramsey_time:', p.ramsey_time
 
-        ###pi/2 pulses###
-        self.addDDS('729', self.end, excitation_duration, p.excitation_frequency, p.excitation_amplitude, p.second_pulse_phase)
+        #pulse_2 with rel_phase#
+        self.addDDS('729', self.end, p.ion1_excitation_duration, p.excitation_frequency, p.excitation_amplitude)
         self.addTTL('729_1', self.end, p.ion1_excitation_duration)
-        self.addTTL('729_2', self.end + p.ion1_excitation_duration, p.ion2_excitation_duration)
-        #self.addTTL('729_sp'. self.end + p.ion_1_excitatin_duration, p.ion_2_excitation_duration, p.single_pass_frequency, p.single_pass_amplitude, p.single_pass_phase)
-        self.end = self.end + excitation_duration
+        self.end = self.end + p.ion1_excitation_duration
+
+        self.addDDS('729', self.end, p.ion2_excitation_duration, p.excitation_frequency, p.excitation_amplitude, p.single_pass_phase)
+        self.addTTL('729_2', self.end + p.ion2_excitation_duration, p.ion2_excitation_duration)
+        self.end = self.end + p.ion2_excitation_duration
+
+
+
