@@ -44,19 +44,25 @@ class ramsey_2ions_excitation(pulse_sequence):
 
         ### change the phase of the global 729 and the single pass ###
         self.addDDS('729', self.end, frequency_advance_duration, p.excitation_frequency, ampl_off, p.second_pulse_phase)
+        self.end = self.end + frequency_advance_duration
         #self.addDDS('729_sp', self.end, frequency_advance_duration, p.single_pass_frequency, ampl_off, p.single_pass_phase)
 
         ### ramsey time ###
         self.end = self.end+p.ramsey_time
         print 'Ramsey_time:', p.ramsey_time
 
-        #pulse_2 with rel_phase#
+        #pulse_2 with rel_phase, on ion 1#
         self.addDDS('729', self.end, p.ion1_excitation_duration, p.excitation_frequency, p.excitation_amplitude)
         self.addTTL('729_1', self.end, p.ion1_excitation_duration)
         self.end = self.end + p.ion1_excitation_duration
 
+        #This line splits the two ion pulses for testing#
+        self.addDDS('729', self.end, frequency_advance_duration, p.excitation_frequency, ampl_off)
+        self.end = self.end + frequency_advance_duration
+
+        #pulse_2 with rel_phase, on ion 2#
         self.addDDS('729', self.end, p.ion2_excitation_duration, p.excitation_frequency, p.excitation_amplitude, p.single_pass_phase)
-        self.addTTL('729_2', self.end + p.ion2_excitation_duration, p.ion2_excitation_duration)
+        self.addTTL('729_2', self.end, p.ion2_excitation_duration)
         self.end = self.end + p.ion2_excitation_duration
 
 
