@@ -1,3 +1,4 @@
+__author__ = 'cct'
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
 from labrad.units import WithUnit
 from DopplerCooling import doppler_cooling
@@ -14,7 +15,7 @@ class ramsey_2ions_excitation(pulse_sequence):
                           ('Ramsey_2ions','ion2_excitation_duration'),
                           ('Ramsey_2ions','ramsey_time'),
                           ('Ramsey_2ions', 'single_pass_frequency'),
-                          ('Ramsey_2ions', 'single_pass_ampltidue'),
+                          ('Ramsey_2ions', 'single_pass_amplitude'),
                           ('Ramsey_2ions', 'single_pass_phase'),
                           ]
 
@@ -28,6 +29,7 @@ class ramsey_2ions_excitation(pulse_sequence):
 
         #self.end = self.start + frequency_advance_duration + p.rabi_excitation_duration
         self.end = self.start
+
         #print self.end
         ###set all frequencies but keep amplitude low first###
         self.addDDS('729', self.end, frequency_advance_duration, p.excitation_frequency, ampl_off)
@@ -57,13 +59,12 @@ class ramsey_2ions_excitation(pulse_sequence):
         self.end = self.end + p.ion1_excitation_duration
 
         #This line splits the two ion pulses for testing#
-        self.addDDS('729', self.end, frequency_advance_duration, p.excitation_frequency, ampl_off)
-        self.end = self.end + frequency_advance_duration
+        #self.addDDS('729', self.end, WithUnit(2.0, 'us'), p.excitation_frequency, ampl_off)
+        #self.end = self.end + WithUnit(2.0, 'us')
+
+
 
         #pulse_2 with rel_phase, on ion 2#
         self.addDDS('729', self.end, p.ion2_excitation_duration, p.excitation_frequency, p.excitation_amplitude, p.single_pass_phase)
         self.addTTL('729_2', self.end, p.ion2_excitation_duration)
         self.end = self.end + p.ion2_excitation_duration
-
-
-
