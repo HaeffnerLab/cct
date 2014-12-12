@@ -59,8 +59,8 @@ class ramsey_2ions_excitation(pulse_sequence):
         self.end = self.end + p.ion1_excitation_duration
 
         #This line splits the two ion pulses for testing#
-        #self.addDDS('729', self.end, WithUnit(2.0, 'us'), p.excitation_frequency, ampl_off)
-        #self.end = self.end + WithUnit(2.0, 'us')
+        #self.addDDS('729', self.end, WithUnit(0.01, 'us'), p.excitation_frequency, ampl_off)
+        #self.end = self.end + WithUnit(.01, 'us')
 
 
 
