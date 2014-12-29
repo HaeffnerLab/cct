@@ -6,6 +6,7 @@ from subsequences.RabiExcitation import rabi_excitation
 from subsequences.Tomography import tomography_readout
 from subsequences.TurnOffAll import turn_off_all
 from subsequences.SidebandCooling import sideband_cooling
+from subsequences.RFPulse import rf_pulse
 from labrad.units import WithUnit
 from treedict import TreeDict
 
@@ -15,10 +16,11 @@ class spectrum_rabi(pulse_sequence):
                            ('Heating', 'background_heating_time'),
                            ('OpticalPumping','optical_pumping_enable'), 
                            ('SidebandCooling','sideband_cooling_enable'),
+                           ('RFPulse', 'rf_pulse_enable')
                            ]
     
     required_subsequences = [doppler_cooling_after_repump_d, empty_sequence, optical_pumping, 
-                             rabi_excitation, tomography_readout, turn_off_all, sideband_cooling]
+                             rabi_excitation, rf_pulse, tomography_readout, turn_off_all, sideband_cooling]
     
     replaced_parameters = {empty_sequence:[('EmptySequence','empty_sequence_duration')]
                            }
@@ -32,6 +34,8 @@ class spectrum_rabi(pulse_sequence):
             self.addSequence(optical_pumping)
         if p.SidebandCooling.sideband_cooling_enable:
             self.addSequence(sideband_cooling)
+        if p.RFPulse.rf_pulse_enable:
+            self.addSequence(rf_pulse)
         self.addSequence(empty_sequence, TreeDict.fromdict({'EmptySequence.empty_sequence_duration':p.Heating.background_heating_time}))
         self.addSequence(rabi_excitation)
         self.addSequence(tomography_readout)
