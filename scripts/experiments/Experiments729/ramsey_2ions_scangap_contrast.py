@@ -48,6 +48,7 @@ class ramsey_2ions_scangap_parity(experiment):
         self.dv = cxn.data_vault
         self.data_save_context = cxn.context()
         self.contrast_save_context = cxn.context()
+        self.parity_save_context = cxn.context()
         self.setup_data_vault()
     
     def setup_sequence_parameters(self):
@@ -75,13 +76,18 @@ class ramsey_2ions_scangap_parity(experiment):
         dependants = [('Excitation','Ion {}'.format(ion),'Probability') for ion in range(output_size)]
         self.dv.cd(directory, True,context = self.data_save_context)
         self.dv.cd(directory, True,context = self.contrast_save_context)
+        self.dv.cd(directory, True, context = self.parity_save_context)
         self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Excitation', 'us')], dependants , context = self.data_save_context)
-        self.dv.new('{0} {1} Parity Contrast'.format(self.name, datasetNameAppend),[('Excitation', 'us')], [('Contrast','Contrast','Probability')] , context = self.contrast_save_context)
+        self.dv.new('{0} {1} Parity Contrast'.format(self.name, datasetNameAppend),[('Excitation', 'us')], [('Contrast','Contrast','Probability')] , context = self.contrast_save_context)        
+        self.dv.new('{0} {1} Parities'.format(self.name, datasetNameAppend), [('Excitation', 'us')], [('Parity', 'p0','Probability'),('Parity', 'p90','Probability'), ('Parity', 'p180','Probability')], context = self.parity_save_context)
+
         window_name = self.parameters.get('RamseyScanGap.window_name', ['Ramsey Gap Scan'])
         self.dv.add_parameter('Window', window_name, context = self.data_save_context)
         self.dv.add_parameter('plotLive', True, context = self.data_save_context)
         self.dv.add_parameter('Window', window_name, context = self.contrast_save_context)
         self.dv.add_parameter('plotLive', True, context = self.contrast_save_context)
+        self.dv.add_parameter('Window', window_name, context = self.parity_save_context)
+        self.dv.add_parameter('plotLive', True, context = self.parity_save_context)
         
     def run(self, cxn, context):
         self.setup_sequence_parameters()
@@ -120,6 +126,7 @@ class ramsey_2ions_scangap_parity(experiment):
             submission.extend(excitation)
             self.dv.add(submission, context = self.data_save_context)
             self.dv.add([duration['us'], c], context = self.contrast_save_context)
+            self.dv.add([duration['us'], p0, p90, p180], context = self.parity_save_context)
             #self.excite.plot_current_sequence(cxn)
             self.update_progress(i)
     
