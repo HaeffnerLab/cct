@@ -3,7 +3,7 @@ from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_seq
 from cct.scripts.PulseSequences.subsequences.StateReadout import state_readout
 from cct.scripts.PulseSequences.subsequences.TurnOffAll import turn_off_all
 import numpy as np
-from ion_state_detector import ion_state_detector
+from ion_state_detector_1d import ion_state_detector
 #from ion_state_detector_1d import ion_state_detector
 from labrad.units import WithUnit
 from multiprocessing import Process
@@ -31,6 +31,8 @@ class reference_camera_image(experiment):
                            ('StateReadout','repeat_each_measurement'),
                            ('StateReadout','state_readout_amplitude_397'),
                            ('StateReadout','state_readout_frequency_397'),
+                           ('StateReadout','state_readout_frequency_397_2'),
+                           ('StateReadout','state_readout_amplitude_397_2'),
                            ('StateReadout','state_readout_amplitude_866'),
                            ('StateReadout','state_readout_frequency_866'),
                            ('StateReadout','camera_trigger_width'),
@@ -47,7 +49,7 @@ class reference_camera_image(experiment):
     
     def initialize(self, cxn, context, ident):
         p = self.parameters.IonsOnCamera
-        print int(p.ion_number)
+        #print int(p.ion_number)
         self.cxncam = labrad.connect('192.168.169.30')
         #self.fitter = ion_state_detector([])
         self.ident = ident
@@ -118,7 +120,7 @@ class reference_camera_image(experiment):
         xx, yy = np.meshgrid(x_axis, y_axis)
         #import IPython
         #IPython.embed()
-        #result, params = self.fitter.guess_parameters_and_fit(xx, yy, image)
+
         #self.fitter.report(params)
         #ideally graphing should be done by saving to data vault and using the grapher
         #p = Process(target = self.fitter.graph, args = (x_axis, y_axis, image, params, result))
@@ -128,7 +130,8 @@ class reference_camera_image(experiment):
         positions = pylab.ginput(0)
         positions = [x + np.min(x_axis) for x,y in positions]
         self.fitter = ion_state_detector(positions)
-        print params
+        result, params = self.fitter.guess_parameters_and_fit(xx, yy, image)
+        self.fitter.graph(x_axis, y_axis, image, params, result)
         position_list = []
 
         try:
@@ -142,6 +145,7 @@ class reference_camera_image(experiment):
         self.pv.set_parameter('IonsOnCamera','fit_background_level', params['background_level'].value)
         self.pv.set_parameter('IonsOnCamera','fit_amplitude', params['amplitude'].value)
         self.pv.set_parameter('IonsOnCamera','ion_positions', position_list) #TODO ?? FIXME
+        self.pv.set_parameter('IonsOnCamera','ion_number', len(position_list)) #TODO ?? FIXME
         self.pv.set_parameter('IonsOnCamera','fit_sigma', params['sigma'].value)
         #self.pv.set_parameter('IonsOnCamera','fit_rotation_angle', params['rotation_angle'].value)
         #self.pv.set_parameter('IonsOnCamera','fit_center_horizontal', params['center_x'].value)

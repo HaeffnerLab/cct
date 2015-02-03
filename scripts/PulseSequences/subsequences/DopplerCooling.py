@@ -6,8 +6,8 @@ class doppler_cooling(pulse_sequence):
     required_parameters = [
                            ('DopplerCooling','doppler_cooling_frequency_397'), 
                            ('DopplerCooling','doppler_cooling_amplitude_397'),
-                           ('DopplerCooling', 'doppler_cooling_frequency_397_2')
-                           ('DopplerCooling', 'doppler_cooling_amplitude_397_2')
+                           ('DopplerCooling', 'doppler_cooling_frequency_397_2'),
+                           ('DopplerCooling', 'doppler_cooling_amplitude_397_2'),
                            ('DopplerCooling','doppler_cooling_frequency_866'), 
                            ('DopplerCooling','doppler_cooling_amplitude_866'), 
                            ('DopplerCooling','doppler_cooling_duration'),

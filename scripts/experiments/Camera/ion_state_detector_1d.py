@@ -151,7 +151,7 @@ class ion_state_detector(object):
         params = lmfit.Parameters() 
         #background_guesse = np.sum(data[:,0]) #assumes that there are no ions at the edge of the image
         background_guess = 0
-        amplitude_guess = np.sum(data[:,self.ion_positions[0]-np.min(xx)]) - background_guess
+        amplitude_guess = np.sum(data[:,self.ion_positions[0]-np.min(xx)]) - np.sum(data[:,0])
         sigma_guess = 1 #assume it's hard to resolve the ion, sigma ~ 1
         params.add('background_level', value = background_guess, min = 0.0, vary=False)
         params.add('amplitude', value = amplitude_guess, min = 0.0)
