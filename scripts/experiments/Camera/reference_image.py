@@ -16,6 +16,7 @@ class reference_camera_image(experiment):
     name = 'Reference Camera Image'
     required_parameters = [
                            #('IonsOnCamera','ion_number'),
+                           #('IonsOnCamera','ion_positions'), #TODO ?? FIXME
                            ('IonsOnCamera','reference_exposure_factor'),
                            
                            ('IonsOnCamera','vertical_min'),
@@ -124,17 +125,29 @@ class reference_camera_image(experiment):
         #p.start()
 
         pylab.imshow(image)
-        positions = ginput(0)
-        positions = [x for x,y in positions]
+        positions = pylab.ginput(0)
+        positions = [x + np.min(x_axis) for x,y in positions]
         self.fitter = ion_state_detector(positions)
         print params
+        position_list = []
+
+        try:
+            i = 0
+            while(True):
+                position_list.append(params['pos'+str(i)].value)
+                i += 1
+        except KeyError:
+            pass
+
         self.pv.set_parameter('IonsOnCamera','fit_background_level', params['background_level'].value)
         self.pv.set_parameter('IonsOnCamera','fit_amplitude', params['amplitude'].value)
-        self.pv.set_parameter('IonsOnCamera','fit_rotation_angle', params['rotation_angle'].value)
-        self.pv.set_parameter('IonsOnCamera','fit_center_horizontal', params['center_x'].value)
-        self.pv.set_parameter('IonsOnCamera','fit_center_vertical', params['center_y'].value)
-        self.pv.set_parameter('IonsOnCamera','fit_spacing', params['spacing'].value)
+        self.pv.set_parameter('IonsOnCamera','ion_positions', position_list) #TODO ?? FIXME
         self.pv.set_parameter('IonsOnCamera','fit_sigma', params['sigma'].value)
+        #self.pv.set_parameter('IonsOnCamera','fit_rotation_angle', params['rotation_angle'].value)
+        #self.pv.set_parameter('IonsOnCamera','fit_center_horizontal', params['center_x'].value)
+        #self.pv.set_parameter('IonsOnCamera','fit_center_vertical', params['center_y'].value)
+        #self.pv.set_parameter('IonsOnCamera','fit_spacing', params['spacing'].value)
+
 
     def finalize(self, cxn, context):
         self.camera.set_trigger_mode(self.initial_trigger_mode)
