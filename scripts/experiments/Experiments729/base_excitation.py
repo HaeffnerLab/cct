@@ -30,7 +30,8 @@ class base_excitation(experiment):
                             ('StateReadout', 'use_camera_for_readout'),
                             ('StateReadout', 'state_readout_duration'),
                             
-                            ('IonsOnCamera','ion_number'),
+                            ('IonsOnCamera', 'ion_positions'),
+                            #('IonsOnCamera','ion_number'),
                             ('IonsOnCamera','vertical_min'),
                             ('IonsOnCamera','vertical_max'),
                             ('IonsOnCamera','vertical_bin'),
@@ -79,7 +80,7 @@ class base_excitation(experiment):
         p = self.parameters.IonsOnCamera
         from lmfit import Parameters as lmfit_Parameters
         self.camera = cxn.andor_server
-        self.fitter = ion_state_detector(int(p.ion_number))
+        self.fitter = ion_state_detector(p.ion_positions)
         self.camera_initially_live_display = self.camera.is_live_display_running()
         self.camera.abort_acquisition()
         self.initial_exposure = self.camera.get_exposure_time()

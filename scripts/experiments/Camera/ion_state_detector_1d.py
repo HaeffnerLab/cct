@@ -6,10 +6,11 @@ import camera_pmt as cpmt
 
 class ion_state_detector(object):
     
-    def __init__(self, ion_number):
-        self.ion_number = ion_number
+    def __init__(self, ion_positions):
+        self.ion_number = len(ion_positions)
         self.all_state_combinations = self.all_combinations_0_1(ion_number)
-        self.spacing_dict = position_dict[ion_number] #provides relative spacings of all the ions
+        #self.spacing_dict = position_dict[ion_number] #provides relative spacings of all the ions
+        self.ion_positions = ion_positions
         self.fitted_gaussians, self.background = None, None
     
     def set_fitted_parameters(self, params, xx, yy):
@@ -59,7 +60,7 @@ class ion_state_detector(object):
         yy_rotated = ion_center_y +  (xx - ion_center_x) * np.sin(rotation_angle) + (yy - ion_center_y) * np.cos(rotation_angle)
         for i in range(self.ion_number):
             if use_1d:
-                ion_gaussians[i] = self.gaussian_1D(xx_rotated,  ion_center_x + spacing * self.spacing_dict[i], 
+                ion_gaussians[i] = self.gaussian_1D(xx_rotated,  self.ion_positions[i], 
                                                      sigma, amplitude)
             else:
                 ion_gaussians[i] = self.gaussian_2D(xx_rotated, yy_rotated, ion_center_x + spacing * self.spacing_dict[i], 
@@ -139,19 +140,19 @@ class ion_state_detector(object):
         params = lmfit.Parameters() 
         background_guess = data[0].mean() #assumes that there are no ions at the edge of the image
         background_std = np.std(data[0])
-        center_x_guess,center_y_guess,amplitude_guess, spacing_guess = self.guess_centers(data, background_guess, background_std, xx, yy)
         sigma_guess = 1 #assume it's hard to resolve the ion, sigma ~ 1
         params.add('background_level', value = background_guess, min = 0.0)
         params.add('amplitude', value = amplitude_guess, min = 0.0)
-        params.add('rotation_angle', value = 0.0001, min = -np.pi, max = np.pi, vary = False)
-        params.add('center_x', value = center_x_guess, min = xx.min(), max = xx.max())
-        params.add('center_y', value = center_y_guess, min = yy.min(), max = yy.max())
-        params.add('spacing', value = spacing_guess, min = 2.0, max = 60)
+        #params.add('rotation_angle', value = 0.0001, min = -np.pi, max = np.pi, vary = False)
+        #params.add('center_x', value = center_x_guess, min = xx.min(), max = xx.max())
+        #params.add('center_y', value = center_y_guess, min = yy.min(), max = yy.max())
+        #params.add('spacing', value = spacing_guess, min = 2.0, max = 60)
         params.add('sigma', value = sigma_guess, min = 0.01, max = 10.0)
+        for i, 
         #first fit without the angle
-        lmfit.minimize(self.fitting_error, params, args = (xx, yy, data))
+        #lmfit.minimize(self.fitting_error, params, args = (xx, yy, data))
         #allow angle to vary and then fit again
-        params['rotation_angle'].vary = True
+        #params['rotation_angle'].vary = True
         result = lmfit.minimize(self.fitting_error, params, args = (xx, yy, data))
         self.set_fitted_parameters(params, xx, yy)
         return result, params

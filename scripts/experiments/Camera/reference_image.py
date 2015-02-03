@@ -9,12 +9,13 @@ from labrad.units import WithUnit
 from multiprocessing import Process
 import labrad
 import IPython as ip
+import pylab
 
 class reference_camera_image(experiment):
     
     name = 'Reference Camera Image'
     required_parameters = [
-                           ('IonsOnCamera','ion_number'),
+                           #('IonsOnCamera','ion_number'),
                            ('IonsOnCamera','reference_exposure_factor'),
                            
                            ('IonsOnCamera','vertical_min'),
@@ -47,7 +48,7 @@ class reference_camera_image(experiment):
         p = self.parameters.IonsOnCamera
         print int(p.ion_number)
         self.cxncam = labrad.connect('192.168.169.30')
-        self.fitter = ion_state_detector(int(p.ion_number))
+        #self.fitter = ion_state_detector([])
         self.ident = ident
         self.camera = self.cxncam.andor_server
         self.pulser = cxn.pulser
@@ -116,11 +117,16 @@ class reference_camera_image(experiment):
         xx, yy = np.meshgrid(x_axis, y_axis)
         #import IPython
         #IPython.embed()
-        result, params = self.fitter.guess_parameters_and_fit(xx, yy, image)
-        self.fitter.report(params)
+        #result, params = self.fitter.guess_parameters_and_fit(xx, yy, image)
+        #self.fitter.report(params)
         #ideally graphing should be done by saving to data vault and using the grapher
-        p = Process(target = self.fitter.graph, args = (x_axis, y_axis, image, params, result))
-        p.start()
+        #p = Process(target = self.fitter.graph, args = (x_axis, y_axis, image, params, result))
+        #p.start()
+
+        pylab.imshow(image)
+        positions = ginput(0)
+        positions = [x for x,y in positions]
+        self.fitter = ion_state_detector(positions)
         print params
         self.pv.set_parameter('IonsOnCamera','fit_background_level', params['background_level'].value)
         self.pv.set_parameter('IonsOnCamera','fit_amplitude', params['amplitude'].value)
