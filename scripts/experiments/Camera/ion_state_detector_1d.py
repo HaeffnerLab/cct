@@ -4,7 +4,7 @@ import camera_pmt as cpmt
 
 class ion_state_detector(object):
     """1D ion state detector: Should only be used with horizontal ion strings"""
-    def __init__(self, ion_positions, model_threshold = 0.01):
+    def __init__(self, ion_positions, model_threshold = 2):
         """1D ion state detector: Should only be used with horizontal ion strings
         ion_positions: array of ion x positions
         model_threshold: float threshold determining the range over with the chi^2 is calculated
@@ -106,8 +106,9 @@ class ion_state_detector(object):
     
     def fitting_error(self, params , xx, yy,  data):
         data = data.sum(axis=0)
+        data = data - data[0]
         model = self.ion_model(params, xx, yy)
-        scaled_difference = (model - data) / np.sqrt(data)
+        scaled_difference = (model - data) #/ np.sqrt(data)
         position_list = []
         try:
             i = 0
@@ -118,7 +119,8 @@ class ion_state_detector(object):
             pass
         use_x = np.zeros_like(data)
         for position in position_list:
-            use_x += np.abs(xx[0,:] - position) < params['sigma'] 
+            use_x += np.abs(xx[0,:] - position) < params['sigma'] * 2
+
         scaled_difference = scaled_difference * use_x
         return scaled_difference.ravel()
     
@@ -152,15 +154,16 @@ class ion_state_detector(object):
         #background_guesse = np.sum(data[:,0]) #assumes that there are no ions at the edge of the image
         background_guess = 0
         amplitude_guess = np.sum(data[:,self.ion_positions[0]-np.min(xx)]) - np.sum(data[:,0])
-        sigma_guess = 1 #assume it's hard to resolve the ion, sigma ~ 1
-        params.add('background_level', value = background_guess, min = 0.0, vary=False)
-        params.add('amplitude', value = amplitude_guess, min = 0.0)
-        params.add('sigma', value = sigma_guess, min = 0.01, max = 10.0)
+        print 'ampl ', amplitude_guess
+        sigma_guess = 3 #assume it's hard to resolve the ion, sigma ~ 1
+        params.add('background_level', value = background_guess, min = 0.0, vary=True)
+        params.add('amplitude', value = amplitude_guess, min = 0.0, vary=True)
+        params.add('sigma', value = sigma_guess, min = 0.01, max = 10.0, vary=True)
         for [i, position] in enumerate(self.ion_positions):
             pname = 'pos' + str(i)
             params.add(pname, value=position, vary=True)
         result = lmfit.minimize(self.fitting_error, params, args = (xx, yy, data))
-        print result
+        print result.params
         self.set_fitted_parameters(params, xx, yy)
         return result, params
         

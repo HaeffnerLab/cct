@@ -101,7 +101,7 @@ class rabi_flopping(experiment):
         self.load_frequency()
         self.parameters['Excitation_729.rabi_excitation_duration'] = duration
         self.excite.set_parameters(self.parameters)
-        excitation, readouts = self.excite.run(cxn, context)
+        excitation, readouts = self.excite.run(cxn, context, image_save_context = self.rabi_flop_save_context)
         return excitation
      
     def finalize(self, cxn, context):

@@ -199,6 +199,7 @@ class base_excitation(experiment):
             #IPython.embed()
             # save the camera images
             if self.parameters.IonsOnCamera.save_images:
+                print "save images!"
                 self.dv.save_image(imagesave, [x_pixels, y_pixels], repetitions, context = image_save_context)
             readouts, confidences = self.fitter.state_detection(images, pmt_mode=False)
             ion_state = 1 - readouts.mean(axis = 0)
