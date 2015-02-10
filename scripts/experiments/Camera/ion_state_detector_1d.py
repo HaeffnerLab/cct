@@ -4,7 +4,7 @@ import camera_pmt as cpmt
 
 class ion_state_detector(object):
     """1D ion state detector: Should only be used with horizontal ion strings"""
-    def __init__(self, ion_positions, model_threshold = 2):
+    def __init__(self, ion_positions, model_threshold = 0.1):
         """1D ion state detector: Should only be used with horizontal ion strings
         ion_positions: array of ion x positions
         model_threshold: float threshold determining the range over with the chi^2 is calculated
@@ -29,7 +29,7 @@ class ion_state_detector(object):
         centered at x_center
         '''
         xx = xx[0,:]
-        result =  sigma_x * amplitude * np.exp( - (xx - x_center)**2 / (2 * sigma_x**2)) 
+        result =  amplitude * np.exp( - (xx - x_center)**2 / (2 * sigma_x**2))
         return result
 
 

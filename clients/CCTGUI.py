@@ -19,6 +19,7 @@ class cctGUI(QtGui.QMainWindow):
         from common.clients.LINETRIGGER_CONTROL import linetriggerWidget as lineTrig
         from common.clients.script_scanner_gui.script_scanner_gui import script_scanner_gui
         from common.clients.drift_tracker.drift_tracker import drift_tracker
+        from common.clients.SWITCH_CONTROL import switchWidget
         
 
         dt = drift_tracker(reactor, cxn)
@@ -33,15 +34,17 @@ class cctGUI(QtGui.QMainWindow):
         self.tabWidget.addTab(lightControlTab,'&Optics')
         self.tabWidget.addTab(script_scanner, '&Script Scanner')
         self.tabWidget.addTab(dt, '&Drift Tracker')
-        self.tabWidget.addTab(piezoControlTab, '&Piezo')
+        #self.tabWidget.addTab(piezoControlTab, '&Piezo')
         self.createGrapherTab()
         
         gridLayout = QtGui.QGridLayout()
         #gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
         gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
         rightPanel = QtGui.QGridLayout()
+
         rightPanel.addWidget(pmtWidget(reactor), 0, 0) 
         rightPanel.addWidget(lineTrig(reactor), 1, 0)
+        rightPanel.addWidget( switchWidget(reactor, cxn), 2, 0 )
         '''
         #Adding 729 Beams Position:
         #from common.clients.MOTOR_CONTROL import motorWidget
