@@ -42,7 +42,7 @@ class cctGUI(QtGui.QMainWindow):
         gridLayout.addWidget(self.tabWidget, 0, 1, 1, 3)
         rightPanel = QtGui.QGridLayout()
 
-        rightPanel.addWidget(pmtWidget(reactor), 0, 0) 
+        rightPanel.addWidget(pmtWidget(reactor), 0, 0)
         rightPanel.addWidget(lineTrig(reactor), 1, 0)
         rightPanel.addWidget( switchWidget(reactor, cxn), 2, 0 )
         '''

@@ -14,33 +14,33 @@ class detect_ion_spacing(experiment):
     
     name = 'Detect Ion Spacing'
 
-        required_parameters = [
-                           #('IonsOnCamera','ion_number'),
-                           #('IonsOnCamera','ion_positions'), #TODO ?? FIXME
-                           ('IonsOnCamera','reference_exposure_factor'),
-                           
-                           ('IonsOnCamera','vertical_min'),
-                           ('IonsOnCamera','vertical_max'),
-                           ('IonsOnCamera','vertical_bin'),
-                           
-                           ('IonsOnCamera','horizontal_min'),
-                           ('IonsOnCamera','horizontal_max'),
-                           ('IonsOnCamera','horizontal_bin'),
-                           
-                           ('StateReadout','state_readout_duration'),
-                           ('StateReadout','repeat_each_measurement'),
-                           ('StateReadout','state_readout_amplitude_397'),
-                           ('StateReadout','state_readout_frequency_397'),
-                           ('StateReadout','state_readout_frequency_397_2'),
-                           ('StateReadout','state_readout_amplitude_397_2'),
-                           ('StateReadout','state_readout_amplitude_866'),
-                           ('StateReadout','state_readout_frequency_866'),
-                           ('StateReadout','camera_trigger_width'),
-                           ('StateReadout','camera_transfer_additional'),
-                           
-                           ('DopplerCooling','doppler_cooling_repump_additional'),
-                           ]
-    
+    required_parameters = [
+        #('IonsOnCamera','ion_number'),
+        #('IonsOnCamera','ion_positions'), #TODO ?? FIXME
+        ('IonsOnCamera','reference_exposure_factor'),
+        
+        ('IonsOnCamera','vertical_min'),
+        ('IonsOnCamera','vertical_max'),
+        ('IonsOnCamera','vertical_bin'),
+        
+        ('IonsOnCamera','horizontal_min'),
+        ('IonsOnCamera','horizontal_max'),
+        ('IonsOnCamera','horizontal_bin'),
+        
+        ('StateReadout','state_readout_duration'),
+        ('StateReadout','repeat_each_measurement'),
+        ('StateReadout','state_readout_amplitude_397'),
+        ('StateReadout','state_readout_frequency_397'),
+        ('StateReadout','state_readout_frequency_397_2'),
+        ('StateReadout','state_readout_amplitude_397_2'),
+        ('StateReadout','state_readout_amplitude_866'),
+        ('StateReadout','state_readout_frequency_866'),
+        ('StateReadout','camera_trigger_width'),
+        ('StateReadout','camera_transfer_additional'),
+        
+        ('DopplerCooling','doppler_cooling_repump_additional'),
+        ]
+
     @classmethod
     def all_required_parameters(cls):
         parameters = set(cls.required_parameters)
@@ -125,26 +125,28 @@ class detect_ion_spacing(experiment):
         #ideally graphing should be done by saving to data vault and using the grapher
         #p = Process(target = self.fitter.graph, args = (x_axis, y_axis, image, params, result))
         #p.start()
-
+        pylab.figure()
         pylab.imshow(image)
-
-        img_1d = np.sum(imgage, axis=0)
+        pylab.show()
+        pylab.figure()
+        img_1d = np.sum(image, axis=0)
         pylab.plot(img_1d)
-        threshold = ginput(0)
+        threshold = pylab.ginput(0)
         threshold = threshold[0][1]
         print threshold
 
-        ion_edges = self.isolate_ions(img_1d)
-        centers = self.fit_individual_ions(img_1d)
+        ion_edges = self.isolate_ions(img_1d, threshold)
+        centers = self.fit_individual_ions(img_1d, ion_edges)
 
         deltax = []
         for i, x in enumerate(ion_edges):
             try: deltax.append( centers[i+1] - centers[i] )
             except: pass
+        pylab.figure()
+        pylab.plot(deltax, 'o')
+        pylab.show()
 
-        pylab.plot(deltax)
-
-    def isolate_ions(self, img_1d):
+    def isolate_ions(self, img_1d, threshold):
         current_state = 'off_ion'
         ion_edges = []
         for psn, x in enumerate(img_1d):
@@ -159,7 +161,7 @@ class detect_ion_spacing(experiment):
                 pass
         return ion_edges
 
-    def fit_individual_ions(self, img_1d):
+    def fit_individual_ions(self, img_1d, ion_edges):
         from lmfit.models1d import  GaussianModel
         centers = []
         for i, (xmin, xmax) in enumerate(ion_edges):

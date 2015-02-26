@@ -25,8 +25,11 @@ class doppler_cooling(pulse_sequence):
         self.addDDS('397_2',self.start, p.doppler_cooling_duration, p.doppler_cooling_frequency_397_2, p.doppler_cooling_amplitude_397_2)
 
         self.addDDS('866',self.start, repump_duration, p.doppler_cooling_frequency_866, p.doppler_cooling_amplitude_866)
-
-
+        
+        ##### TURN THE RF BIAS OFF DURING DOPPLER COOLING #########
         if p.mode_swapping_enable:
-          self.addDDS('parametric_coupling', self.start, p.doppler_cooling_duration, pc.drive_frequency, pc.drive_amplitude)
+          self.addTTL('bias', self.start, p.doppler_cooling_duration)
+
+        #if p.mode_swapping_enable:
+        #  self.addDDS('parametric_coupling', self.start, p.doppler_cooling_duration, pc.drive_frequency, pc.drive_amplitude)
         self.end = self.start + repump_duration
