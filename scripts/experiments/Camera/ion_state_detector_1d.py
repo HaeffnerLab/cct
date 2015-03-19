@@ -64,7 +64,7 @@ class ion_state_detector(object):
         sigma = params['sigma'].value #width along the axis
         for i in range(self.ion_number):
             if use_1d:
-                ion_gaussians[i] = self.gaussian_1D(xx,  self.ion_positions[i], 
+                ion_gaussians[i] = self.gaussian_1D(xx,  position_list[i], 
                                                      sigma, amplitude)
             else:
                 raise NotImplementedError("Cannot do 2 dimensional fit anymore - Sorry")
@@ -156,11 +156,11 @@ class ion_state_detector(object):
         sigma_guess = 3 #assume it's hard to resolve the ion, sigma ~ 1
         params.add('background_level', value = background_guess, min = 0.0, vary=True)
         params.add('amplitude', value = amplitude_guess, min = 0.0, vary=True)
-        params.add('sigma', value = sigma_guess, min = 0.01, max = 10.0, vary=True)
+        params.add('sigma', value = sigma_guess, min = 0.01, max = 10.0, vary=False)
         for [i, position] in enumerate(self.ion_positions):
             pname = 'pos' + str(i)
             params.add(pname, value=position, vary=True)
-        result = lmfit.minimize(self.fitting_error, params, args = (xx, yy, data))
+        result = lmfit.minimize(self.fitting_error, params, args = (xx, yy, data), method='leastsq')
         print result.params
         self.set_fitted_parameters(params, xx, yy)
         return result, params
