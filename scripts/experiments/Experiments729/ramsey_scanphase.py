@@ -74,6 +74,8 @@ class ramsey_scanphase(experiment):
         directory.extend(dirappend)
         output_size = self.excite.output_size
         dependants = [('Excitation','Ion {}'.format(ion),'Probability') for ion in range(output_size)]
+
+        self.dv.cd(directory, True,context = self.data_save_context)
         self.dv.new('{0} {1}'.format(self.name, datasetNameAppend),[('Second pulse phase', 'deg')], dependants , context = self.data_save_context)
         window_name = self.parameters.get('RamseyScanPhase.window_name', ['Ramsey Phase Scan'])
         self.dv.add_parameter('Window', window_name, context = self.data_save_context)

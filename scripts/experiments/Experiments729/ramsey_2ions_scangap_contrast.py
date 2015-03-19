@@ -101,22 +101,22 @@ class ramsey_2ions_scangap_parity(experiment):
             self.parameters['Ramsey_2ions.ramsey_time'] = duration
             
             phi = WithUnit(0., 'deg')
-            self.parameters['Ramsey_2ions.single_pass_phase'] = phi
+            self.parameters['Ramsey.second_pulse_phase'] = phi
             self.excite.set_parameters(self.parameters)
             excitation,readouts = self.excite.run(cxn, context, image_save_context = self.data_save_context)
-            p0 = self.compute_parity(readouts,position1,position2)
+            p0 = excitation
 
             phi = WithUnit(90., 'deg')
-            self.parameters['Ramsey_2ions.single_pass_phase'] = phi
+            self.parameters['Ramsey.second_pulse_phase'] = phi
             self.excite.set_parameters(self.parameters)
             excitation,readouts = self.excite.run(cxn, context, image_save_context = self.data_save_context)
-            p90 = self.compute_parity(readouts,position1,position2)
+            p90 = excitation
 
             phi = WithUnit(180., 'deg')
-            self.parameters['Ramsey_2ions.single_pass_phase'] = phi
+            self.parameters['Ramsey.second_pulse_phase'] = phi
             self.excite.set_parameters(self.parameters)
             excitation,readouts = self.excite.run(cxn, context, image_save_context = self.data_save_context)
-            p180 = self.compute_parity(readouts,position1,position2)
+            p180 = excitation
 
             c = np.sqrt((p0 - 0.5*(p0 + p180))**2 + (p90 - 0.5*(p0 + p180) )**2)
 

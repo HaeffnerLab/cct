@@ -129,8 +129,6 @@ class ion_state_detector(object):
         '''
         sum_selected_gaussians =  np.tensordot(selection, self.fitted_gaussians_1d, axes = (1, 0))
         sum_selected_gaussians = sum_selected_gaussians[:, None, :]
-        image_size = float(image.shape[1] * image.shape[2]) 
-        image = image.sum(1)
 
         image = image - image[:,0].mean() #Remove background
 
@@ -139,7 +137,7 @@ class ion_state_detector(object):
         a1d[low_values_indices] = 0  # All low values set to 0
         weight = a1d[None, None, :]
 
-        chi_sq = (sum_selected_gaussians - image)**2 * weight / image_size
+        chi_sq = (sum_selected_gaussians - image)**2 * weight / np.sum(weight)
         #chi_sq = (sum_selected_gaussians - image)**2 / image_size
         chi_sq = chi_sq.sum(axis = 2) 
         best_states = selection[np.argmin(chi_sq, axis = 0)]

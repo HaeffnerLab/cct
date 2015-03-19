@@ -156,12 +156,18 @@ class base_excitation(experiment):
         #self.plot_current_sequence(cxn)
         if self.use_camera:
             #print 'starting acquisition'
+            tbegin = time.time()
             self.camera.set_number_kinetics(repetitions)
             self.camera.start_acquisition()
+            t = time.time() - tbegin
+            print "time to setup camera: " + str(t)
         #time.sleep(0.5)
+        tbegin = time.time()
         self.pulser.start_number(repetitions)
         self.pulser.wait_sequence_done()
         self.pulser.stop_sequence()
+        t = time.time() - tbegin
+        print "pulse sequence duration: " + str(t)
         if not self.use_camera:
             #get percentage of the excitation using the PMT threshold
             readouts = self.pulser.get_readout_counts().asarray
@@ -183,24 +189,27 @@ class base_excitation(experiment):
                 #raise Exception ("Did not get all kinetic images from camera")
                 print "Did not get kinetics from camera. Re-running the point."
                 self.run(cxn, context)
-            images = self.camera.get_acquired_data(repetitions).asarray
+            tbegin = time.time()
+            images = self.camera.get_summed_data(repetitions).asarray
+            t = time.time() - tbegin
+            print "time to get images: " + str(t)
             imagesave = images
             self.camera.abort_acquisition()
             x_pixels = int( (self.image_region[3] - self.image_region[2] + 1.) / (self.image_region[0]) )
             y_pixels = int(self.image_region[5] - self.image_region[4] + 1.) / (self.image_region[1])
-            images = numpy.reshape(images, (repetitions, y_pixels, x_pixels))
+            images = numpy.reshape(images, (repetitions, x_pixels))
             #import IPython
             #IPython.embed()
             ########## Remove the high intensity line:
             for image in images:
-                for i in range(image.shape[0]): image[i][-1] = image[i][-2]
-            #########################################
+                image[-1] = image[-2]
+           #########################################
             #import IPython
             #IPython.embed()
             # save the camera images
             if self.parameters.IonsOnCamera.save_images:
                 print "save images!"
-                self.dv.save_image(imagesave, [x_pixels, y_pixels], repetitions, context = image_save_context)
+                self.dv.save_image(imagesave, [x_pixels, 1], repetitions, context = image_save_context)
             readouts, confidences = self.fitter.state_detection(images, pmt_mode=False)
             ion_state = 1 - readouts.mean(axis = 0)
             #useful for debugging, saving the images
@@ -216,13 +225,13 @@ class base_excitation(experiment):
             return 1
     
     def finalize(self, cxn, context):
-        if self.use_camera:
+        #if self.use_camera:
             #if used the camera, return it to the original settings
-            self.camera.set_trigger_mode(self.initial_trigger_mode)
-            self.camera.set_exposure_time(self.initial_exposure)
-            self.camera.set_image_region(self.initial_region)
-            if self.camera_initially_live_display:
-                self.camera.start_live_display()
+            #self.camera.set_trigger_mode(self.initial_trigger_mode)
+            #self.camera.set_exposure_time(self.initial_exposure)
+            #self.camera.set_image_region(self.initial_region)
+            #if self.camera_initially_live_display:
+            #    self.camera.start_live_display()
         self.cxncam.disconnect()
                
     def save_data(self, readouts):
