@@ -104,7 +104,7 @@ class CCTGUI(QtGui.QMainWindow):
         return widget
         
     def makeVoltageWidget(self, reactor):        
-        from common.clients.DAC_CONTROL import DAC_Control
+        from DAC_CONTROL import DAC_Control
         #from PMT_CONTROL import pmtWidget
         #from PMT_CONTROL2 import pmtWidget as pmtWidget2
         from TRAPDRIVE_CONTROL import TD_CONTROL
