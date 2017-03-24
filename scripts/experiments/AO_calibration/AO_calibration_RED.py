@@ -1,6 +1,6 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.scriptLibrary import dvParameters
-from space_time.scripts.scriptLibrary.fly_processing import Binner
+from cct.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.fly_processing import Binner
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
 import time
 from numpy import linspace

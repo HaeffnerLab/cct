@@ -1,8 +1,8 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.PulseSequences.bare_line_scan import bare_line_scan as sequence
-from space_time.scripts.scriptLibrary import dvParameters
-from space_time.scripts.scriptLibrary.fly_processing import Binner
-from space_time.scripts.experiments.Crystallization.crystallization import crystallization
+from cct.scripts.PulseSequences.bare_line_scan import bare_line_scan as sequence
+from cct.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.fly_processing import Binner
+from cct.scripts.experiments.Crystallization.crystallization import crystallization
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
 import time
 from numpy import linspace

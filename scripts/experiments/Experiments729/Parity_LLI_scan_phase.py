@@ -1,8 +1,8 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from excitations import excitation_ramsey_2ions
-from space_time.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from space_time.scripts.experiments.Crystallization.crystallization import crystallization
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.experiments.Crystallization.crystallization import crystallization
+from cct.scripts.scriptLibrary import dvParameters
 import time
 import labrad
 from labrad.units import WithUnit

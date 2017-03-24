@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
 from vaet_scan_delta import vaet_scan_delta as vaet
-from space_time.scripts.scriptLibrary import scan_methods
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary import scan_methods
+from cct.scripts.scriptLibrary import dvParameters
 #from fitters import peak_fitter
 from labrad.units import WithUnit
 from treedict import TreeDict

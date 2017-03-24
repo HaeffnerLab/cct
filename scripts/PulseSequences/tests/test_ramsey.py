@@ -1,5 +1,5 @@
 from labrad.units import WithUnit
-from space_time.scripts.PulseSequences.ramsey import ramsey
+from cct.scripts.PulseSequences.ramsey import ramsey
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
            
 class test_parameters(object):

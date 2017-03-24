@@ -1,5 +1,5 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
 from excitations import excitation_ramsey
 from treedict import TreeDict
 from labrad.units import WithUnit

@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.PulseSequences.lifetime_p import lifetime_p as sequence
-from space_time.scripts.scriptLibrary import dvParameters
-from space_time.scripts.scriptLibrary.fly_processing import Binner
+from cct.scripts.PulseSequences.lifetime_p import lifetime_p as sequence
+from cct.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary.fly_processing import Binner
 import time
 import numpy
 import labrad

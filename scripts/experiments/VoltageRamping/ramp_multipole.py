@@ -1,5 +1,5 @@
-from space_time.scripts.PulseSequences.advanceDACsShuttle import advance_DACs_shuttle
-from space_time.scripts.PulseSequences.resetDACs import reset_DACs
+from cct.scripts.PulseSequences.advanceDACsShuttle import advance_DACs_shuttle
+from cct.scripts.PulseSequences.resetDACs import reset_DACs
 from common.abstractdevices.script_scanner.scan_methods import experiment
 
 class ramp_multipole(experiment):

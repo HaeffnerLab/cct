@@ -1,7 +1,7 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.experiments.Experiments729.rabi_flopping import rabi_flopping
-from space_time.scripts.scriptLibrary import scan_methods
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.experiments.Experiments729.rabi_flopping import rabi_flopping
+from cct.scripts.scriptLibrary import scan_methods
+from cct.scripts.scriptLibrary import dvParameters
 from fitters import peak_fitter
 from labrad.units import WithUnit
 from treedict import TreeDict
@@ -9,7 +9,7 @@ import time
 import numpy as np
 import labrad
 
-from space_time.scripts.sciptLibrary import singlepass
+from cct.scripts.sciptLibrary import singlepass
 
 class calibrate_sigmaz(experiment):
 

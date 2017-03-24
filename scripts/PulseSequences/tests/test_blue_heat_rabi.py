@@ -1,6 +1,6 @@
 from labrad.units import WithUnit
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
-from space_time.scripts.PulseSequences.blue_heat_rabi import blue_heat_rabi as tested_sequence
+from cct.scripts.PulseSequences.blue_heat_rabi import blue_heat_rabi as tested_sequence
 
 class test_parameters(object):
     

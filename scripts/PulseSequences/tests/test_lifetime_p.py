@@ -1,6 +1,6 @@
 from labrad.units import WithUnit
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
-from space_time.scripts.PulseSequences.lifetime_p import lifetime_p
+from cct.scripts.PulseSequences.lifetime_p import lifetime_p
 
 class test_parameters(object):
     

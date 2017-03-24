@@ -12,8 +12,8 @@ powers = np.linspace(minpower, maxpower, steps)
 #connect and define servers we'll be using
 cxn = labrad.connect()
 dv = cxn.data_vault
-axial = cxn.rohdeschwarz_server#axial = cxn.space_time_pc_hp_server
-axial.select_device('space_time-pc GPIB Bus - USB0::0x0AAD::0x0054::104543')
+axial = cxn.rohdeschwarz_server#axial = cxn.cct_pc_hp_server
+axial.select_device('cct-pc GPIB Bus - USB0::0x0AAD::0x0054::104543')
 initpower = axial.amplitude()
 print 'initial power',initpower
 pulser = cxn.pulser

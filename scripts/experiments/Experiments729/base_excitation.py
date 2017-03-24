@@ -1,6 +1,6 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from space_time.scripts.experiments.Camera.ion_state_detector import ion_state_detector
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.experiments.Camera.ion_state_detector import ion_state_detector
 from labrad.units import WithUnit
 import numpy
 import time

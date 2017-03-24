@@ -1,6 +1,6 @@
 from labrad.units import WithUnit
 from common.okfpgaservers.pulser.pulse_sequences.plot_sequence import SequencePlotter
-from space_time.scripts.PulseSequences.spectrum_rabi import spectrum_rabi 
+from cct.scripts.PulseSequences.spectrum_rabi import spectrum_rabi 
 
 class test_parameters(object):
     

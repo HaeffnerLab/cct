@@ -1,5 +1,5 @@
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.experiments.Camera.ion_state_detector import ion_state_detector
+from cct.scripts.experiments.Camera.ion_state_detector import ion_state_detector
 from labrad.units import WithUnit
 import numpy as np
 

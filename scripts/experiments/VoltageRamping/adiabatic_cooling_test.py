@@ -1,12 +1,12 @@
-from space_time.scripts.PulseSequences.advanceDACsShuttle import advance_DACs_shuttle
-from space_time.scripts.PulseSequences.resetDACs import reset_DACs
+from cct.scripts.PulseSequences.advanceDACsShuttle import advance_DACs_shuttle
+from cct.scripts.PulseSequences.resetDACs import reset_DACs
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.experiments.Experiments729.excitations import excitation_729
-from space_time.scripts.experiments.Experiments729.excitations import excitation_729_with_multipole_ramp
-from space_time.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.experiments.Experiments729.excitations import excitation_729
+from cct.scripts.experiments.Experiments729.excitations import excitation_729_with_multipole_ramp
+from cct.scripts.scriptLibrary.common_methods_729 import common_methods_729 as cm
+from cct.scripts.scriptLibrary import dvParameters
 
-#from space_time.scripts.experiments.Crystallization.crystallization import crystallization
+#from cct.scripts.experiments.Crystallization.crystallization import crystallization
 
 import time
 import labrad

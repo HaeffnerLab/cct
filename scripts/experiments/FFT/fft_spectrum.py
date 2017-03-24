@@ -1,11 +1,11 @@
 import labrad
 import numpy as np
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.PulseSequences.subsequences.RecordTimeTags import record_timetags
+from cct.scripts.PulseSequences.subsequences.RecordTimeTags import record_timetags
 from processFFT import processFFT
 from treedict import TreeDict
 import time
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.scriptLibrary import dvParameters
 from labrad.units import WithUnit
 
 class fft_spectrum(experiment):

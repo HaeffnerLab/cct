@@ -1,10 +1,10 @@
 # motional ramsey experiment on one radial mode
 
 from common.abstractdevices.script_scanner.scan_methods import experiment
-from space_time.scripts.experiments.Experiments729.rabi_flop_scannable import rabi_flopping_scannable as rf
-from space_time.scripts.scriptLibrary.devices import agilent
-from space_time.scripts.scriptLibrary import scan_methods
-from space_time.scripts.scriptLibrary import dvParameters
+from cct.scripts.experiments.Experiments729.rabi_flop_scannable import rabi_flopping_scannable as rf
+from cct.scripts.scriptLibrary.devices import agilent
+from cct.scripts.scriptLibrary import scan_methods
+from cct.scripts.scriptLibrary import dvParameters
 from labrad.units import WithUnit
 from treedict import TreeDict
 import numpy as np

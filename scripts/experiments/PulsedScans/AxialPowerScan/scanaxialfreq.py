@@ -13,7 +13,7 @@ freqs = np.linspace(minfreq, maxfreq, steps)
 cxn = labrad.connect()
 dv = cxn.data_vault
 axial = cxn.rohdeschwarz_server
-axial.select_device('space_time-pc GPIB Bus - USB0::0x0AAD::0x0054::104543')
+axial.select_device('cct-pc GPIB Bus - USB0::0x0AAD::0x0054::104543')
 initfreq = axial.frequency()
 print 'initial power',initfreq
 pulser = cxn.pulser

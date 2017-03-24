@@ -1,5 +1,5 @@
 from common.okfpgaservers.pulser.pulse_sequences.pulse_sequence import pulse_sequence
-from space_time.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
+from cct.scripts.PulseSequences.subsequences.DopplerCooling import doppler_cooling
 from EmptySequence import empty_sequence
 from treedict import TreeDict
 from labrad.units import WithUnit
