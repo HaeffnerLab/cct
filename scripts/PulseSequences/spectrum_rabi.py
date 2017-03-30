@@ -32,7 +32,6 @@ class spectrum_rabi(pulse_sequence):
         self.end = WithUnit(10, 'us')
         self.addSequence(turn_off_all)
         #self.addSequence(sample_pid)
-        
         self.addSequence(doppler_cooling_after_repump_d)
         if p.StatePreparation.optical_pumping_enable:
             self.addSequence(optical_pumping)
@@ -45,6 +44,6 @@ class spectrum_rabi(pulse_sequence):
         
         if p.Motion_Analysis.excitation_enable:
             self.addSequence(motion_analysis)
-                
+
         self.addSequence(rabi_excitation_select_channel)
         self.addSequence(tomography_readout)

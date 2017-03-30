@@ -19,7 +19,7 @@ class CCTGUI(QtGui.QMainWindow):
         from common.clients.PMT_CONTROL import pmtWidget
         from common.clients.LINETRIGGER_CONTROL import linetriggerWidget as lineTrig
         from common.clients.script_scanner_gui.script_scanner_gui import script_scanner_gui
-        # from common.clients.drift_tracker.drift_tracker import drift_tracker
+        from common.clients.drift_tracker.drift_tracker import drift_tracker
         from common.clients.SWITCH_CONTROL import switchWidget
         
 
@@ -34,17 +34,18 @@ class CCTGUI(QtGui.QMainWindow):
         voltageControlTab = self.makeVoltageWidget(reactor)
         piezoControlTab = self.makePiezoWidget(reactor)
         script_scanner = script_scanner_gui(reactor, cxn)
-        # grapherTab = yield self.makeGrapherWidget(reactor)
-        # histogram = self.make_histogram_widget(reactor, cxn)
+        #grapherTab = yield self.makeGrapherWidget(reactor)
+        histogram = self.make_histogram_widget(reactor, cxn)
+        dt = drift_tracker(reactor, cxn)
 
         self.tabWidget.addTab(voltageControlTab,'&Trap Voltages')
         self.tabWidget.addTab(lightControlTab,'&Optics')
         self.tabWidget.addTab(script_scanner, '&Script Scanner')
-        self.createGrapherTab()
-        # self.tabWidget.addTab(dt, '&Drift Tracker')
+        #self.createGrapherTab()
+        self.tabWidget.addTab(dt, '&Drift Tracker')
         #self.tabWidget.addTab(piezoControlTab, '&Piezo')
         # self.tabWidget.addTab(grapherTab, '&Grapher')
-        # self.tabWidget.addTab(histogram, '&Readout Histogram')
+        self.tabWidget.addTab(histogram, '&Readout Histogram')
         
         gridLayout = QtGui.QGridLayout()
         #gridLayout.addWidget(scriptControl, 0, 0, 1, 1)
@@ -133,12 +134,12 @@ class CCTGUI(QtGui.QMainWindow):
         grapherTab = yield self.makeGrapherWidget(reactor)
         self.tabWidget.addTab(grapherTab, '&Grapher')
 
-    # def make_histogram_widget(self, reactor, cxn):
-    #     histograms_tab = QtGui.QTabWidget()
-    #     from common.clients.readout_histogram import readout_histogram
-    #     pmt_readout = readout_histogram(reactor, cxn)
-    #     histograms_tab.addTab(pmt_readout, "PMT")
-    #     return histograms_tab
+    def make_histogram_widget(self, reactor, cxn):
+         histograms_tab = QtGui.QTabWidget()
+         from common.clients.readout_histogram import readout_histogram
+         pmt_readout = readout_histogram(reactor, cxn)
+         histograms_tab.addTab(pmt_readout, "PMT")
+         return histograms_tab
 
     @inlineCallbacks
     def makeGrapherWidget(self, reactor):
