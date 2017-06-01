@@ -67,7 +67,9 @@ class DAC_CALIBRATOR(QDACCalibrator):
         if self.checksave.isChecked():
             # self.registry.cd(['', 'Calibrations'], True)
             #self.registry.mkdir(str(self.channelToCalib))
-            self.registry.cd(['', 'Calibrations', str(self.channelToCalib)], True)
+            #self.registry.cd(['', 'Calibrations', str(self.channelToCalib)], True)
+            print ['', 'Servers', 'CCTDAC Server', 'Calibrations', str(self.channelToCalib)]
+            self.registry.cd(['', 'Servers', 'CCTDAC Server', 'Calibrations', str(self.channelToCalib)], True)
             self.registry.set('c0', fit[3])
             self.registry.set('c1', fit[2])
             self.registry.set('c2', fit[1])
