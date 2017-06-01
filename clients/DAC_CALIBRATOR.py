@@ -107,11 +107,11 @@ class DAC_CALIBRATOR(QDACCalibrator):
 
 if __name__=="__main__":
     import labrad
-    cxn = labrad.connect()
-    cxncam = labrad.connect('192.168.169.30')
+    cxn = labrad.connect('192.168.169.227')
+    cxncam = labrad.connect()
     dacserver = cxn.dac_server
     dmmserver = cxncam.keithley_2100_dmm
-    dmmserver.select_device('GPIB Bus - USB0::0x05E6::0x2100::1243106')
+    dmmserver.select_device()
     app = QtGui.QApplication(sys.argv)
     icon = DAC_CALIBRATOR(cxncam, cxn)
     icon.show()
