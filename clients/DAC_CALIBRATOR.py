@@ -91,8 +91,8 @@ class DAC_CALIBRATOR(QDACCalibrator):
         fitvals = np.array([ v*v*v*fit[0] + v*v*fit[1] + v * fit[2] + fit[3] for v in self.anaVoltages])
         diffs = fitvals - self.digVoltages
 
-        m = 80./(2**16 - 1)
-        b = -40
+        m = 20./(2**16 - 1)
+        b = -10
         idealVals = np.array([m*v + b for v in self.digVoltages])
         uncalDiffs = idealVals - self.anaVoltages
         
